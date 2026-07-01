@@ -18,6 +18,9 @@
     nav .nav-right { display: flex; align-items: center; gap: 20px; }
     nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
     .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .bell { position: relative; font-size: 20px; text-decoration: none; }
+    .bell-badge { position: absolute; top: -6px; right: -8px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; }
     .layout { display: grid; grid-template-columns: 380px 1fr; height: calc(100vh - 64px); }
     /* Sidebar */
     .sidebar { background: #fff; border-right: 1px solid #e2e8f0; overflow-y: auto; display: flex; flex-direction: column; z-index: 100; }
@@ -98,6 +101,8 @@
     <div class="nav-right">
       <a href="dashboard.html">← My Pets</a>
       <a href="report.html">Report Found</a>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <a class="bell" href="notifications.html">🔔<span class="bell-badge">3</span></a>
       <div class="avatar">ZC</div>
     </div>
   </nav>

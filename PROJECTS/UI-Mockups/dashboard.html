@@ -12,40 +12,91 @@
     nav .logo span { color: #93c5fd; }
     nav .nav-right { display: flex; align-items: center; gap: 20px; }
     nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    nav .nav-right a:hover { color: #fff; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .store-link:hover { background: #d97706; color: #fff !important; }
     .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; cursor: pointer; }
-    .bell { color: #bfdbfe; font-size: 20px; cursor: pointer; position: relative; }
-    .bell-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
-    .main { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
-    .page-header h1 { font-size: 28px; font-weight: 700; }
-    .page-header .sub { color: #64748b; font-size: 15px; margin-top: 4px; }
-    .btn-primary { background: #1d4ed8; color: #fff; padding: 11px 24px; border-radius: 9px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; }
-    .pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .bell { color: #bfdbfe; font-size: 20px; cursor: pointer; position: relative; text-decoration: none; }
+    .bell-badge { position: absolute; top: -4px; right: -6px; background: #ef4444; color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+
+    /* Notification permission banner */
+    .notif-banner { background: linear-gradient(90deg, #1e40af, #1d4ed8); color: #fff; padding: 12px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .notif-banner p { font-size: 14px; }
+    .notif-banner strong { font-weight: 700; }
+    .notif-banner .notif-btns { display: flex; gap: 10px; flex-shrink: 0; }
+    .btn-allow { background: #fff; color: #1d4ed8; border: none; padding: 7px 18px; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .btn-dismiss { background: transparent; color: #bfdbfe; border: 1px solid #bfdbfe; padding: 7px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+
+    /* Top ad banner */
+    .ad-banner-top { background: #fefce8; border-bottom: 1px solid #fde68a; padding: 8px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .ad-label { font-size: 10px; color: #92400e; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .ad-content { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center; }
+    .ad-content img { width: 32px; height: 32px; border-radius: 6px; background: #d1d5db; display: block; }
+    .ad-text { font-size: 13px; color: #1e293b; }
+    .ad-text strong { color: #1d4ed8; }
+    .ad-cta { background: #1d4ed8; color: #fff; border: none; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .ad-close { color: #94a3b8; font-size: 18px; cursor: pointer; background: none; border: none; line-height: 1; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 32px 32px; display: grid; grid-template-columns: 1fr 260px; gap: 32px; }
+    .main-content { min-width: 0; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-header h1 { font-size: 26px; font-weight: 700; }
+    .page-header .sub { color: #64748b; font-size: 14px; margin-top: 3px; }
+    .btn-primary { background: #1d4ed8; color: #fff; padding: 10px 22px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; border: none; }
+    .pet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
     .pet-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-    .pet-photo { height: 180px; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 72px; position: relative; }
-    .status-badge { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+    .pet-photo { height: 160px; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 64px; position: relative; }
+    .status-badge { position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
     .status-safe { background: #dcfce7; color: #15803d; }
     .status-lost { background: #fee2e2; color: #b91c1c; }
-    .pet-info { padding: 20px; }
-    .pet-name { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
-    .pet-desc { color: #64748b; font-size: 13px; margin-bottom: 14px; }
-    .pet-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-    .tag { background: #f1f5f9; color: #475569; font-size: 12px; padding: 3px 10px; border-radius: 99px; }
+    .pet-info { padding: 16px; }
+    .pet-name { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+    .pet-desc { color: #64748b; font-size: 13px; margin-bottom: 12px; }
+    .pet-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag { background: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 8px; border-radius: 99px; }
     .tag-blue { background: #eff6ff; color: #1d4ed8; }
-    .pet-actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+    .pet-actions { display: flex; gap: 6px; }
+    .btn-sm { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
     .btn-sm-red { background: #fee2e2; color: #b91c1c; }
     .btn-sm-blue { background: #eff6ff; color: #1d4ed8; }
     .btn-sm-gray { background: #f1f5f9; color: #475569; }
-    .add-pet-card { background: #fff; border: 2px dashed #cbd5e1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 320px; cursor: pointer; color: #94a3b8; gap: 12px; transition: border-color .2s; }
+    .add-pet-card { background: #fff; border: 2px dashed #cbd5e1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 280px; cursor: pointer; color: #94a3b8; gap: 10px; }
     .add-pet-card:hover { border-color: #1d4ed8; color: #1d4ed8; }
-    .add-pet-card .plus { font-size: 40px; }
-    .add-pet-card p { font-size: 15px; font-weight: 600; }
-    .alert-banner { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 20px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
-    .alert-banner .icon { font-size: 22px; }
-    .alert-banner p { font-size: 14px; color: #92400e; }
-    .alert-banner strong { color: #78350f; }
+    .add-pet-card .plus { font-size: 36px; }
+    .add-pet-card p { font-size: 14px; font-weight: 600; }
+    .alert-banner { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    .alert-banner .icon { font-size: 20px; }
+    .alert-banner p { font-size: 13px; color: #92400e; }
     .alert-banner a { color: #c2410c; font-weight: 600; text-decoration: none; }
+
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+    .sidebar-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .sidebar-card-header { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 700; color: #374151; }
+    .sidebar-card-body { padding: 14px 16px; }
+    .notif-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; margin-top: 5px; }
+    .notif-dot-blue { background: #3b82f6; }
+    .notif-dot-green { background: #22c55e; }
+    .notif-text { font-size: 12px; color: #374151; line-height: 1.5; }
+    .notif-time { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+    .view-all { display: block; text-align: center; font-size: 12px; color: #1d4ed8; text-decoration: none; font-weight: 600; padding-top: 10px; }
+
+    /* Ad sidebar */
+    .ad-sidebar { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .ad-sidebar-label { background: #f8fafc; padding: 6px 14px; font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #f1f5f9; }
+    .ad-sidebar-body { padding: 16px; text-align: center; }
+    .ad-sidebar-body .ad-img { width: 100%; height: 120px; background: linear-gradient(135deg, #e0f2fe, #bfdbfe); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 10px; }
+    .ad-sidebar-body .ad-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .ad-sidebar-body .ad-sub { font-size: 12px; color: #64748b; margin-bottom: 10px; }
+    .ad-sidebar-btn { width: 100%; padding: 8px; background: #059669; color: #fff; border: none; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* Store promo */
+    .store-promo { background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; padding: 16px; color: #fff; }
+    .store-promo h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .store-promo p { font-size: 12px; opacity: .9; margin-bottom: 12px; }
+    .store-promo-btn { background: #fff; color: #d97706; border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%; }
   </style>
 </head>
 <body>
@@ -54,64 +105,134 @@
     <div class="nav-right">
       <a href="search.html">Find a Pet</a>
       <a href="report.html">Report Found</a>
-      <div class="bell" style="position:relative">🔔<span class="bell-badge">1</span></div>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <a class="bell" href="notifications.html" style="position:relative">🔔<span class="bell-badge">3</span></a>
       <div class="avatar">ZC</div>
     </div>
   </nav>
 
+  <!-- Notification Permission Banner -->
+  <div class="notif-banner" id="notifBanner">
+    <p>🔔 <strong>Enable notifications</strong> to get BOLO alerts when you're near a missing pet, and updates when pets are reported lost in your area.</p>
+    <div class="notif-btns">
+      <button class="btn-allow" onclick="document.getElementById('notifBanner').style.display='none'; alert('Notifications enabled! You will now receive BOLO alerts and lost pet updates.')">Allow Notifications</button>
+      <button class="btn-dismiss" onclick="document.getElementById('notifBanner').style.display='none'">Not Now</button>
+    </div>
+  </div>
+
+  <!-- Top Ad Banner -->
+  <div class="ad-banner-top" id="adBanner">
+    <span class="ad-label">Ad</span>
+    <div class="ad-content">
+      <div style="width:32px;height:32px;border-radius:6px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:18px;">🏷</div>
+      <p class="ad-text"><strong>PetTag Pro</strong> — Smart GPS collar tags with QR code + AirTag slot. 20% off for PetRecovery members.</p>
+      <button class="ad-cta">Shop Now</button>
+    </div>
+    <button class="ad-close" onclick="document.getElementById('adBanner').style.display='none'">✕</button>
+  </div>
+
   <div class="main">
-    <div class="alert-banner">
-      <div class="icon">⚠️</div>
-      <p><strong>Active Alert:</strong> A yellow Labrador was reported found 2.1 miles from Bella's last search area. <a href="search.html">View search results →</a></p>
-    </div>
-
-    <div class="page-header">
-      <div>
-        <h1>My Pets</h1>
-        <p class="sub">Manage your registered pets and their tracking devices.</p>
+    <div class="main-content">
+      <div class="alert-banner">
+        <div class="icon">⚠️</div>
+        <p><strong>Active Alert:</strong> A yellow Labrador was reported found 2.1 miles from Bella's last search area. <a href="search.html">View search results →</a></p>
       </div>
-      <button class="btn-primary" onclick="location.href='add-pet.html'">+ Add Pet</button>
+
+      <div class="page-header">
+        <div>
+          <h1>My Pets</h1>
+          <p class="sub">Manage your registered pets and tracking devices.</p>
+        </div>
+        <button class="btn-primary">+ Add Pet</button>
+      </div>
+
+      <div class="pet-grid">
+        <div class="pet-card">
+          <div class="pet-photo">🐕<span class="status-badge status-lost">⚠ LOST</span></div>
+          <div class="pet-info">
+            <div class="pet-name">Bella</div>
+            <div class="pet-desc">Yellow Labrador · Female · 4 years</div>
+            <div class="pet-tags">
+              <span class="tag">Chip: 985112000012345</span>
+              <span class="tag tag-blue">📡 AirTag</span>
+            </div>
+            <div class="pet-actions">
+              <button class="btn-sm btn-sm-red" onclick="location.href='search.html'">🔍 Active Search</button>
+              <button class="btn-sm btn-sm-gray">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pet-card">
+          <div class="pet-photo" style="background:#d1fae5">🐈<span class="status-badge status-safe">✓ Safe</span></div>
+          <div class="pet-info">
+            <div class="pet-name">Shadow</div>
+            <div class="pet-desc">Black Domestic Shorthair · Male · 2 years</div>
+            <div class="pet-tags">
+              <span class="tag">License: TX-2024-55821</span>
+              <span class="tag tag-blue">📦 Amazon Tag</span>
+            </div>
+            <div class="pet-actions">
+              <button class="btn-sm btn-sm-red">Mark Lost</button>
+              <button class="btn-sm btn-sm-blue">View Profile</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-pet-card">
+          <div class="plus">＋</div>
+          <p>Register Another Pet</p>
+        </div>
+      </div>
     </div>
 
-    <div class="pet-grid">
-      <!-- Pet 1 - Lost -->
-      <div class="pet-card">
-        <div class="pet-photo">🐕<span class="status-badge status-lost">⚠ LOST</span></div>
-        <div class="pet-info">
-          <div class="pet-name">Bella</div>
-          <div class="pet-desc">Yellow Labrador · Female · 4 years</div>
-          <div class="pet-tags">
-            <span class="tag">Microchip: 985112000012345</span>
-            <span class="tag tag-blue">📡 AirTag linked</span>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Recent Notifications -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header">🔔 Recent Notifications</div>
+        <div class="sidebar-card-body">
+          <div class="notif-item">
+            <div class="notif-dot"></div>
+            <div>
+              <div class="notif-text"><strong>Update on Bella:</strong> Community member spotted a yellow lab near S. Lamar Blvd.</div>
+              <div class="notif-time">5 min ago</div>
+            </div>
           </div>
-          <div class="pet-actions">
-            <button class="btn-sm btn-sm-red" onclick="location.href='search.html'">🔍 Active Search</button>
-            <button class="btn-sm btn-sm-gray">Edit</button>
+          <div class="notif-item">
+            <div class="notif-dot notif-dot-blue"></div>
+            <div>
+              <div class="notif-text"><strong>BOLO Alert:</strong> You are within 1 mile of where "Max" (Beagle, Brown/White) was last seen.</div>
+              <div class="notif-time">42 min ago</div>
+            </div>
           </div>
+          <div class="notif-item">
+            <div class="notif-dot notif-dot-green"></div>
+            <div>
+              <div class="notif-text"><strong>Nearby Lost Pet:</strong> "Luna" (Tabby, Orange) was reported lost 1.8 miles from your location.</div>
+              <div class="notif-time">2 hrs ago</div>
+            </div>
+          </div>
+          <a class="view-all" href="notifications.html">View all notifications →</a>
         </div>
       </div>
 
-      <!-- Pet 2 - Safe -->
-      <div class="pet-card">
-        <div class="pet-photo" style="background:#d1fae5">🐈<span class="status-badge status-safe">✓ Safe</span></div>
-        <div class="pet-info">
-          <div class="pet-name">Shadow</div>
-          <div class="pet-desc">Black Domestic Shorthair · Male · 2 years</div>
-          <div class="pet-tags">
-            <span class="tag">License: TX-2024-55821</span>
-            <span class="tag tag-blue">📦 Amazon Tag</span>
-          </div>
-          <div class="pet-actions">
-            <button class="btn-sm btn-sm-red">Mark Lost</button>
-            <button class="btn-sm btn-sm-blue">View Profile</button>
-          </div>
+      <!-- Sidebar Ad -->
+      <div class="ad-sidebar">
+        <div class="ad-sidebar-label">Advertisement</div>
+        <div class="ad-sidebar-body">
+          <div class="ad-img">🦮</div>
+          <div class="ad-title">Whistle GPS Pet Tracker</div>
+          <div class="ad-sub">Real-time GPS + health monitoring. Works with PetRecovery.</div>
+          <button class="ad-sidebar-btn">Learn More</button>
         </div>
       </div>
 
-      <!-- Add pet card -->
-      <div class="add-pet-card" onclick="location.href='add-pet.html'">
-        <div class="plus">＋</div>
-        <p>Register Another Pet</p>
+      <!-- Store Promo -->
+      <div class="store-promo">
+        <h3>🛍 PetRecovery Store</h3>
+        <p>QR pet tags, GPS collars, ID kits, and more — all ship free with orders over $35.</p>
+        <button class="store-promo-btn" onclick="location.href='store.html'">Browse Store →</button>
       </div>
     </div>
   </div>

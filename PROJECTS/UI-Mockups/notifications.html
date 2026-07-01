@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Notifications</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; text-decoration: none; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+
+    .main { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .page-header .sub { color: #64748b; font-size: 14px; }
+
+    /* Permission card */
+    .permission-card { background: linear-gradient(135deg, #1e40af, #1d4ed8); border-radius: 14px; padding: 24px 28px; color: #fff; margin-bottom: 28px; display: flex; align-items: center; gap: 20px; }
+    .permission-icon { font-size: 44px; flex-shrink: 0; }
+    .permission-text h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .permission-text p { font-size: 13px; color: #bfdbfe; line-height: 1.6; margin-bottom: 14px; }
+    .permission-btns { display: flex; gap: 10px; }
+    .btn-white { background: #fff; color: #1d4ed8; border: none; padding: 9px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-ghost { background: transparent; color: #bfdbfe; border: 1px solid #bfdbfe; padding: 9px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+    /* Notification types legend */
+    .legend { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #475569; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-red { background: #ef4444; }
+    .dot-blue { background: #3b82f6; }
+    .dot-green { background: #22c55e; }
+    .dot-amber { background: #f59e0b; }
+
+    /* Filter tabs */
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tab { padding: 7px 16px; border-radius: 99px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: #64748b; }
+    .tab.active { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+
+    /* Notification list */
+    .notif-group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; margin: 20px 0 10px; }
+    .notif-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+    .notif-card.unread { border-left: 4px solid #1d4ed8; }
+    .notif-card.unread-red { border-left: 4px solid #ef4444; }
+    .notif-card.unread-green { border-left: 4px solid #22c55e; }
+    .notif-card.unread-amber { border-left: 4px solid #f59e0b; }
+    .notif-avatar { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .bg-red { background: #fee2e2; }
+    .bg-blue { background: #eff6ff; }
+    .bg-green { background: #f0fdf4; }
+    .bg-amber { background: #fffbeb; }
+    .notif-body { flex: 1; }
+    .notif-type { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+    .type-red { color: #b91c1c; }
+    .type-blue { color: #1d4ed8; }
+    .type-green { color: #15803d; }
+    .type-amber { color: #92400e; }
+    .notif-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .notif-desc { font-size: 13px; color: #475569; line-height: 1.5; }
+    .notif-meta { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+    .notif-action { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-action { padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-action-primary { background: #1d4ed8; color: #fff; }
+    .btn-action-ghost { background: #f1f5f9; color: #475569; }
+
+    /* Settings section */
+    .settings-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-top: 32px; }
+    .settings-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f8fafc; }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .setting-info p { font-size: 12px; color: #64748b; }
+    .toggle { width: 44px; height: 26px; background: #1d4ed8; border-radius: 99px; position: relative; cursor: pointer; flex-shrink: 0; }
+    .toggle::after { content: ''; position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; top: 3px; right: 3px; }
+    .toggle-off { background: #e2e8f0; }
+    .toggle-off::after { left: 3px; right: auto; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="index.html">Pet<span>Recovery</span></a>
+    <div class="nav-right">
+      <a href="dashboard.html">← Dashboard</a>
+      <a href="search.html">Find a Pet</a>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <h1>🔔 Notifications</h1>
+      <p class="sub">Stay updated on Bella's search and lost pets near you.</p>
+    </div>
+
+    <!-- Permission Request Card -->
+    <div class="permission-card" id="permCard">
+      <div class="permission-icon">📲</div>
+      <div class="permission-text">
+        <h3>Enable Push Notifications</h3>
+        <p>Get real-time BOLO alerts when you're near a missing pet, immediate updates on your lost pet's search, and notifications when pets go missing within 2 miles of your location.</p>
+        <div class="permission-btns">
+          <button class="btn-white" onclick="document.getElementById('permCard').style.display='none'; alert('Push notifications enabled!')">Allow Notifications</button>
+          <button class="btn-ghost" onclick="document.getElementById('permCard').style.display='none'">Not Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="dot dot-red"></div> Your lost pet updates</div>
+      <div class="legend-item"><div class="dot dot-blue"></div> BOLO — you're near a missing pet</div>
+      <div class="legend-item"><div class="dot dot-green"></div> Lost pet reported near you (2 mi)</div>
+      <div class="legend-item"><div class="dot dot-amber"></div> Store & account</div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs">
+      <div class="tab active">All (7)</div>
+      <div class="tab">My Pets (3)</div>
+      <div class="tab">BOLO Alerts (2)</div>
+      <div class="tab">Nearby Lost (2)</div>
+    </div>
+
+    <div class="notif-group-label">Today</div>
+
+    <!-- Notification 1: Pet update -->
+    <div class="notif-card unread-red">
+      <div class="notif-avatar bg-red">🐕</div>
+      <div class="notif-body">
+        <div class="notif-type type-red">🔴 Your Lost Pet — Bella</div>
+        <div class="notif-title">New community sighting reported</div>
+        <div class="notif-desc">A community member reported spotting a yellow Labrador near S. Lamar Blvd & Bluebonnet Ln, Austin TX — 2.1 miles from Bella's last location.</div>
+        <div class="notif-meta">5 minutes ago · PetRecovery Community</div>
+        <div class="notif-action">
+          <button class="btn-action btn-action-primary" onclick="location.href='search.html'">View on Map</button>
+          <button class="btn-action btn-action-ghost">Dismiss</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification 2: BOLO -->
+    <div class="notif-card unread">
+      <div class="notif-avatar bg-blue">📍</div>
+      <div class="notif-body">
+        <div class="notif-type type-blue">🔵 BOLO Alert — Be On The Lookout</div>
+        <div class="notif-title">Max — Beagle, Brown & White</div>
+        <div class="notif-desc">You are within <strong>0.8 miles</strong> of where Max was last reported missing. Please keep an eye out and report any sighting through the app.</div>
+        <div class="notif-meta">42 minutes ago · 1.2 miles from current location</div>
+        <div class="notif-action">
+          <button class="btn-action btn-action-primary">Report Sighting</button>
+          <button class="btn-action btn-action-ghost">View Details</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification 3: Nearby lost pet -->
+    <div class="notif-card unread-green">
+      <div class="notif-avatar bg-green">🐈</div>
+      <div class="notif-body">
+        <div class="notif-type type-green">🟢 Lost Pet Near You</div>
+        <div class="notif-title">Luna — Orange Tabby Cat, Female</div>
+        <div class="notif-desc">A pet was reported lost 1.8 miles from your current GPS location. Owner: Sarah M. Contact available if you spot Luna.</div>
+        <div class="notif-meta">2 hours ago · 1.8 miles away</div>
+        <div class="notif-action">
+          <button class="btn-action btn-action-primary">View Lost Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification 4: Pet update from PetFinder -->
+    <div class="notif-card">
+      <div class="notif-avatar bg-red">🐕</div>
+      <div class="notif-body">
+        <div class="notif-type type-red">🔴 Your Lost Pet — Bella</div>
+        <div class="notif-title">PetFinder match found at Austin Animal Center</div>
+        <div class="notif-desc">A female yellow Labrador matching Bella's description was admitted to Austin Animal Center today. Microchip scan pending.</div>
+        <div class="notif-meta">3 hours ago · PetFinder Database</div>
+        <div class="notif-action">
+          <button class="btn-action btn-action-primary" onclick="location.href='search.html'">View Match</button>
+          <button class="btn-action btn-action-ghost">Not a Match</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notif-group-label">Yesterday</div>
+
+    <!-- Notification 5: AirTag update -->
+    <div class="notif-card">
+      <div class="notif-avatar bg-red">📡</div>
+      <div class="notif-body">
+        <div class="notif-type type-red">🔴 Your Lost Pet — Bella</div>
+        <div class="notif-title">AirTag location updated</div>
+        <div class="notif-desc">Bella's AirTag pinged a new location near Barton Hills neighborhood, Austin TX. Last signal: 6:42 PM.</div>
+        <div class="notif-meta">Yesterday, 6:43 PM · AirTag</div>
+        <div class="notif-action">
+          <button class="btn-action btn-action-primary" onclick="location.href='search.html'">View on Map</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification 6: BOLO -->
+    <div class="notif-card">
+      <div class="notif-avatar bg-blue">📍</div>
+      <div class="notif-body">
+        <div class="notif-type type-blue">🔵 BOLO Alert — Be On The Lookout</div>
+        <div class="notif-title">Coco — French Bulldog, Cream/White</div>
+        <div class="notif-desc">You passed within 0.6 miles of where Coco was last reported missing on Congress Ave.</div>
+        <div class="notif-meta">Yesterday, 2:15 PM · 0.9 miles from home</div>
+      </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="settings-card">
+      <h3>⚙️ Notification Settings</h3>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>My lost pet updates</h4>
+          <p>Updates, sightings, and database matches for your lost pets</p>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>BOLO alerts (within 1 mile)</h4>
+          <p>Notified when you enter 1 mile of where a missing pet was originally reported</p>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Nearby lost pets (within 2 miles)</h4>
+          <p>Alert when a pet is reported lost within 2 miles of your GPS location</p>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Community found reports</h4>
+          <p>When someone submits a found-pet report in your active search area</p>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <h4>Store & promotions</h4>
+          <p>Deals and new products from the PetRecovery Store</p>
+        </div>
+        <div class="toggle toggle-off"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

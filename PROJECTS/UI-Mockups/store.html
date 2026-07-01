@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Store</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; text-decoration: none; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .cart-btn { background: #fff; color: #1d4ed8; border: none; padding: 7px 16px; border-radius: 7px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+
+    /* Hero */
+    .store-hero { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 48px 64px; color: #fff; }
+    .store-hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+    .store-hero p { font-size: 16px; opacity: .9; margin-bottom: 20px; }
+    .hero-badges { display: flex; gap: 12px; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,.2); color: #fff; padding: 5px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; }
+
+    /* Ad banner */
+    .ad-strip { background: #fef9c3; border-bottom: 1px solid #fde047; padding: 8px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .ad-label { font-size: 10px; color: #713f12; font-weight: 700; text-transform: uppercase; background: #fde047; padding: 2px 8px; border-radius: 4px; }
+    .ad-strip p { font-size: 13px; color: #1e293b; flex: 1; text-align: center; }
+    .ad-strip a { color: #1d4ed8; font-weight: 600; }
+    .ad-close { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
+
+    /* Category tabs */
+    .categories { padding: 24px 48px 0; display: flex; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid #e2e8f0; background: #fff; }
+    .cat-tab { padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #64748b; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+    .cat-tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+
+    /* Main grid */
+    .main { max-width: 1200px; margin: 0 auto; padding: 36px 32px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; }
+    /* Filters */
+    .filters h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .filter-group { margin-bottom: 20px; }
+    .filter-group label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; margin-bottom: 8px; display: block; }
+    .filter-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; font-size: 14px; color: #374151; }
+    .filter-item input { accent-color: #1d4ed8; }
+    /* Products */
+    .products-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .products-header h2 { font-size: 18px; font-weight: 700; }
+    .sort-select { padding: 7px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 13px; }
+    .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .product-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .product-img { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 56px; }
+    .product-body { padding: 16px; }
+    .product-badge { display: inline-block; background: #fee2e2; color: #b91c1c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px; }
+    .product-badge-blue { background: #eff6ff; color: #1d4ed8; }
+    .product-badge-green { background: #f0fdf4; color: #15803d; }
+    .product-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .product-desc { font-size: 12px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
+    .product-footer { display: flex; align-items: center; justify-content: space-between; }
+    .product-price { font-size: 18px; font-weight: 800; color: #1e293b; }
+    .product-price .original { font-size: 13px; color: #94a3b8; text-decoration: line-through; font-weight: 400; margin-right: 6px; }
+    .btn-cart { background: #1d4ed8; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .btn-cart:hover { background: #1e40af; }
+    /* Premium card */
+    .premium-banner { background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 14px; padding: 24px 28px; color: #fff; margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .premium-banner h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .premium-banner p { font-size: 13px; opacity: .85; line-height: 1.6; }
+    .premium-features { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+    .pf { background: rgba(255,255,255,.15); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 99px; }
+    .btn-premium { background: #fff; color: #4f46e5; border: none; padding: 12px 28px; border-radius: 9px; font-weight: 700; font-size: 15px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="index.html">Pet<span>Recovery</span></a>
+    <div class="nav-right">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="search.html">Find a Pet</a>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <button class="cart-btn">🛒 Cart (2)</button>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <!-- Ad strip -->
+  <div class="ad-strip" id="adStrip">
+    <span class="ad-label">Ad</span>
+    <p>🎉 <strong>Waggle Pet Insurance</strong> — Get 2 months free when you sign up through PetRecovery. <a href="#">Learn more →</a></p>
+    <button class="ad-close" onclick="document.getElementById('adStrip').style.display='none'">✕</button>
+  </div>
+
+  <!-- Hero -->
+  <div class="store-hero">
+    <h1>🛍 PetRecovery Store</h1>
+    <p>Everything you need to keep your pets safe, identified, and easy to find.</p>
+    <div class="hero-badges">
+      <span class="badge">🚚 Free shipping over $35</span>
+      <span class="badge">↩ 30-day returns</span>
+      <span class="badge">✓ PetRecovery verified products</span>
+    </div>
+  </div>
+
+  <!-- Category tabs -->
+  <div class="categories">
+    <button class="cat-tab active">All Products</button>
+    <button class="cat-tab">🏷 Pet ID & Tags</button>
+    <button class="cat-tab">📡 GPS Trackers</button>
+    <button class="cat-tab">🛡 Safety Gear</button>
+    <button class="cat-tab">⭐ Premium Plans</button>
+  </div>
+
+  <div class="main">
+    <!-- Filters -->
+    <div class="filters">
+      <h3>Filter</h3>
+      <div class="filter-group">
+        <label>Category</label>
+        <div class="filter-item"><input type="checkbox" checked /> Pet ID & Tags</div>
+        <div class="filter-item"><input type="checkbox" checked /> GPS Trackers</div>
+        <div class="filter-item"><input type="checkbox" /> Safety Gear</div>
+        <div class="filter-item"><input type="checkbox" /> Premium Plans</div>
+      </div>
+      <div class="filter-group">
+        <label>Price</label>
+        <div class="filter-item"><input type="checkbox" checked /> Under $25</div>
+        <div class="filter-item"><input type="checkbox" checked /> $25 – $75</div>
+        <div class="filter-item"><input type="checkbox" /> $75 – $150</div>
+        <div class="filter-item"><input type="checkbox" /> Over $150</div>
+      </div>
+      <div class="filter-group">
+        <label>Pet Type</label>
+        <div class="filter-item"><input type="checkbox" checked /> Dogs</div>
+        <div class="filter-item"><input type="checkbox" checked /> Cats</div>
+        <div class="filter-item"><input type="checkbox" /> Small Pets</div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div>
+      <div class="products-header">
+        <h2>14 Products</h2>
+        <select class="sort-select"><option>Best Sellers</option><option>Price: Low to High</option><option>Price: High to Low</option><option>Newest</option></select>
+      </div>
+
+      <div class="product-grid">
+
+        <div class="product-card">
+          <div class="product-img" style="background:#dbeafe;">🏷</div>
+          <div class="product-body">
+            <span class="product-badge product-badge-blue">Best Seller</span>
+            <div class="product-name">PetRecovery QR Smart Tag</div>
+            <div class="product-desc">Scannable QR code links directly to your pet's PetRecovery profile. Anyone who finds your pet can instantly see your contact info.</div>
+            <div class="product-footer">
+              <div class="product-price"><span class="original">$19.99</span>$12.99</div>
+              <button class="btn-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-img" style="background:#f0fdf4;">📡</div>
+          <div class="product-body">
+            <span class="product-badge product-badge-green">PetRecovery Compatible</span>
+            <div class="product-name">Whistle Go Explore GPS Tracker</div>
+            <div class="product-desc">Real-time GPS + activity monitoring. Integrates directly with PetRecovery for automatic location updates when your pet is marked lost.</div>
+            <div class="product-footer">
+              <div class="product-price">$79.95</div>
+              <button class="btn-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-img" style="background:#fef9c3;">🔖</div>
+          <div class="product-body">
+            <span class="product-badge">New</span>
+            <div class="product-name">AirTag Collar Holder (3-Pack)</div>
+            <div class="product-desc">Waterproof silicone holder attaches your Apple AirTag securely to any collar. Available in 5 colors.</div>
+            <div class="product-footer">
+              <div class="product-price">$14.99</div>
+              <button class="btn-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-img" style="background:#fce7f3;">🪪</div>
+          <div class="product-body">
+            <span class="product-badge product-badge-blue">Personalized</span>
+            <div class="product-name">Engraved Stainless Steel ID Tag</div>
+            <div class="product-desc">Custom engraved with pet name, owner phone, and your PetRecovery profile URL. Waterproof and scratch-resistant.</div>
+            <div class="product-footer">
+              <div class="product-price">$9.99</div>
+              <button class="btn-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-img" style="background:#f0fdf4;">🩺</div>
+          <div class="product-body">
+            <span class="product-badge">Bundle</span>
+            <div class="product-name">Pet First Aid Kit — Compact</div>
+            <div class="product-desc">Essential first aid for lost or injured pets. Includes bandages, antiseptic, emergency blanket, and pet-safe pain relief guide.</div>
+            <div class="product-footer">
+              <div class="product-price">$24.99</div>
+              <button class="btn-cart">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-img" style="background:#ede9fe;">⭐</div>
+          <div class="product-body">
+            <span class="product-badge" style="background:#ede9fe;color:#6d28d9;">Premium</span>
+            <div class="product-name">PetRecovery Premium — 1 Year</div>
+            <div class="product-desc">Ad-free experience, priority search results, unlimited pet profiles, and dedicated support line. Best value for multi-pet households.</div>
+            <div class="product-footer">
+              <div class="product-price"><span class="original">$59.99</span>$39.99</div>
+              <button class="btn-cart" style="background:#6d28d9;">Subscribe</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Premium upsell banner -->
+      <div class="premium-banner">
+        <div>
+          <h3>⭐ Go Premium — Remove Ads & Unlock Everything</h3>
+          <p>PetRecovery is free forever with ads. Premium removes all ads, adds unlimited pet profiles, priority database searches, and a 24/7 support line.</p>
+          <div class="premium-features">
+            <span class="pf">✓ No ads</span>
+            <span class="pf">✓ Unlimited pets</span>
+            <span class="pf">✓ Priority search</span>
+            <span class="pf">✓ 24/7 support</span>
+            <span class="pf">✓ Facebook group auto-post</span>
+          </div>
+        </div>
+        <button class="btn-premium">Get Premium — $3.99/mo</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
