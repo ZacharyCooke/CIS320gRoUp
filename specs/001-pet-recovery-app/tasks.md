@@ -21,8 +21,8 @@
 **Purpose**: Initialize all three project codebases and shared configuration.
 
 - [ ] T001 Initialize backend Node.js + TypeScript project with Express, pg, ioredis, and all dependencies in backend/package.json
-- [ ] T002 [P] Initialize React + TypeScript frontend project with Vite and Mapbox GL JS in frontend/package.json
-- [ ] T003 [P] Initialize iOS Swift + SwiftUI project targeting iOS 15+ in ios/PetRecovery/
+- [ ] T002 [P] Initialize React + TypeScript frontend project with Vite and Leaflet.js (NOT Mapbox) in frontend/package.json
+- [ ] T003 [P] Initialize iOS Swift + SwiftUI project targeting iOS 15+ in ios/PetRecovery/; add Info.plist with NSLocationWhenInUseUsageDescription, NSCameraUsageDescription, and NSPhotoLibraryUsageDescription strings
 - [ ] T004 [P] Configure environment variable schema with backend/.env.example and backend/src/config/env.ts
 - [ ] T005 [P] Configure PostgreSQL connection pool in backend/src/config/database.ts
 - [ ] T006 [P] Configure Redis connection in backend/src/config/redis.ts
@@ -105,8 +105,8 @@
 - [ ] T048 [US2] Implement search routes (POST /pets/:id/mark-lost, POST /pets/:id/mark-recovered, GET /searches/:id/results, PATCH /searches/:id) in backend/src/api/routes/search.routes.ts
 - [ ] T049 [US2] Implement WebSocket client for real-time result streaming in frontend/src/services/websocket.client.ts
 - [ ] T050 [P] [US2] Build Mark Pet Lost modal with GPS auto-fill and manual address entry and radius slider in frontend/src/pages/search/MarkLostModal.tsx
-- [ ] T051 [US2] Build Search Results page with Mapbox GL JS map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
-- [ ] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request in ios/PetRecovery/Services/LocationService.swift
+- [ ] T051 [US2] Build Search Results page with Leaflet.js map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
+- [ ] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request; set desiredAccuracy = .bestForNavigation for proximity checks in ios/PetRecovery/Services/LocationService.swift
 - [ ] T053 [P] [US2] Implement Mark Pet Lost screen with MapKit radius picker in ios/PetRecovery/Views/Search/MarkLostView.swift
 - [ ] T054 [US2] Implement Search Results screen with MapKit map and live-updating result list in ios/PetRecovery/Views/Search/SearchResultsView.swift
 - [ ] T055 [US2] Functional check: confirm multi-source search returns consolidated results in under 10 seconds on web and iOS with no errors
@@ -156,8 +156,8 @@
 - [ ] T073 [P] [US4] Build Login page with credential form and 2FA TOTP challenge screen in frontend/src/pages/auth/LoginPage.tsx
 - [ ] T074 [P] [US4] Build 2FA Setup page displaying QR code for Microsoft Authenticator enrollment in frontend/src/pages/auth/TwoFactorSetupPage.tsx
 - [ ] T075 [P] [US4] Build Account Settings page with verified email and phone management in frontend/src/pages/account/AccountSettingsPage.tsx
-- [ ] T076 [P] [US4] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift
 - [ ] T077 [P] [US4] Implement 2FA Setup screen displaying QR code for Microsoft Authenticator in ios/PetRecovery/Views/Auth/TwoFactorSetupView.swift
+- [ ] T076 [US4] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift — depends on T077 (TOTP challenge screen must exist before Login can invoke it)
 - [ ] T078 [P] [US4] Implement Account Settings screen with contact method management in ios/PetRecovery/Views/Account/AccountSettingsView.swift
 - [ ] T079 [US4] Functional check: confirm 2FA triggers on new IP, passes on trusted IP, and contact re-verification works on web and iOS with no errors
 
@@ -300,8 +300,8 @@ With four developers:
 - [ ] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts
 - [ ] T093 [P] [US1] Update PetFormPage to include medical conditions tag input, temperament picker (Friendly/Cautious/Report Only), approach notes, and primary vet form in frontend/src/pages/pets/PetFormPage.tsx
 - [ ] T094 [P] [US1] Update Pet Profile page to display medical conditions, temperament badge, approach notes, and vet card in frontend/src/pages/pets/PetProfilePage.tsx
-- [ ] T095 [P] [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift
-- [ ] T096 [P] [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift
+- [ ] T095 [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift — depends on T038 (file must exist first; not parallelizable with T038)
+- [ ] T096 [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift — depends on T039
 
 ---
 
@@ -315,6 +315,7 @@ With four developers:
 - [ ] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx
 - [ ] T103 [P] [US1] Implement AVFoundation QR scanner view in ios/PetRecovery/Views/Pets/QRScannerView.swift
 - [ ] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift
+- [ ] T104a [US1] Register URL scheme (petrecovery://) or Universal Links in ios/PetRecovery/App/PetRecoveryApp.swift using onOpenURL modifier to route /p/:token deep links to PublicPetProfileView — depends on T104
 
 ---
 
@@ -340,7 +341,7 @@ With four developers:
 - [ ] T117 Add GET /notifications, PATCH /notifications/:id/read, and PATCH /notifications/settings routes in backend/src/api/routes/notifications.routes.ts
 - [ ] T118 [P] [US5] Build full Notifications page with color-coded cards, filter tabs, permission request card, and settings toggles in frontend/src/pages/notifications/NotificationsPage.tsx
 - [ ] T119 [P] [US5] Add notification permission request flow (browser Notification API) to app initialization in frontend/src/App.tsx
-- [ ] T120 [P] [US5] Implement iOS push notification registration (UNUserNotificationCenter permission request) in ios/PetRecovery/App/AppDelegate.swift
+- [ ] T120 [P] [US5] Implement iOS push notification registration using UNUserNotificationCenter; wire via UIApplicationDelegateAdaptor in ios/PetRecovery/App/PetRecoveryApp.swift (SwiftUI @main lifecycle — do NOT use a standalone AppDelegate.swift, use @UIApplicationDelegateAdaptor to bridge)
 - [ ] T121 [P] [US5] Build iOS Notifications screen with color-coded cells, filter tabs, and settings toggles in ios/PetRecovery/Views/Notifications/NotificationsView.swift
 - [ ] T122 [US5] Functional check: confirm BOLO fires within 1-mile threshold, community alert fires within 2-mile threshold, owner red notification fires on any search update, settings toggles respected on both web and iOS
 
@@ -358,7 +359,7 @@ With four developers:
 - [ ] T130 [P] [US6] Build Reward Setup page with amount input, preset buttons, 6-provider payment grid, and escrow funding flow in frontend/src/pages/reward/RewardSetupPage.tsx
 - [ ] T131 [P] [US6] Build Proximity Verification page with live GPS ring visualization, 3-step checklist, and auto-release status in frontend/src/pages/reward/ProximityVerificationPage.tsx
 - [ ] T132 [P] [US6] Implement reward setup and escrow flow in iOS in ios/PetRecovery/Views/Reward/RewardSetupView.swift
-- [ ] T133 [P] [US6] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift
+- [ ] T133 [P] [US6] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift — MUST set desiredAccuracy = .bestForNavigation and requestTemporaryFullAccuracyAuthorization before submitting coordinates to proximity API; default accuracy (~65 m) will always fail the 10-foot check
 - [ ] T134 [US6] Functional check: confirm reward creates Stripe payment intent, all three verifications pass in sequence, funds release automatically, and cancel triggers full Stripe refund
 
 ---
@@ -384,7 +385,7 @@ With four developers:
 - [ ] T146 [P] [US7] Build Store page with product grid, filter sidebar, category tabs, Premium upsell banner, and ad strip in frontend/src/pages/store/StorePage.tsx
 - [ ] T147 [P] [US7] Implement Premium subscription Stripe Checkout flow in frontend/src/pages/store/PremiumCheckoutPage.tsx
 - [ ] T148 [P] [US7] Add banner ad component and sidebar ad component; suppress rendering for is_premium users in frontend/src/components/AdBanner.tsx
-- [ ] T149 [P] [US7] Build iOS Store screen with product grid and Premium subscription flow in ios/PetRecovery/Views/Store/StoreView.swift
+- [ ] T149 [P] [US7] Build iOS Store screen with product grid and Premium subscription flow in ios/PetRecovery/Views/Store/StoreView.swift — ⚠️ CRITICAL: Apple App Store Review Guideline §3.1.1 requires the Premium subscription (a digital good) to use StoreKit 2 (Apple In-App Purchase), NOT Stripe. Stripe is only valid for the reward escrow (peer-to-peer payment for a service). Add StoreKit import and implement Product.purchase() flow; the backend is notified of subscription state via App Store Server Notifications (not Stripe webhooks) for iOS users.
 - [ ] T150 [P] [US7] Implement ad banner component for iOS; hide for Premium users in ios/PetRecovery/Views/Components/AdBannerView.swift
 - [ ] T151 [US7] Functional check: confirm free users see ads, Premium subscription via Stripe removes ads, store products display correctly, and Stripe webhook correctly sets is_premium on subscription events
 

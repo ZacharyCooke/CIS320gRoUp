@@ -135,7 +135,7 @@ frontend/
 ios/
 ├── PetRecovery/
 │   ├── Models/
-│   ├── Services/        # API client, CoreLocation, camera/QR, Stripe SDK
+│   ├── Services/        # API client, CoreLocation, camera/QR, StoreKit (IAP); Stripe only for reward escrow
 │   ├── Views/
 │   │   ├── Auth/
 │   │   ├── Pets/        # Pet profile, medical conditions, temperament picker
@@ -164,4 +164,5 @@ ios/
 | GPS proximity check | Haversine formula on live coordinates | Server validates; client sends coordinates signed with timestamp |
 | Facebook integration | passport-facebook OAuth | Reads user's groups only; zero credential storage |
 | Ad delivery | Direct-sold banner slots (v1) | Simple HTML/CSS banners; no third-party ad SDK in v1 |
-| Premium billing | Stripe Subscriptions | Same Stripe account as escrow; simplifies billing |
+| Premium billing (web) | Stripe Subscriptions | Same Stripe account as escrow; simplifies billing |
+| Premium billing (iOS) | StoreKit 2 (Apple IAP) | Apple App Store Guideline §3.1.1 mandates In-App Purchase for digital subscriptions on iOS; Stripe cannot be used for this on iOS |
