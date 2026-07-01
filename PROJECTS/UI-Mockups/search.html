@@ -280,11 +280,6 @@
       maxZoom: 19
     });
 
-    const googleStreetLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-      attribution: '© Google Maps',
-      maxZoom: 20
-    });
-
     const googleHybridLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
       attribution: '© Google Maps',
       maxZoom: 20
@@ -422,7 +417,7 @@
     function runSearch() {
       const bounds = radiusCircle.getBounds();
       map.fitBounds(bounds, { padding: [40, 40] });
-      markers.forEach(m => m.openPopup && m.closePopup());
+      markers.forEach(m => m.closePopup());
     }
 
     // Initial fit

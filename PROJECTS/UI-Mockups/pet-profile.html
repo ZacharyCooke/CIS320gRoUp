@@ -167,10 +167,10 @@
           <span class="meta-item"><strong>Microchip:</strong> 985112004567891</span>
         </div>
         <div class="action-row">
-          <button class="btn btn-red" onclick="location.href='search.html'">🚨 Report Lost</button>
-          <button class="btn btn-outline">✏️ Edit Profile</button>
-          <button class="btn qr-btn" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan QR</button>
-          <button class="btn btn-amber" onclick="location.href='reward.html'">💰 Set Reward</button>
+          <button type="button" class="btn btn-red" onclick="location.href='search.html'">🚨 Report Lost</button>
+          <button type="button" class="btn btn-outline">✏️ Edit Profile</button>
+          <button type="button" class="btn qr-btn" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan QR</button>
+          <button type="button" class="btn btn-amber" onclick="location.href='reward.html'">💰 Set Reward</button>
         </div>
       </div>
     </div>
@@ -216,7 +216,7 @@
         </div>
         <div class="add-tag-row">
           <input type="text" class="add-tag-input" placeholder="Add condition or medication..." />
-          <button class="btn-add-tag">+ Add</button>
+          <button type="button" class="btn-add-tag">+ Add</button>
         </div>
         <div class="field-row" style="margin-top:14px">
           <div class="field-label">Emergency medical notes for shelters/vets</div>
@@ -233,7 +233,7 @@
             <h4>South Austin Animal Hospital</h4>
             <p>2500 W William Cannon Dr, Austin, TX 78745</p>
             <p class="vet-phone">📞 (512) 444-2234 · saah@southaustinvet.com</p>
-            <button class="btn-edit-vet">✏️ Edit Vet Info</button>
+            <button type="button" class="btn-edit-vet">✏️ Edit Vet Info</button>
           </div>
         </div>
         <div style="font-size:12px;color:#64748b;margin-top:10px;">When Bella is reported missing, PetRecovery will automatically email all veterinary clinics within 2 miles of the last known location with a BOLO alert including her photos and medical info.</div>
@@ -276,9 +276,9 @@
             <h4>Bella's PetRecovery QR</h4>
             <p>Anyone who scans this code sees Bella's profile, your contact info, temperament notes, and medical conditions you've chosen to share. No app required.</p>
             <div class="qr-actions">
-              <button class="btn-qr" style="background:#1d4ed8;color:#fff;border:none;border-radius:7px" onclick="alert('QR code downloaded!')">⬇ Download</button>
-              <button class="btn-qr" style="background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:7px" onclick="alert('Printing QR...')">🖨 Print Tag</button>
-              <button class="btn-qr" style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:7px" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan Code</button>
+              <button type="button" class="btn-qr" style="background:#1d4ed8;color:#fff;border:none;border-radius:7px" onclick="alert('QR code downloaded!')">⬇ Download</button>
+              <button type="button" class="btn-qr" style="background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:7px" onclick="alert('Printing QR...')">🖨 Print Tag</button>
+              <button type="button" class="btn-qr" style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:7px" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan Code</button>
             </div>
           </div>
         </div>
@@ -351,7 +351,7 @@
         <h4>💰 No Reward Posted Yet</h4>
         <p>Add a reward to incentivize the community. Funds are held in secure escrow and released only after verification.</p>
       </div>
-      <button class="btn-reward" onclick="location.href='reward.html'">Set Up Reward →</button>
+      <button type="button" class="btn-reward" onclick="location.href='reward.html'">Set Up Reward →</button>
     </div>
   </div>
 
@@ -369,7 +369,7 @@
         <div class="scan-icon">📱</div>
       </div>
       <p style="font-size:12px;color:#64748b;margin-bottom:16px;">Camera access required. Your camera feed is never stored or transmitted.</p>
-      <button class="btn-close-scan" onclick="document.getElementById('scanOverlay').classList.remove('visible')">✕ Close</button>
+      <button type="button" class="btn-close-scan" onclick="document.getElementById('scanOverlay').classList.remove('visible')">✕ Close</button>
     </div>
   </div>
 

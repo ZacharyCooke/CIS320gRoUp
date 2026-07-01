@@ -136,11 +136,11 @@
         <input class="amount-input" type="number" value="500" min="0" />
       </div>
       <div class="preset-amounts">
-        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=100">$100</button>
-        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=250">$250</button>
+        <button type="button" class="preset-btn" onclick="document.querySelector('.amount-input').value=100">$100</button>
+        <button type="button" class="preset-btn" onclick="document.querySelector('.amount-input').value=250">$250</button>
         <button class="preset-btn active" onclick="document.querySelector('.amount-input').value=500">$500</button>
-        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=1000">$1,000</button>
-        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=2500">$2,500</button>
+        <button type="button" class="preset-btn" onclick="document.querySelector('.amount-input').value=1000">$1,000</button>
+        <button type="button" class="preset-btn" onclick="document.querySelector('.amount-input').value=2500">$2,500</button>
       </div>
     </div>
 
@@ -209,7 +209,7 @@
           <div class="step-text">Funds released to finder immediately</div>
         </div>
       </div>
-      <button class="btn-primary" onclick="alert('Escrow of $500 created! Bella\'s reward is now live on her public profile.')">Fund $500 Escrow →</button>
+      <button type="button" class="btn-primary" onclick="alert('Escrow of $500 created! Bella\'s reward is now live on her public profile.')">Fund $500 Escrow →</button>
     </div>
 
     <!-- Proximity Verification -->
@@ -269,7 +269,7 @@
         </div>
       </div>
       <div class="release-section">
-        <button class="btn-release" disabled>Release $500 to Finder</button>
+        <button type="button" class="btn-release" disabled>Release $500 to Finder</button>
         <div class="release-note">Button unlocks automatically when all 3 verifications pass · No manual intervention required</div>
       </div>
     </div>
