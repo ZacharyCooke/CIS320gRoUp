@@ -1,105 +1,167 @@
 # Implementation Plan: Pet Recovery Application
 
-**Branch**: `001-pet-recovery-app` | **Date**: 2026-06-30 | **Spec**: [spec.md](./spec.md)
-
-**Input**: Feature specification from `specs/001-pet-recovery-app/spec.md`
+**Branch**: `001-pet-recovery-app` | **Date**: 2026-06-30 | **Last Updated**: 2026-07-01
+**Spec**: [spec.md](./spec.md)
 
 ---
 
 ## Summary
 
-Build a multi-platform pet recovery service (website + iOS app) that allows owners to register pets, link AirTag/Amazon tracking devices, and run simultaneous multi-source searches using GPS-based location filtering. Security is enforced via TOTP-based 2FA (Microsoft Authenticator) on new IP logins, with verified email/phone contact methods. A community found-pet reporting system with real-time owner alerts completes the core feature set. After all features are built, a code efficiency review and UX testing phase ensure production readiness.
+Build a multi-platform pet recovery service (website + iOS app) that allows owners to register pets with full profiles (photos, medical conditions, temperament, primary vet), link tracking devices, and run simultaneous multi-source searches using GPS-based location filtering. When a pet is marked lost, automated BOLO emails go to all vet clinics within 2 miles. Community members receive location-aware push notifications (BOLO alerts within 1 mile, community alerts within 2 miles). A reward escrow system lets owners post monetary rewards funded by any major payment app, released automatically after GPS proximity + identity verification. The app is free with ads; a Premium subscription removes ads and unlocks additional features. A QR code on each pet profile allows anyone with a camera to instantly view that pet's data.
 
 ---
 
 ## Technical Context
 
-**Language/Version**: Node.js 20 LTS + TypeScript 5 (backend); React 18 + TypeScript (web frontend); Swift 5.9 + SwiftUI (iOS)
+**Language/Version**: Node.js 20 LTS + TypeScript 5 (backend); React 18 + TypeScript + Vite (web frontend); Swift 5.9 + SwiftUI (iOS)
 
-**Primary Dependencies**: Express 4, Socket.io, Passport.js, jsonwebtoken, speakeasy (TOTP), pg (PostgreSQL), ioredis (Redis), SendGrid SDK, Twilio SDK, Mapbox GL JS (web), MapKit (iOS)
+**Primary Dependencies**:
 
-**Storage**: PostgreSQL 16 (primary data); Redis 7 (sessions, IP record cache, search result queue)
+| Package | Purpose |
+|---|---|
+| Express 4 | REST API framework |
+| Socket.io | WebSocket for real-time notifications |
+| Passport.js | Auth strategy middleware |
+| jsonwebtoken | JWT access tokens |
+| speakeasy | TOTP (2FA via Microsoft Authenticator) |
+| pg + pg-pool | PostgreSQL client |
+| ioredis | Redis client (sessions, cache) |
+| stripe | Stripe Connect SDK (escrow + all payment methods) |
+| @sendgrid/mail | Email OTP, owner alerts, vet BOLO emails |
+| twilio | SMS OTP and BOLO text alerts |
+| qrcode | Server-side QR code generation (PNG/SVG) |
+| @googlemaps/google-maps-services-js | Google Places API (nearby vet discovery) |
+| passport-facebook | Facebook OAuth login for group reading |
+| Leaflet.js | Open-source interactive maps (web frontend) |
+| MapKit | Native maps (iOS) |
+
+**Storage**: PostgreSQL 16 (primary data); Redis 7 (sessions, IP record cache, notification queue)
 
 **Testing**: Jest + Supertest (backend); React Testing Library + Vitest (frontend); XCTest (iOS)
 
 **Target Platform**: Web (Chrome, Safari, Firefox — latest 2 versions); iOS 15+
 
-**Project Type**: Web service (REST API + WebSockets) + Web frontend SPA + iOS native app
+**Project Type**: REST API + WebSockets backend; React SPA frontend; iOS native app
 
-**Performance Goals**: Search results consolidated in <10 seconds; 500 concurrent users without degradation; WebSocket notifications delivered in <2 seconds
+**Performance Goals**:
+- Search results consolidated in <10 seconds
+- Vet BOLO emails dispatched within 60 seconds of lost report
+- WebSocket notifications delivered in <2 seconds
+- QR profile page loads in <3 seconds
+- Reward release within 10 seconds of all verifications passing
+- 500 concurrent users without degradation
 
-**Constraints**: All PII encrypted at rest; location data retained only while pet is marked lost; HTTPS enforced; JWT access tokens expire in 15 minutes; no raw IP addresses stored
+**Constraints**:
+- All PII encrypted at rest
+- Location data retained only while pet is marked lost
+- HTTPS enforced everywhere
+- JWT access tokens expire in 15 minutes
+- Raw IP addresses never stored (SHA-256 hash only)
+- Camera feed for QR scanning never stored or transmitted — processed locally only
+- Facebook credentials never stored — OAuth token used only to read user's group posts
+- Passwords never transmitted to or stored on server in plaintext
 
-**Scale/Scope**: ~500 concurrent users at launch; ~10,000 pet profiles; multi-source search (PetFinder API + internal reports + tracking device coordinates)
+**Scale/Scope**: ~500 concurrent users at launch; ~10,000 pet profiles at launch; multiple external API integrations
 
 ---
 
 ## Constitution Check
 
-*No project constitution is defined (constitution.md is a placeholder). No governance gates apply. Proceeding to Phase 0.*
+*No project constitution defined. No governance gates apply.*
 
 ---
 
 ## Project Structure
 
-### Documentation (this feature)
+### Documentation
 
 ```text
 specs/001-pet-recovery-app/
 ├── plan.md              # This file
-├── research.md          # Phase 0 output
-├── data-model.md        # Phase 1 output
-├── quickstart.md        # Phase 1 output
+├── research.md          # Phase 0 — technical decisions
+├── data-model.md        # Phase 1 — entities and relationships
+├── quickstart.md        # Phase 1 — validation scenarios
 ├── contracts/
-│   ├── api-auth.md      # Auth & 2FA endpoints
-│   ├── api-pets.md      # Pet profiles & tracking devices
-│   └── api-search.md    # Search, found reports, WebSocket
-└── tasks.md             # Phase 2 output (/speckit-tasks)
+│   ├── api-auth.md      # Auth, 2FA, Facebook OAuth
+│   ├── api-pets.md      # Pet profiles, medical, vet, QR, tracking devices
+│   └── api-search.md    # Search, found reports, notifications, WebSocket
+└── tasks.md             # Phase 2 — implementation task list
 ```
 
-### Source Code (repository root)
+### Source Code Layout
 
 ```text
 backend/
 ├── src/
-│   ├── models/          # DB entity definitions & queries
-│   ├── services/        # Business logic (auth, search, notifications)
+│   ├── models/          # DB entity definitions and queries
+│   ├── services/
+│   │   ├── auth/        # JWT, TOTP, OTP, IP hashing, Facebook OAuth
+│   │   ├── pets/        # Pet CRUD, QR generation, medical/temperament
+│   │   ├── search/      # Multi-source search orchestration, Haversine
+│   │   ├── notifications/  # WebSocket push, BOLO alerts, proximity triggers
+│   │   ├── vets/        # Google Places vet discovery, SendGrid BOLO emails
+│   │   └── payments/    # Stripe Connect escrow, payment intents, release logic
 │   ├── api/
-│   │   ├── routes/      # Express route handlers
-│   │   └── middleware/  # Auth, IP detection, rate limiting
-│   └── integrations/    # PetFinder API client, TOTP, SendGrid, Twilio
+│   │   ├── routes/      # Express route handlers per domain
+│   │   └── middleware/  # Auth, IP detection, rate limiting, ad injection
+│   └── integrations/
+│       ├── petfinder/   # PetFinder API v2 client
+│       ├── google-places/ # Nearby vet clinic search
+│       ├── stripe/      # Escrow, payment intent, webhook handler
+│       ├── sendgrid/    # Email templates (OTP, owner alerts, vet BOLO)
+│       └── twilio/      # SMS OTP and BOLO text alerts
 ├── tests/
-│   ├── contract/        # API contract tests
-│   ├── integration/     # DB + service integration tests
-│   └── unit/            # Pure logic unit tests
+│   ├── contract/
+│   ├── integration/
+│   └── unit/
 └── package.json
 
 frontend/
 ├── src/
 │   ├── components/      # Shared UI components
-│   ├── pages/           # Route-level page components
-│   │   ├── auth/        # Register, Login, 2FA
-│   │   ├── pets/        # Dashboard, Pet Profile, Add Pet
-│   │   ├── search/      # Search Results, Found Report
-│   │   └── account/     # Settings, Contact Verification
-│   ├── services/        # API client, WebSocket client
+│   ├── pages/
+│   │   ├── auth/        # Register, Login, Verify, 2FA
+│   │   ├── pets/        # Dashboard, Pet Profile, Add/Edit Pet, QR scan
+│   │   ├── search/      # Leaflet map search, results list
+│   │   ├── report/      # Found pet report form
+│   │   ├── notifications/ # Notifications page, settings
+│   │   ├── reward/      # Reward setup, escrow, proximity verification
+│   │   └── store/       # Product grid, Premium subscription
+│   ├── services/        # API client, WebSocket, geolocation, QR scanner
 │   └── hooks/           # React custom hooks
 ├── tests/
 └── package.json
 
 ios/
 ├── PetRecovery/
-│   ├── Models/          # Swift data models
-│   ├── Services/        # API client, location services
-│   ├── Views/           # SwiftUI views (mirrors web pages)
-│   └── App/             # App entry point, routing
+│   ├── Models/
+│   ├── Services/        # API client, CoreLocation, camera/QR, Stripe SDK
+│   ├── Views/
+│   │   ├── Auth/
+│   │   ├── Pets/        # Pet profile, medical conditions, temperament picker
+│   │   ├── Search/      # MapKit search view
+│   │   ├── Notifications/
+│   │   ├── Reward/      # Reward setup, proximity view
+│   │   └── Store/
+│   └── App/
 └── PetRecoveryTests/
 ```
 
-**Structure Decision**: Option 2 (Web app) + Option 3 (Mobile) combined. Backend is a standalone REST API consumed by both the web frontend and the iOS app. This avoids duplication of business logic and allows both clients to share the same API contracts.
-
 ---
 
-## Complexity Tracking
+## Architecture Decisions
 
-*No constitution violations. No complexity justification required.*
+| Decision | Choice | Reason |
+|---|---|---|
+| Map library (web) | Leaflet.js + OpenStreetMap | Free, no API key required; Google Maps available as optional toggle layer |
+| Map library (iOS) | MapKit | Native; no API key or third-party dependency |
+| Payment escrow | Stripe Connect | Native hold/release support; single backend for all payment methods |
+| QR generation | `qrcode` npm package | Lightweight, server-side PNG/SVG output |
+| QR scanning (web) | `html5-qrcode` or native camera API | No app install required for finders scanning tags |
+| QR scanning (iOS) | AVFoundation | Native, no third-party required |
+| Vet discovery | Google Places API (Nearby Search) | Most complete clinic dataset; same key as Maps |
+| Vet email delivery | SendGrid templated emails | Reliable, free tier covers v1 BOLO volume |
+| GPS proximity check | Haversine formula on live coordinates | Server validates; client sends coordinates signed with timestamp |
+| Facebook integration | passport-facebook OAuth | Reads user's groups only; zero credential storage |
+| Ad delivery | Direct-sold banner slots (v1) | Simple HTML/CSS banners; no third-party ad SDK in v1 |
+| Premium billing | Stripe Subscriptions | Same Stripe account as escrow; simplifies billing |

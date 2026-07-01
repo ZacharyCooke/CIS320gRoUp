@@ -2,11 +2,9 @@
 
 **Feature Branch**: `001-pet-recovery-app`
 
-**Created**: 2026-06-30
+**Created**: 2026-06-30 | **Last Updated**: 2026-07-01
 
-**Status**: Draft
-
-**Input**: User description: "Pet Recovery Application — a website and iOS app where pet owners register their animals and link tracking devices (Amazon tags, AirTags) and found-animal websites. When searching for a lost pet, the system queries multiple databases simultaneously using the user's GPS or a user-designated location with a configurable search radius. Security uses two-factor authentication via Microsoft Authenticator for new/different IP logins, plus email and phone number verification. After each section of code is written, perform a functional check for errors. After all code is written, review for compression and efficiency improvements. Final phase includes application and website testing for UX and design improvements."
+**Status**: Active
 
 ---
 
@@ -14,81 +12,133 @@
 
 ### User Story 1 - Pet Owner Registration & Profile Management (Priority: P1)
 
-A pet owner creates an account on PetRecovery, verifies their identity via email or phone, and registers one or more pets with photos, descriptions, and microchip or license information. They link their pet's tracking device (AirTag or Amazon tag) and any preferred found-animal notification websites to their profile.
+A pet owner creates an account on PetRecovery, verifies their identity via email or phone, and registers one or more pets with photos, descriptions, microchip or license information, optional medical conditions, temperament guidance, and their primary veterinarian. They link their pet's tracking device (AirTag or Amazon tag) and any preferred found-animal notification websites to their profile. A QR code is generated for each pet that can be printed on a tag.
 
-**Why this priority**: Without a registered pet profile and linked tracking information, no other feature can function. This is the foundational entry point for all users.
+**Why this priority**: Without a registered pet profile, no other feature can function. This is the foundational entry point.
 
-**Independent Test**: A new user can register, verify their account, add a pet with a photo and description, and link a tracking device — all without any other features being present.
+**Independent Test**: A new user can register, verify their account, add a full pet profile including medical info and vet contact, generate a QR code, and link a tracking device — all without any other features being present.
 
 **Acceptance Scenarios**:
 
 1. **Given** a new visitor, **When** they complete registration with a valid email or phone number, **Then** they receive a verification code and cannot access the system until verified.
-2. **Given** a verified owner, **When** they add a pet profile with name, species, breed, color, photo, and identifier (microchip/license), **Then** the pet appears in their account dashboard.
+2. **Given** a verified owner, **When** they add a pet profile with name, species, breed, color, photo(s), identifier (microchip/license), medical conditions, temperament, approach notes, and primary vet, **Then** the pet appears on their dashboard with all data saved.
 3. **Given** a verified owner, **When** they link an AirTag or Amazon tracking tag to a pet profile, **Then** the system confirms the link and displays the device as active.
 4. **Given** a verified owner, **When** they link an external found-animal website, **Then** that site is included in future searches for that owner's pets.
-5. **Given** an owner logging in from a new or different IP address, **When** they attempt to log in, **Then** they are prompted to verify their identity via Microsoft Authenticator before access is granted.
+5. **Given** an owner logging in from a new or different IP address, **When** they attempt to log in, **Then** they are prompted to verify via Microsoft Authenticator before access is granted.
+6. **Given** a verified owner viewing a pet profile, **When** they click "Generate QR", **Then** a scannable QR code is produced linking to that pet's public profile page.
+7. **Given** any person with a camera, **When** they scan a PetRecovery QR tag, **Then** they see the pet's profile, owner contact info, temperament, and any medical conditions the owner has chosen to share — with no app required.
 
 ---
 
 ### User Story 2 - Lost Pet Search (Priority: P2)
 
-A pet owner marks their pet as lost and initiates a search. The system simultaneously queries all linked tracking devices, linked found-animal websites, and the internal PetRecovery database. Results are filtered by the user's current GPS location or a user-designated location with a configurable search radius, and displayed in a unified results view.
+A pet owner marks their pet as lost and initiates a search. The system simultaneously queries all linked tracking devices, linked found-animal websites, and the internal PetRecovery database. Results are filtered by the user's current GPS location or a user-designated location with a configurable search radius and displayed in a unified map and list view.
 
-**Why this priority**: The core value proposition of the platform is reuniting lost pets with owners. This story delivers the primary user outcome.
+**Why this priority**: The core value proposition of the platform is reuniting lost pets with owners.
 
-**Independent Test**: An owner with a registered pet can mark it as lost, set a search location and radius, trigger a multi-source search, and view consolidated results — independently of reporting or notification features.
+**Independent Test**: An owner with a registered pet can mark it as lost, set a search location and radius, trigger a multi-source search, and view consolidated results on a map.
 
 **Acceptance Scenarios**:
 
 1. **Given** an owner with a registered pet, **When** they mark the pet as lost and confirm their GPS location, **Then** the system queries all linked sources simultaneously and returns consolidated results within 10 seconds.
-2. **Given** an active lost-pet search, **When** the owner adjusts the search radius (e.g., 1 mile, 5 miles, 25 miles), **Then** results update to reflect the new boundary.
-3. **Given** an active lost-pet search, **When** the owner enters a manual address instead of using GPS, **Then** the system uses that location as the search center.
-4. **Given** search results are returned, **When** a match is found across multiple sources, **Then** each match displays its source, location, date found, and any available photo.
-5. **Given** no results are found, **When** the search completes, **Then** the owner receives a clear message and the option to expand the search radius or set up alerts.
+2. **Given** an active lost-pet search, **When** the owner adjusts the search radius, **Then** results update to reflect the new boundary.
+3. **Given** an active lost-pet search, **When** the owner enters a manual address, **Then** the system uses that location as the search center.
+4. **Given** search results are returned, **When** a match is found, **Then** each match displays its source, location, date, and any available photo.
+5. **Given** a pet is marked lost, **When** the system processes the report, **Then** an automated BOLO email is sent to all veterinary clinics within 2 miles of the last known GPS location, including the pet's photos, description, microchip number, medical conditions, and owner contact info.
+6. **Given** no results are found, **When** the search completes, **Then** the owner can expand radius or set up alerts.
 
 ---
 
 ### User Story 3 - Found Pet Reporting & Alerts (Priority: P3)
 
-A member of the public finds a stray animal and submits a found-pet report through the website or iOS app. The system stores the report and automatically notifies any registered owners whose pet profile matches the description or whose tracking device signal is near the reported location.
+A member of the public finds a stray animal and submits a found-pet report. The system notifies matching registered owners and also allows finders to scan a pet's QR tag to immediately contact the owner.
 
-**Why this priority**: Expanding the database with community-submitted found-pet reports increases the chances of reunification and makes the platform more valuable to owners.
-
-**Independent Test**: A non-registered user can submit a found-pet report with a photo, description, and location. The report is stored and visible in search results independently of the owner notification system.
+**Independent Test**: A non-registered user can submit a found-pet report and scan a QR tag. Both actions complete without requiring an account.
 
 **Acceptance Scenarios**:
 
 1. **Given** a finder (registered or not), **When** they submit a found-pet report with photo, description, species, and location, **Then** the report is saved and visible to owners searching in that area.
-2. **Given** a new found-pet report is submitted, **When** a registered owner's active lost-pet search overlaps the reported location, **Then** the owner receives an in-app and email/SMS notification.
-3. **Given** a found-pet report, **When** an owner claims it matches their pet, **Then** the finder is notified and a contact channel is opened between the two parties.
+2. **Given** a new found-pet report is submitted, **When** a registered owner's active search overlaps the location, **Then** the owner receives an in-app and email/SMS notification.
+3. **Given** a finder with any camera-equipped device, **When** they scan a pet's PetRecovery QR tag, **Then** they see the pet's profile and can immediately contact the owner without needing an account.
+4. **Given** a found-pet report, **When** an owner claims it matches their pet, **Then** the finder is notified and a contact channel is opened between the two parties.
 
 ---
 
-### User Story 4 - Secure Account Access (Priority: P4)
+### User Story 4 - Community Notifications & BOLO Alerts (Priority: P2)
 
-All users authenticate with email/password. The system enforces two-factor authentication via Microsoft Authenticator whenever a login is detected from a new or unrecognized IP address. Users can manage verified contact methods (email and phone) in their account settings.
+The system pushes location-aware notifications to users based on GPS proximity. Owners whose pet is lost receive all updates on their pet. Any user within 1 mile of a lost pet's last known location receives a BOLO alert. Any user within 2 miles of a newly reported lost pet receives a community alert. When a user enters 1 mile of a location where a pet was originally reported missing, they receive a BOLO alert.
 
-**Why this priority**: Personal pet data and location information are sensitive. Secure access protects owners from unauthorized use and builds platform trust.
+**Independent Test**: Notifications are delivered by type (red/blue/green/amber) with correct trigger conditions. Permission can be granted or denied.
 
-**Independent Test**: A user can log in normally from a known device, be challenged for 2FA on a new device, and manage their verified email and phone number — independently of pet or search features.
+**Acceptance Scenarios**:
+
+1. **Given** a user grants push notification permission, **When** a pet is reported lost within 2 miles of their GPS, **Then** they receive a green community alert with the pet's name, species, color, and owner contact.
+2. **Given** a user is traveling, **When** they enter within 1 mile of any location where a pet was originally reported missing, **Then** they receive a blue BOLO alert with the pet's name, breed, and color.
+3. **Given** an owner whose pet is marked lost, **When** any update occurs (sighting reported, database match, AirTag ping), **Then** they receive a red notification with the detail.
+4. **Given** a user who has not granted notification permission, **When** they open the app or notifications page, **Then** a permission request card is presented before any alerts are shown.
+5. **Given** a user in notification settings, **When** they toggle individual notification types, **Then** only those types are delivered going forward.
+
+---
+
+### User Story 5 - Reward Escrow & Proximity-Based Release (Priority: P3)
+
+A pet owner can post a monetary reward for their lost pet's safe return. The reward amount is held in escrow and can be funded via any major payment platform. The reward is only released after three verifications pass simultaneously: the owner and finder's devices are within 10 feet of each other (GPS), the pet's identity is confirmed (QR scan or microchip), and the owner's identity matches the registered account.
+
+**Independent Test**: An owner can set a reward amount, fund it, and view the escrow status page. The release button is locked until all three verifications pass.
+
+**Acceptance Scenarios**:
+
+1. **Given** an owner with an active lost pet, **When** they set a reward amount and fund it via any supported payment method (PayPal, Venmo, Zelle, CashApp, Apple Pay, or Google Pay), **Then** the funds are held in escrow and the reward is displayed on the pet's public profile.
+2. **Given** a finder who has located a pet, **When** they meet the owner in person, **Then** the app uses device GPS to confirm both are within 10 feet of each other.
+3. **Given** GPS proximity is confirmed, **When** the finder scans the pet's QR tag or the pet's microchip is read, **Then** the pet identity verification step passes.
+4. **Given** pet identity is confirmed, **When** owner account ownership is verified against the registered microchip and profile, **Then** the owner identity step passes.
+5. **Given** all three verifications pass, **When** the system confirms, **Then** the escrowed funds are immediately released to the finder's chosen payment account.
+6. **Given** a pet is not recovered, **When** the owner cancels the reward or closes the search, **Then** the escrowed funds are returned in full.
+
+---
+
+### User Story 6 - Secure Account Access (Priority: P4)
+
+All users authenticate with email/password. The system enforces TOTP-based 2FA via Microsoft Authenticator on new IP logins. Optional Facebook Login allows users to authenticate and access local Facebook group posts about found pets.
+
+**Independent Test**: A user can log in normally, be challenged for 2FA on a new device, and optionally connect a Facebook account.
 
 **Acceptance Scenarios**:
 
 1. **Given** a user logging in from a recognized IP, **When** they enter valid credentials, **Then** they are granted access without an additional challenge.
-2. **Given** a user logging in from a new or unrecognized IP, **When** they enter valid credentials, **Then** they must approve the login via Microsoft Authenticator before access is granted.
-3. **Given** a user in account settings, **When** they add or change their email or phone number, **Then** a verification code is sent and the new contact method is not active until verified.
-4. **Given** a failed 2FA attempt, **When** the user cannot approve the authenticator request, **Then** access is denied and the user is offered account recovery options.
+2. **Given** a user logging in from a new IP, **When** they enter valid credentials, **Then** they must approve via Microsoft Authenticator before access is granted.
+3. **Given** a user clicks "Continue with Facebook", **When** they authorize the PetRecovery app, **Then** the system can read posts from their local Facebook groups to surface found-pet reports. PetRecovery does not store Facebook credentials.
+4. **Given** a user in account settings, **When** they change their email or phone, **Then** a verification code is sent and the new contact is not active until verified.
+
+---
+
+### User Story 7 - Store & Advertising (Priority: P4)
+
+The app is free and supported by contextual banner advertisements. An in-app store sells PetRecovery-verified safety products (QR tags, GPS trackers, ID tags, first aid kits) and a Premium subscription that removes ads and unlocks additional features.
+
+**Independent Test**: A user can browse the store, view products, and see ads on the dashboard without an account.
+
+**Acceptance Scenarios**:
+
+1. **Given** a free user on the dashboard, **When** the page loads, **Then** banner ads and a sidebar ad are displayed. The user can dismiss individual ads.
+2. **Given** a user browsing the store, **When** they view the product grid, **Then** products are filterable by category, price, and pet type.
+3. **Given** a user who purchases a Premium subscription, **When** they return to the dashboard, **Then** no ads are displayed and premium features (unlimited pets, priority search, Facebook group auto-post) are unlocked.
+4. **Given** a non-premium user, **When** they reach the pet profile limit, **Then** they are shown a Premium upsell.
 
 ---
 
 ### Edge Cases
 
 - What happens when a tracking device is offline or out of range during a search?
-- How does the system handle duplicate found-pet reports for the same animal from different finders?
-- What if an owner's GPS location is unavailable or denied on their device?
-- How does the system behave when an external found-animal website is temporarily unreachable during a search?
-- What happens if a user's Microsoft Authenticator app is lost or inaccessible?
-- How are pets with no tracking device linked still searchable via the platform database?
+- How does the system handle duplicate found-pet reports for the same animal?
+- What if the owner's GPS is unavailable or denied?
+- What if an external found-animal website is temporarily unreachable?
+- What happens if a user's Microsoft Authenticator app is lost?
+- What if GPS accuracy is insufficient to confirm the 10-foot proximity check?
+- What if the finder and owner are in a location with poor GPS signal during reward release?
+- What if the escrowed payment provider is temporarily unavailable at time of release?
+- What if a finder claims a reward for the wrong pet?
+- What if a vet clinic's email address is invalid or bounces?
 
 ---
 
@@ -96,59 +146,104 @@ All users authenticate with email/password. The system enforces two-factor authe
 
 ### Functional Requirements
 
-- **FR-001**: System MUST allow users to register an account with a valid email address or phone number.
-- **FR-002**: System MUST verify each user's email address and phone number before granting full account access.
-- **FR-003**: System MUST allow owners to create pet profiles including name, species, breed, color, size, photo, and unique identifiers (microchip number, license tag).
-- **FR-004**: System MUST allow owners to link one or more tracking devices (AirTag, Amazon tracking tag) to a pet profile.
-- **FR-005**: System MUST allow owners to link external found-animal websites to be included in their searches.
-- **FR-006**: System MUST allow owners to mark a pet as lost and initiate a multi-source search.
-- **FR-007**: System MUST query all linked tracking devices and external found-animal databases simultaneously when a search is initiated.
-- **FR-008**: System MUST filter search results by a user-specified location (GPS or manual address entry) and a configurable search radius.
-- **FR-009**: System MUST display consolidated search results from all sources in a single unified view, indicating the source of each result.
-- **FR-010**: System MUST allow any user (registered or not) to submit a found-pet report with photo, description, species, color, and location.
-- **FR-011**: System MUST notify registered owners when a found-pet report is submitted within their active search area.
-- **FR-012**: System MUST enforce two-factor authentication via Microsoft Authenticator when a login is detected from a new or unrecognized IP address.
-- **FR-013**: System MUST allow users to manage verified contact methods (email, phone) in account settings, requiring re-verification on change.
-- **FR-014**: System MUST be accessible as both a website and an iOS mobile application with feature parity.
-- **FR-015**: System MUST store all user, pet, and location data on secure servers with encrypted storage.
-- **FR-016**: System MUST perform a functional check after each development phase to catch errors before proceeding.
-- **FR-017**: System MUST undergo a code efficiency review after all features are implemented to identify compression and optimization opportunities.
-- **FR-018**: System MUST undergo UX and design testing after all features are complete to identify usability improvements.
+**Profile & Registration**
+- **FR-001**: System MUST allow users to register with a valid email or phone number.
+- **FR-002**: System MUST verify each user's email and phone before granting full account access.
+- **FR-003**: System MUST allow owners to create pet profiles including name, species, breed, color, size, photo(s), and unique identifiers (microchip, license tag).
+- **FR-004**: System MUST allow owners to optionally add medical conditions and medications to a pet profile, with full control over which information is shared publicly.
+- **FR-005**: System MUST allow owners to set a temperament level (Friendly / Cautious / Report Only) and add approach notes to each pet profile.
+- **FR-006**: System MUST allow owners to add a primary veterinarian (name, address, phone, email) to each pet profile.
+- **FR-007**: System MUST allow owners to link one or more tracking devices (AirTag, Amazon tag) to a pet profile.
+- **FR-008**: System MUST allow owners to link external found-animal websites to be included in searches.
+- **FR-009**: System MUST generate a unique QR code for each pet profile that links to a public-facing profile page. No account is required to view the public profile page.
+
+**Search & Lost Pet Flow**
+- **FR-010**: System MUST allow owners to mark a pet as lost and initiate a multi-source search.
+- **FR-011**: System MUST query all linked tracking devices and external found-animal databases simultaneously when a search is initiated.
+- **FR-012**: System MUST filter search results by a user-specified location (GPS or manual address) and a configurable radius (0.5–100 miles).
+- **FR-013**: System MUST display consolidated search results from all sources in a unified map and list view, showing the source of each result.
+- **FR-014**: When a pet is marked lost, system MUST automatically query Google Places API to find all veterinary clinics within 2 miles of the last known GPS location and send each a BOLO email via SendGrid including the pet's photos, description, microchip number, shared medical conditions, and owner contact information.
+
+**Found Reports**
+- **FR-015**: System MUST allow any user (registered or not) to submit a found-pet report with photo, description, species, color, and location.
+- **FR-016**: System MUST notify registered owners when a found-pet report is submitted within their active search area.
+- **FR-017**: System MUST allow any camera-equipped device to scan a PetRecovery QR tag and immediately display the pet's public profile without requiring an account or app installation.
+
+**Notifications**
+- **FR-018**: System MUST request push notification permission from the user on first use.
+- **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, AirTag ping, vet BOLO sent).
+- **FR-020**: System MUST send blue BOLO alerts to any user who enters within 1 mile of any location where a pet was originally reported missing.
+- **FR-021**: System MUST send green community alerts to any user within 2 miles of their current GPS location when a new pet is reported lost.
+- **FR-022**: System MUST allow users to individually toggle notification types in settings.
+
+**Reward Escrow**
+- **FR-023**: System MUST allow an owner to post a reward amount for a lost pet's safe return.
+- **FR-024**: System MUST accept reward funding via PayPal, Venmo, Zelle, CashApp, Apple Pay, and Google Pay (processed via Stripe Connect).
+- **FR-025**: System MUST hold reward funds in escrow until all three verification conditions pass: (a) GPS proximity of owner and finder devices within 10 feet, (b) pet identity confirmed via QR scan or microchip, (c) owner identity confirmed against registered account and microchip.
+- **FR-026**: System MUST release escrowed funds to the finder immediately and automatically when all three verification conditions pass simultaneously.
+- **FR-027**: System MUST return escrowed funds to the owner if the pet is marked recovered through any other means or if the owner cancels.
+
+**Security & Authentication**
+- **FR-028**: System MUST enforce TOTP-based 2FA via Microsoft Authenticator when a login is detected from a new or unrecognized IP address.
+- **FR-029**: System MUST allow optional Facebook Login (OAuth) so users can read posts from their local Facebook groups for additional found-pet leads. PetRecovery MUST NOT store Facebook credentials.
+- **FR-030**: System MUST store all passwords as local hashes; plaintext passwords are never transmitted to or stored on the server.
+- **FR-031**: System MUST collect GPS location data only when a pet is actively marked as lost; location data is not tracked otherwise.
+
+**Store & Advertising**
+- **FR-032**: System MUST display contextual banner advertisements on free accounts throughout the app.
+- **FR-033**: System MUST offer a Premium subscription that removes all ads and unlocks additional features.
+- **FR-034**: System MUST include an in-app store with PetRecovery-verified safety products.
+
+**Development Process**
+- **FR-035**: System MUST perform a functional check after each development phase before proceeding.
+- **FR-036**: System MUST undergo a code efficiency review after all features are implemented.
+- **FR-037**: System MUST undergo UX and design testing after all features are complete.
+
+---
 
 ### Key Entities
 
-- **Owner**: A registered user who owns one or more pets; has verified contact methods, known IP addresses, and linked external sources.
-- **Pet**: An animal profile belonging to an owner; includes identifying attributes, photos, tracking device links, and current status (safe/lost).
-- **Tracking Device**: A linked hardware tag (AirTag or Amazon tag) associated with a specific pet; reports location data.
-- **External Source**: A linked found-animal website configured to be queried during searches.
-- **Found Report**: A community-submitted record of a found animal; includes description, photo, location, date, and contact information for the finder.
-- **Search**: A query initiated by an owner for a lost pet; defined by location center, radius, and timestamp; aggregates results from all sources.
-- **IP Record**: A record of known IP addresses associated with a user account, used to determine whether 2FA is required on login.
+- **Owner**: A registered user who owns one or more pets.
+- **Pet**: An animal profile with identifying attributes, photos, medical conditions, temperament, vet info, tracking devices, and current status (safe/lost).
+- **TrackingDevice**: A linked AirTag or Amazon tag associated with a specific pet.
+- **ExternalSource**: A linked found-animal website queried during searches.
+- **FoundReport**: A community-submitted record of a found animal.
+- **LostPetSearch**: A query session initiated by an owner for a lost pet.
+- **Notification**: In-app/push alert with type (red/blue/green/amber) and trigger condition.
+- **VetBOLO**: An outbound automated email to a veterinary clinic when a pet is marked lost.
+- **Reward**: An escrowed monetary amount posted by the owner; held until verification passes.
+- **ProximityVerification**: A real-time record confirming owner and finder GPS devices are within 10 feet.
+- **IPRecord**: A hashed record of known IPs for 2FA trigger logic.
 
 ---
 
 ## Success Criteria *(mandatory)*
 
-### Measurable Outcomes
-
-- **SC-001**: Pet owners can complete account registration and first pet profile creation in under 5 minutes.
-- **SC-002**: A lost-pet search across all linked sources returns consolidated results in under 10 seconds.
-- **SC-003**: Two-factor authentication challenge completes in under 30 seconds for users with Microsoft Authenticator set up.
-- **SC-004**: 95% of found-pet reports submitted by the community are visible in owner searches within 60 seconds of submission.
-- **SC-005**: The system supports simultaneous searches from at least 500 concurrent users without degraded response times.
-- **SC-006**: 90% of first-time users can successfully register, add a pet, and run a search without external help.
-- **SC-007**: All critical user flows (registration, search, report) are fully functional on both website and iOS app with no feature gaps.
-- **SC-008**: Code review phase identifies and resolves at least 80% of flagged inefficiencies before final release.
+- **SC-001**: Pet owners complete registration and first pet profile in under 5 minutes.
+- **SC-002**: A lost-pet search returns consolidated results across all sources in under 10 seconds.
+- **SC-003**: 2FA challenge completes in under 30 seconds for users with Microsoft Authenticator set up.
+- **SC-004**: 95% of found-pet reports are visible in owner searches within 60 seconds of submission.
+- **SC-005**: System supports 500 concurrent users without degraded response times.
+- **SC-006**: 90% of first-time users complete registration, pet add, and search without external help.
+- **SC-007**: BOLO emails to nearby vet clinics are dispatched within 60 seconds of a pet being marked lost.
+- **SC-008**: GPS proximity check confirms 10-foot reunion with ≥95% accuracy on supported devices.
+- **SC-009**: Escrowed reward funds release to finder within 10 seconds of all three verifications passing.
+- **SC-010**: Scanning a PetRecovery QR tag displays the pet's public profile in under 3 seconds on any camera-equipped device.
+- **SC-011**: All critical user flows function on both website and iOS app with no feature gaps.
+- **SC-012**: Code review phase identifies and resolves at least 80% of flagged inefficiencies before final release.
 
 ---
 
 ## Assumptions
 
-- Users accessing the iOS app have iOS 15 or later and have downloaded the app from the Apple App Store.
-- Microsoft Authenticator is available on the user's mobile device for 2FA; account recovery options are provided if the app is inaccessible.
-- AirTag and Amazon tag integration relies on the device manufacturer's publicly available location-sharing APIs; real-time tracking accuracy depends on those APIs.
-- External found-animal websites are queried via their public search interfaces or APIs; if a site has no public API, it is excluded from automated querying.
-- Finders submitting found-pet reports do not need to create an account, but providing contact information is required.
-- Location services (GPS) must be enabled by the user on their device; manual address entry is always available as a fallback.
-- The platform stores location data only while a pet is marked as lost; data is cleared or anonymized once the pet is marked recovered.
-- Email and SMS notification services are handled by a third-party delivery provider and are assumed reliable.
+- Users accessing the iOS app have iOS 15 or later.
+- Microsoft Authenticator is available on the user's mobile device for 2FA.
+- AirTag and Amazon tag integration uses owner-pasted share URLs; no real-time API polling.
+- PetFinder API v2 is the primary automated external source for found-animal data.
+- HIPAA does not apply to animal medical records; medical conditions on pet profiles are shared entirely at the owner's discretion.
+- Vet clinic contact data is sourced via Google Places API; accuracy depends on Places data quality.
+- GPS accuracy on consumer devices typically ranges from 3–5 meters (10–16 feet); the 10-foot proximity threshold may require additional confirmation on low-accuracy devices.
+- Stripe Connect is the backend payment processor; individual payment apps (PayPal, Venmo, etc.) are deposit channels.
+- Facebook Login is used only to read group posts the user is already a member of; no Facebook data is stored by PetRecovery.
+- Location data is collected only while a pet is actively marked as lost; no background tracking occurs otherwise.
+- Finders submitting found-pet reports do not need an account but must provide contact information.
