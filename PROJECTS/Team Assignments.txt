@@ -1,0 +1,27 @@
+Team Assignments
+The objective of the project is to provide a simulation of a real-life development project. You will be assigned to teams to work together on the project.  Each team of four to six members will be working on the same project. You will learn how to perform systems analysis and systems design of ParkingFinder.com.
+ParkingFinder.com is a type of e-business exchange that does business entirely on the Internet. The system connects parking space landlords and space tenants all over the world in an online market and manages the entire booking process and payments (think of it as AirBnB of Parking).
+For a person to offer parking spaces (landlord), he/she must register with ParkingFinder.com. The person must provide a current physical address and telephone number as well as a current e-mail address. The system will then maintain an open account for this person. Access to the system as a landlord is through a secure, authenticated portal.
+A landlord can list parking spaces on the system through a special Internet form. Information required includes all the pertinent information about the parking space, the asking price, and documents showing that the landlord has the right to rent the space. A landlord may list as many spaces as desired. Parking spaces listed by a landlord need to be verified that the landlord owns them, before they can be visible to the public. The system maintains an index of all parking spaces in the system so that tenants can use the search engine to search for parking spaces. The search engine allows searches of parking spaces by location. At the end of each month, a check is mailed to each landlord for the spaces that have been rented.
+People wanting to rent parking spaces (potential tenants) come to the site and search for the space they want. When they decide to book, they must open an account with a credit card to pay for the parking space. They need to select the space they want to book, the time slot for the renting period and the vehicle license plate number. The system maintains this information on secure servers. The tenants can, if they want, enter their review and ratings of the parking space. The same functionality can be accessed through mobile apps, which can be downloaded and installed from the Apple Store and Google Play Store.
+Week 1:
+	
+1.	Identify (at least 5) use cases for the system using the user goal technique or GenAI Tool. List the users, user goals, use case names and write a brief use case description for each use case using the following template. (5 points)
+User	User Goal	Use Case Name	Brief Description
+ 	 	 	 
+	
+2.	Use a UML Editor (for example MS Visio with UML template) to draw a use case diagram based on the actors and use cases you identified (5 points)
+3.	List 10 non-functional requirements of the system, two requirements for each category – Usability, Reliability, Performance, Security and Design Constraints (5 points)
+Week 2:
+	
+4.	Based on the information here, draw a domain model class diagram (UML Class Diagram) for the system that includes classes, attributes, association relationships, cardinality (5 points)
+5.	For the use case Book a Parking Space, develop a fully developed use case description and a System Sequence Diagram (SSD) (10 points)
+ 
+ 
+Week 3:
+6.         Develop the database schema based on the domain model class diagram. Make sure that each table has a primary key and the foreign keys are identified from the one-to-many associations. The database schema can be developed in table format (see Figure 9-12 from the textbook for example) or using a database schema design tool (for example MS Visio with Entity Relationship Diagram template) (5 points)
+7.         Use a User Interface Design Tool (for example MS Visio with Wireframe template) or GenAI Tool to design the user interface the use case Book a Parking Space. (10 points)
+Submit the database schema and user interface with the domain model class diagram and the SSD used to develop the design models.
+8.         Use Spec Kit to perform the spec-driven software development for the system (20 points)
+Review of generated files (spec.md, plan.md, tasks.md) for accuracy. Make a screen recording of generated user interface. Submit the generated files (*.md) and the screen recording of the user interface.
+
