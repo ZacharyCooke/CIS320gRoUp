@@ -274,6 +274,129 @@ With four developers:
 
 - [P] = different files, no incomplete-task dependencies
 - [USn] label maps each task to its user story for traceability
-- No unit test tasks generated (not requested); functional check tasks (T040, T055, T068, T079) serve as phase gates
+- No unit test tasks generated (not requested); functional check tasks (T040, T055, T068, T079, T110, T122, T130) serve as phase gates
 - T082 code efficiency review must be completed before T083–T084 testing phases
-- Each story's functional check (T040, T055, T068, T079) must pass before moving to the next story phase
+- Each story's functional check must pass before moving to the next story phase
+- Phase 8 tasks added 2026-07-01 covering US5 (notifications), US6 (rewards/escrow), US7 (store/ads), and shared infrastructure (QR, vet BOLO, Facebook OAuth)
+
+---
+
+## Phase 8: Extended Feature Set (Added 2026-07-01)
+
+**Purpose**: Implement all features added after the original spec — medical/temperament/vet profile fields, QR codes, vet BOLO emails, push notifications, reward escrow, Facebook OAuth, store, and Premium subscription.
+
+**Depends on**: Phase 7 complete (all T001–T085 done).
+
+---
+
+### Phase 8A: Pet Profile Enhancements (Medical, Temperament, Vet)
+
+- [ ] T086 Add medical_conditions (jsonb), medical_emergency_notes (text), temperament (enum), approach_notes (text), qr_code_token (uuid), photo_urls (text[]) columns to Pet table migration in backend/src/migrations/
+- [ ] T087 [P] Create PetVet table migration (clinic_name, address, phone, email, pet_id FK) in backend/src/migrations/
+- [ ] T088 [P] Create PetVet model in backend/src/models/pet-vet.model.ts
+- [ ] T089 Update PetService to handle medical_conditions array, temperament, approach_notes, and photo_urls array in backend/src/services/pet.service.ts
+- [ ] T090 [P] Implement PetVetService with upsert() and get() in backend/src/services/pet-vet.service.ts
+- [ ] T091 Add PATCH /pets/:id/medical, PATCH /pets/:id/temperament, PUT /pets/:id/vet, GET /pets/:id/vet routes in backend/src/api/routes/pets.routes.ts
+- [ ] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts
+- [ ] T093 [P] [US1] Update PetFormPage to include medical conditions tag input, temperament picker (Friendly/Cautious/Report Only), approach notes, and primary vet form in frontend/src/pages/pets/PetFormPage.tsx
+- [ ] T094 [P] [US1] Update Pet Profile page to display medical conditions, temperament badge, approach notes, and vet card in frontend/src/pages/pets/PetProfilePage.tsx
+- [ ] T095 [P] [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift
+- [ ] T096 [P] [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift
+
+---
+
+### Phase 8B: QR Code Generation & Public Profile
+
+- [ ] T097 Install `qrcode` npm package; implement QRService with generateSVG(token) and generatePNG(token, size) in backend/src/services/qr.service.ts
+- [ ] T098 Add qr_code_token auto-generation on Pet create (UUID, unique); add GET /pets/:id/qr and POST /pets/:id/rotate-qr routes in backend/src/api/routes/pets.routes.ts
+- [ ] T099 [P] Implement public profile route GET /p/:token (no auth) returning only share_publicly=true medical fields and owner contact in backend/src/api/routes/public.routes.ts
+- [ ] T100 [P] [US1] Build QR display and download component in Pet Profile page in frontend/src/pages/pets/PetProfilePage.tsx
+- [ ] T101 [P] [US1] Build public pet profile page (no login required) at /p/:token in frontend/src/pages/public/PublicPetProfile.tsx
+- [ ] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx
+- [ ] T103 [P] [US1] Implement AVFoundation QR scanner view in ios/PetRecovery/Views/Pets/QRScannerView.swift
+- [ ] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift
+
+---
+
+### Phase 8C: Vet BOLO Auto-Email
+
+- [ ] T105 Create VetBOLO table migration (search_id, pet_id, clinic fields, email_status, sent_at) in backend/src/migrations/
+- [ ] T106 [P] Create VetBOLO model in backend/src/models/vet-bolo.model.ts
+- [ ] T107 Implement VetDiscoveryService using Google Places Nearby Search API to find vet clinics within 2 miles of given coordinates in backend/src/integrations/google-places.client.ts
+- [ ] T108 Implement VetBOLOService: fetch clinics via VetDiscoveryService, render SendGrid email template with pet photos + medical + owner contact, dispatch to each clinic, record in VetBOLO table in backend/src/services/vet-bolo.service.ts
+- [ ] T109 Wire VetBOLOService to fire automatically inside POST /pets/:id/mark-lost handler; emit vet_bolo_sent WebSocket event per dispatch in backend/src/api/routes/pets.routes.ts
+- [ ] T110 Add GET /searches/:id/vet-bolos route returning list of dispatched BOLOs with delivery status in backend/src/api/routes/search.routes.ts
+- [ ] T111 [P] [US2] Add vet BOLO status panel to Search Results page showing clinics notified in frontend/src/pages/search/SearchResultsPage.tsx
+- [ ] T112 [P] [US2] Add vet BOLO status list to iOS Search Results screen in ios/PetRecovery/Views/Search/SearchResultsView.swift
+
+---
+
+### Phase 8D: Push Notifications — BOLO, Community & Owner Alerts (US5)
+
+- [ ] T113 Extend Notification model and migration with type enum (pet_update, bolo_alert, nearby_lost, store_account), trigger_latitude, trigger_longitude in backend/src/migrations/
+- [ ] T114 [P] Add notification settings columns to User (notif_pet_update, notif_bolo_alert, notif_nearby_lost, notif_store_account — all boolean default true except store) in backend/src/migrations/
+- [ ] T115 Extend NotificationService with dispatchBOLO(userId, pet, distanceMiles) and dispatchCommunityAlert(userId, pet, distanceMiles) methods, respecting per-user toggle settings in backend/src/services/notification.service.ts
+- [ ] T116 Add location-tracking WebSocket handler: on update_location from client, evaluate BOLO threshold (1 mile from any active lost pet origin) and community threshold (2 miles) and dispatch notifications in backend/src/integrations/websocket.server.ts
+- [ ] T117 Add GET /notifications, PATCH /notifications/:id/read, and PATCH /notifications/settings routes in backend/src/api/routes/notifications.routes.ts
+- [ ] T118 [P] [US5] Build full Notifications page with color-coded cards, filter tabs, permission request card, and settings toggles in frontend/src/pages/notifications/NotificationsPage.tsx
+- [ ] T119 [P] [US5] Add notification permission request flow (browser Notification API) to app initialization in frontend/src/App.tsx
+- [ ] T120 [P] [US5] Implement iOS push notification registration (UNUserNotificationCenter permission request) in ios/PetRecovery/App/AppDelegate.swift
+- [ ] T121 [P] [US5] Build iOS Notifications screen with color-coded cells, filter tabs, and settings toggles in ios/PetRecovery/Views/Notifications/NotificationsView.swift
+- [ ] T122 [US5] Functional check: confirm BOLO fires within 1-mile threshold, community alert fires within 2-mile threshold, owner red notification fires on any search update, settings toggles respected on both web and iOS
+
+---
+
+### Phase 8E: Reward Escrow & Proximity-Based Release (US6)
+
+- [ ] T123 Create Reward and ProximityVerification table migrations in backend/src/migrations/
+- [ ] T124 [P] Create Reward model in backend/src/models/reward.model.ts
+- [ ] T125 [P] Create ProximityVerification model in backend/src/models/proximity-verification.model.ts
+- [ ] T126 Install `stripe` npm package; implement StripeService with createPaymentIntent(), capturePaymentIntent(), and refundPaymentIntent() in backend/src/integrations/stripe.client.ts
+- [ ] T127 Implement RewardService with create(), fund(), cancel(), and releaseIfAllPassed() methods; releaseIfAllPassed calls Stripe capture when all three verification booleans are true in backend/src/services/reward.service.ts
+- [ ] T128 Implement ProximityService with issueNonce(), submitCoordinates(), computeDistance(), and checkPetIdentity() in backend/src/services/proximity.service.ts
+- [ ] T129 Add reward and proximity routes: POST /rewards, GET /rewards/:id, POST /rewards/:id/fund, POST /rewards/:id/proximity, POST /rewards/:id/cancel, POST /proximity-check in backend/src/api/routes/rewards.routes.ts
+- [ ] T130 [P] [US6] Build Reward Setup page with amount input, preset buttons, 6-provider payment grid, and escrow funding flow in frontend/src/pages/reward/RewardSetupPage.tsx
+- [ ] T131 [P] [US6] Build Proximity Verification page with live GPS ring visualization, 3-step checklist, and auto-release status in frontend/src/pages/reward/ProximityVerificationPage.tsx
+- [ ] T132 [P] [US6] Implement reward setup and escrow flow in iOS in ios/PetRecovery/Views/Reward/RewardSetupView.swift
+- [ ] T133 [P] [US6] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift
+- [ ] T134 [US6] Functional check: confirm reward creates Stripe payment intent, all three verifications pass in sequence, funds release automatically, and cancel triggers full Stripe refund
+
+---
+
+### Phase 8F: Facebook OAuth Integration
+
+- [ ] T135 Install `passport-facebook`; implement FacebookStrategy with encrypted token storage (no plaintext) in backend/src/integrations/facebook.client.ts
+- [ ] T136 Add POST /auth/facebook, GET /auth/facebook/callback, POST /auth/facebook/disconnect routes in backend/src/api/routes/auth.routes.ts
+- [ ] T137 Add facebook_access_token (encrypted) column to User table migration in backend/src/migrations/
+- [ ] T138 Implement FacebookGroupsService to fetch posts from user's joined groups matching pet species/color keywords in backend/src/services/facebook-groups.service.ts
+- [ ] T139 Wire FacebookGroupsService into SearchAggregatorService as the facebook_groups source type in backend/src/services/search-aggregator.service.ts
+- [ ] T140 [P] [US4] Add "Connect Facebook" button and disconnect flow to Account Settings page in frontend/src/pages/account/AccountSettingsPage.tsx
+- [ ] T141 [P] [US4] Add Facebook connect/disconnect screen to iOS Account Settings in ios/PetRecovery/Views/Account/AccountSettingsView.swift
+
+---
+
+### Phase 8G: Store & Premium Subscription (US7)
+
+- [ ] T142 Add is_premium (boolean) and stripe_customer_id columns to User table migration in backend/src/migrations/
+- [ ] T143 Implement StripeSubscriptionService with createSubscription(), cancelSubscription(), and webhookHandler() in backend/src/services/stripe-subscription.service.ts
+- [ ] T144 Add POST /store/subscribe (create Premium subscription), DELETE /store/subscribe (cancel), POST /store/webhook (Stripe webhook) routes in backend/src/api/routes/store.routes.ts
+- [ ] T145 Add authorization middleware that checks is_premium and suppresses ad injection for Premium users in backend/src/api/middleware/premium.ts
+- [ ] T146 [P] [US7] Build Store page with product grid, filter sidebar, category tabs, Premium upsell banner, and ad strip in frontend/src/pages/store/StorePage.tsx
+- [ ] T147 [P] [US7] Implement Premium subscription Stripe Checkout flow in frontend/src/pages/store/PremiumCheckoutPage.tsx
+- [ ] T148 [P] [US7] Add banner ad component and sidebar ad component; suppress rendering for is_premium users in frontend/src/components/AdBanner.tsx
+- [ ] T149 [P] [US7] Build iOS Store screen with product grid and Premium subscription flow in ios/PetRecovery/Views/Store/StoreView.swift
+- [ ] T150 [P] [US7] Implement ad banner component for iOS; hide for Premium users in ios/PetRecovery/Views/Components/AdBannerView.swift
+- [ ] T151 [US7] Functional check: confirm free users see ads, Premium subscription via Stripe removes ads, store products display correctly, and Stripe webhook correctly sets is_premium on subscription events
+
+---
+
+### Phase 8 Dependencies
+
+- T086–T096 (profile fields) can start immediately after T085
+- T097–T104 (QR) can run in parallel with T086–T096
+- T105–T112 (vet BOLO) depends on T086 (Pet migration) being complete
+- T113–T122 (notifications US5) can run in parallel with T105–T112
+- T123–T134 (rewards US6) can run in parallel with T113–T122
+- T135–T141 (Facebook) can run in parallel with any Phase 8 group
+- T142–T151 (store US7) can run in parallel with any Phase 8 group
+- Functional checks T110, T122, T134, T151 are phase gates for their respective groups

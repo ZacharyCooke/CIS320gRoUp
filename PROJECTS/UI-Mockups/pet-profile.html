@@ -110,6 +110,28 @@
     .reward-strip p { font-size: 13px; color: #bfdbfe; }
     .btn-reward { background: #fff; color: #1d4ed8; border: none; padding: 10px 22px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
 
+    /* Approach label colors */
+    .label-green { color: #15803d; }
+    .label-amber { color: #92400e; }
+    .label-red { color: #b91c1c; }
+
+    /* Reusable hint / note text */
+    .hint-text { font-size: 12px; color: #64748b; margin-top: 10px; }
+
+    /* BOLO preview monospace box */
+    .bolo-preview { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; font-size: 13px; font-family: monospace; line-height: 1.8; color: #1e293b; }
+
+    /* QR button variants */
+    .btn-qr-blue { background: #1d4ed8; color: #fff; border: none; border-radius: 7px; }
+    .btn-qr-green { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; border-radius: 7px; }
+    .btn-qr-gray { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 7px; }
+
+    /* Facebook auth status */
+    .status-auth { color: #f59e0b; }
+
+    /* Device link button */
+    .btn-device-link { margin-top: 14px; width: 100%; font-size: 13px; }
+
     /* Camera scan modal */
     .scan-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 999; align-items: center; justify-content: center; }
     .scan-overlay.visible { display: flex; }
@@ -184,17 +206,17 @@
         <div class="approach-selector">
           <div class="approach-opt selected-green">
             <div class="approach-icon">😊</div>
-            <div class="approach-label" style="color:#15803d">Friendly</div>
+            <div class="approach-label label-green">Friendly</div>
             <div class="approach-sub">Safe to approach & handle</div>
           </div>
           <div class="approach-opt">
             <div class="approach-icon">⚠️</div>
-            <div class="approach-label" style="color:#92400e">Cautious</div>
+            <div class="approach-label label-amber">Cautious</div>
             <div class="approach-sub">Approach slowly, no sudden moves</div>
           </div>
           <div class="approach-opt">
             <div class="approach-icon">🚫</div>
-            <div class="approach-label" style="color:#b91c1c">Report Only</div>
+            <div class="approach-label label-red">Report Only</div>
             <div class="approach-sub">Do NOT approach — call owner</div>
           </div>
         </div>
@@ -236,7 +258,7 @@
             <button type="button" class="btn-edit-vet">✏️ Edit Vet Info</button>
           </div>
         </div>
-        <div style="font-size:12px;color:#64748b;margin-top:10px;">When Bella is reported missing, PetRecovery will automatically email all veterinary clinics within 2 miles of the last known location with a BOLO alert including her photos and medical info.</div>
+        <div class="hint-text">When Bella is reported missing, PetRecovery will automatically email all veterinary clinics within 2 miles of the last known location with a BOLO alert including her photos and medical info.</div>
       </div>
 
       <!-- Tracking Devices -->
@@ -262,7 +284,7 @@
           </div>
           <span class="device-status status-active">● Active</span>
         </div>
-        <button class="btn btn-outline" style="margin-top:14px;width:100%;font-size:13px;">+ Link Device</button>
+        <button type="button" class="btn btn-outline btn-device-link">+ Link Device</button>
       </div>
 
       <!-- QR Code -->
@@ -276,9 +298,9 @@
             <h4>Bella's PetRecovery QR</h4>
             <p>Anyone who scans this code sees Bella's profile, your contact info, temperament notes, and medical conditions you've chosen to share. No app required.</p>
             <div class="qr-actions">
-              <button type="button" class="btn-qr" style="background:#1d4ed8;color:#fff;border:none;border-radius:7px" onclick="alert('QR code downloaded!')">⬇ Download</button>
-              <button type="button" class="btn-qr" style="background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:7px" onclick="alert('Printing QR...')">🖨 Print Tag</button>
-              <button type="button" class="btn-qr" style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:7px" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan Code</button>
+              <button type="button" class="btn-qr btn-qr-blue" onclick="alert('QR code downloaded!')">⬇ Download</button>
+              <button type="button" class="btn-qr btn-qr-green" onclick="alert('Printing QR...')">🖨 Print Tag</button>
+              <button type="button" class="btn-qr btn-qr-gray" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan Code</button>
             </div>
           </div>
         </div>
@@ -315,14 +337,14 @@
               <div class="device-id">3 local groups connected</div>
             </div>
           </div>
-          <span class="device-status" style="color:#f59e0b">● Auth Required</span>
+          <span class="device-status status-auth">● Auth Required</span>
         </div>
       </div>
 
       <!-- Vet Email BOLO Preview -->
       <div class="section-card full">
         <div class="section-title">📧 Auto-Email BOLO to Nearby Vets — Preview</div>
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;font-size:13px;font-family:monospace;line-height:1.8;color:#1e293b;">
+        <div class="bolo-preview">
           <strong>Subject:</strong> 🚨 BOLO — Lost Dog: Bella (Yellow Labrador) — Near Your Clinic<br/>
           <strong>To:</strong> [Vet clinics within 2 miles of last known GPS location]<br/>
           <strong>From:</strong> alerts@petrecovery.app<br/>
@@ -340,7 +362,7 @@
           ─────────────────────────────────────<br/>
           This alert was sent automatically by PetRecovery to all veterinary clinics within 2 miles of the pet's last known GPS location.
         </div>
-        <div style="font-size:12px;color:#64748b;margin-top:10px;">This email is sent automatically when you tap <strong>"Report Lost"</strong>. Vet clinic addresses are sourced from Google Places API.</div>
+        <div class="hint-text">This email is sent automatically when you tap <strong>"Report Lost"</strong>. Vet clinic addresses are sourced from Google Places API.</div>
       </div>
 
     </div>
@@ -368,7 +390,7 @@
         <div class="scan-line"></div>
         <div class="scan-icon">📱</div>
       </div>
-      <p style="font-size:12px;color:#64748b;margin-bottom:16px;">Camera access required. Your camera feed is never stored or transmitted.</p>
+      <p class="hint-text" style="margin-bottom:16px;">Camera access required. Your camera feed is never stored or transmitted.</p>
       <button type="button" class="btn-close-scan" onclick="document.getElementById('scanOverlay').classList.remove('visible')">✕ Close</button>
     </div>
   </div>

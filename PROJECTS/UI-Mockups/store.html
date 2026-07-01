@@ -54,6 +54,7 @@
     .product-badge { display: inline-block; background: #fee2e2; color: #b91c1c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px; }
     .product-badge-blue { background: #eff6ff; color: #1d4ed8; }
     .product-badge-green { background: #f0fdf4; color: #15803d; }
+    .product-badge-purple { background: #ede9fe; color: #6d28d9; }
     .product-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
     .product-desc { font-size: 12px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
     .product-footer { display: flex; align-items: center; justify-content: space-between; }
@@ -61,6 +62,8 @@
     .product-price .original { font-size: 13px; color: #94a3b8; text-decoration: line-through; font-weight: 400; margin-right: 6px; }
     .btn-cart { background: #1d4ed8; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
     .btn-cart:hover { background: #1e40af; }
+    .btn-cart-premium { background: #6d28d9; }
+    .btn-cart-premium:hover { background: #5b21b6; }
     /* Premium card */
     .premium-banner { background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 14px; padding: 24px 28px; color: #fff; margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
     .premium-banner h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
@@ -212,12 +215,12 @@
         <div class="product-card">
           <div class="product-img" style="background:#ede9fe;">⭐</div>
           <div class="product-body">
-            <span class="product-badge" style="background:#ede9fe;color:#6d28d9;">Premium</span>
+            <span class="product-badge product-badge-purple">Premium</span>
             <div class="product-name">PetRecovery Premium — 1 Year</div>
             <div class="product-desc">Ad-free experience, priority search results, unlimited pet profiles, and dedicated support line. Best value for multi-pet households.</div>
             <div class="product-footer">
               <div class="product-price"><span class="original">$59.99</span>$39.99</div>
-              <button type="button" class="btn-cart" style="background:#6d28d9;">Subscribe</button>
+              <button type="button" class="btn-cart btn-cart-premium">Subscribe</button>
             </div>
           </div>
         </div>

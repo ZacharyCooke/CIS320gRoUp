@@ -7,7 +7,6 @@
 
   <!-- Leaflet.js (OpenStreetMap) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -131,7 +130,7 @@
         <div class="control-label">Search Location</div>
         <div class="location-input">
           <input type="text" id="locationInput" value="Zilker Park, Austin TX 78701" />
-          <button class="gps-btn" onclick="useGPS()" title="Use my current location">📍 GPS</button>
+          <button type="button" class="gps-btn" onclick="useGPS()" title="Use my current location">📍 GPS</button>
         </div>
         <div class="radius-row">
           <label>Radius:</label>
@@ -144,8 +143,8 @@
       <div class="map-layer-switch">
         <div class="control-label">Map Provider</div>
         <div class="layer-btn-group">
-          <button class="layer-btn active" id="btnOSM" onclick="switchLayer('osm')">🗺 OpenStreetMap</button>
-          <button class="layer-btn" id="btnGoogle" onclick="switchLayer('google')">🌍 Google Maps</button>
+          <button type="button" class="layer-btn active" id="btnOSM" onclick="switchLayer('osm')">🗺 OpenStreetMap</button>
+          <button type="button" class="layer-btn" id="btnGoogle" onclick="switchLayer('google')">🌍 Google Maps</button>
         </div>
       </div>
 
@@ -194,7 +193,7 @@
       </div>
 
       <div class="search-btn">
-        <button class="btn-search" onclick="runSearch()">🔍 Search All Sources</button>
+        <button type="button" class="btn-search" onclick="runSearch()">🔍 Search All Sources</button>
       </div>
     </div>
 
@@ -267,6 +266,7 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // --- Map setup ---
     const CENTER = [30.2672, -97.7431]; // Zilker Park, Austin TX
