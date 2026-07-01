@@ -4,3 +4,16 @@
 # Windows
 Thumbs.db
 Desktop.ini
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+backend/dist/
+frontend/dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
