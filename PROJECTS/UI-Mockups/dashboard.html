@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — My Pets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; cursor: pointer; }
+    .bell { color: #bfdbfe; font-size: 20px; cursor: pointer; position: relative; }
+    .bell-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+    .main { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-header h1 { font-size: 28px; font-weight: 700; }
+    .page-header .sub { color: #64748b; font-size: 15px; margin-top: 4px; }
+    .btn-primary { background: #1d4ed8; color: #fff; padding: 11px 24px; border-radius: 9px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; }
+    .pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .pet-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .pet-photo { height: 180px; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 72px; position: relative; }
+    .status-badge { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+    .status-safe { background: #dcfce7; color: #15803d; }
+    .status-lost { background: #fee2e2; color: #b91c1c; }
+    .pet-info { padding: 20px; }
+    .pet-name { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+    .pet-desc { color: #64748b; font-size: 13px; margin-bottom: 14px; }
+    .pet-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tag { background: #f1f5f9; color: #475569; font-size: 12px; padding: 3px 10px; border-radius: 99px; }
+    .tag-blue { background: #eff6ff; color: #1d4ed8; }
+    .pet-actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-sm-red { background: #fee2e2; color: #b91c1c; }
+    .btn-sm-blue { background: #eff6ff; color: #1d4ed8; }
+    .btn-sm-gray { background: #f1f5f9; color: #475569; }
+    .add-pet-card { background: #fff; border: 2px dashed #cbd5e1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 320px; cursor: pointer; color: #94a3b8; gap: 12px; transition: border-color .2s; }
+    .add-pet-card:hover { border-color: #1d4ed8; color: #1d4ed8; }
+    .add-pet-card .plus { font-size: 40px; }
+    .add-pet-card p { font-size: 15px; font-weight: 600; }
+    .alert-banner { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 14px 20px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; }
+    .alert-banner .icon { font-size: 22px; }
+    .alert-banner p { font-size: 14px; color: #92400e; }
+    .alert-banner strong { color: #78350f; }
+    .alert-banner a { color: #c2410c; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Pet<span>Recovery</span></div>
+    <div class="nav-right">
+      <a href="search.html">Find a Pet</a>
+      <a href="report.html">Report Found</a>
+      <div class="bell" style="position:relative">🔔<span class="bell-badge">1</span></div>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="alert-banner">
+      <div class="icon">⚠️</div>
+      <p><strong>Active Alert:</strong> A yellow Labrador was reported found 2.1 miles from Bella's last search area. <a href="search.html">View search results →</a></p>
+    </div>
+
+    <div class="page-header">
+      <div>
+        <h1>My Pets</h1>
+        <p class="sub">Manage your registered pets and their tracking devices.</p>
+      </div>
+      <button class="btn-primary" onclick="location.href='add-pet.html'">+ Add Pet</button>
+    </div>
+
+    <div class="pet-grid">
+      <!-- Pet 1 - Lost -->
+      <div class="pet-card">
+        <div class="pet-photo">🐕<span class="status-badge status-lost">⚠ LOST</span></div>
+        <div class="pet-info">
+          <div class="pet-name">Bella</div>
+          <div class="pet-desc">Yellow Labrador · Female · 4 years</div>
+          <div class="pet-tags">
+            <span class="tag">Microchip: 985112000012345</span>
+            <span class="tag tag-blue">📡 AirTag linked</span>
+          </div>
+          <div class="pet-actions">
+            <button class="btn-sm btn-sm-red" onclick="location.href='search.html'">🔍 Active Search</button>
+            <button class="btn-sm btn-sm-gray">Edit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pet 2 - Safe -->
+      <div class="pet-card">
+        <div class="pet-photo" style="background:#d1fae5">🐈<span class="status-badge status-safe">✓ Safe</span></div>
+        <div class="pet-info">
+          <div class="pet-name">Shadow</div>
+          <div class="pet-desc">Black Domestic Shorthair · Male · 2 years</div>
+          <div class="pet-tags">
+            <span class="tag">License: TX-2024-55821</span>
+            <span class="tag tag-blue">📦 Amazon Tag</span>
+          </div>
+          <div class="pet-actions">
+            <button class="btn-sm btn-sm-red">Mark Lost</button>
+            <button class="btn-sm btn-sm-blue">View Profile</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add pet card -->
+      <div class="add-pet-card" onclick="location.href='add-pet.html'">
+        <div class="plus">＋</div>
+        <p>Register Another Pet</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

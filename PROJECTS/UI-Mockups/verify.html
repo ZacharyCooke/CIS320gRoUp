@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Verify Email</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; }
+    nav .logo span { color: #93c5fd; }
+    .container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.09); padding: 48px 40px; width: 100%; max-width: 420px; text-align: center; }
+    .icon { font-size: 56px; margin-bottom: 20px; }
+    .card h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .card .sub { color: #64748b; font-size: 14px; margin-bottom: 8px; }
+    .email-highlight { color: #1d4ed8; font-weight: 600; }
+    .otp-row { display: flex; gap: 10px; justify-content: center; margin: 32px 0 24px; }
+    .otp-box { width: 52px; height: 60px; border: 2px solid #1d4ed8; border-radius: 10px; font-size: 26px; font-weight: 700; text-align: center; color: #1d4ed8; background: #eff6ff; display: flex; align-items: center; justify-content: center; }
+    .otp-box.empty { background: #fff; border-color: #d1d5db; color: #cbd5e1; }
+    .btn { width: 100%; padding: 13px; border-radius: 9px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; }
+    .btn-primary { background: #1d4ed8; color: #fff; }
+    .resend { margin-top: 20px; font-size: 13px; color: #64748b; }
+    .resend a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
+    .timer { color: #94a3b8; font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <nav><div class="logo">Pet<span>Recovery</span></div></nav>
+  <div class="container">
+    <div class="card">
+      <div class="icon">📧</div>
+      <h1>Check your email</h1>
+      <p class="sub">We sent a 6-digit verification code to</p>
+      <p class="email-highlight">owner@example.com</p>
+
+      <div class="otp-row">
+        <div class="otp-box">8</div>
+        <div class="otp-box">4</div>
+        <div class="otp-box">7</div>
+        <div class="otp-box">2</div>
+        <div class="otp-box empty">_</div>
+        <div class="otp-box empty">_</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="location.href='dashboard.html'">Verify &amp; Continue →</button>
+
+      <p class="resend">Didn't receive it? <a href="#">Resend code</a></p>
+      <p class="timer">Code expires in 9:47</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Sign In</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; }
+    nav .logo span { color: #93c5fd; }
+    .container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.09); padding: 48px 40px; width: 100%; max-width: 420px; }
+    .card h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .card .sub { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    input { width: 100%; padding: 11px 14px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 15px; outline: none; }
+    input:focus { border-color: #1d4ed8; }
+    .forgot { text-align: right; font-size: 13px; margin-top: 4px; }
+    .forgot a { color: #1d4ed8; text-decoration: none; }
+    .btn { width: 100%; padding: 13px; border-radius: 9px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; margin-bottom: 12px; }
+    .btn-primary { background: #1d4ed8; color: #fff; }
+    .security-note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px 16px; margin-top: 20px; font-size: 13px; color: #1e40af; display: flex; gap: 10px; align-items: flex-start; }
+    .register-link { text-align: center; margin-top: 24px; font-size: 14px; color: #64748b; }
+    .register-link a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <nav><div class="logo">Pet<span>Recovery</span></div></nav>
+  <div class="container">
+    <div class="card">
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to access your pet profiles and active searches.</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" value="owner@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" value="SecurePass123!" />
+        <div class="forgot"><a href="#">Forgot password?</a></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="location.href='dashboard.html'">Sign In →</button>
+
+      <div class="security-note">
+        🔒 <div>If you're signing in from a new device or location, you'll be asked to verify via <strong>Microsoft Authenticator</strong> before access is granted.</div>
+      </div>
+
+      <p class="register-link">Don't have an account? <a href="register.html">Register free</a></p>
+    </div>
+  </div>
+</body>
+</html>

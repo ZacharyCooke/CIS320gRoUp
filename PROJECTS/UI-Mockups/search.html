@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Find Lost Pet</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+    .layout { display: grid; grid-template-columns: 380px 1fr; height: calc(100vh - 64px); }
+    /* Sidebar */
+    .sidebar { background: #fff; border-right: 1px solid #e2e8f0; overflow-y: auto; display: flex; flex-direction: column; }
+    .sidebar-header { padding: 24px 24px 16px; border-bottom: 1px solid #f1f5f9; }
+    .sidebar-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .sidebar-header .sub { color: #64748b; font-size: 13px; }
+    .pet-selector { padding: 16px 24px; border-bottom: 1px solid #f1f5f9; }
+    .pet-selector label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; display: block; }
+    .pet-chip { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 2px solid #1d4ed8; border-radius: 10px; background: #eff6ff; cursor: pointer; }
+    .pet-chip .pet-emoji { font-size: 24px; }
+    .pet-chip-info { flex: 1; }
+    .pet-chip-name { font-weight: 700; font-size: 15px; }
+    .pet-chip-desc { color: #64748b; font-size: 12px; }
+    .pet-chip-badge { background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+    .search-controls { padding: 16px 24px; border-bottom: 1px solid #f1f5f9; }
+    .control-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .location-input { display: flex; gap: 8px; }
+    input[type=text], select { width: 100%; padding: 9px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; }
+    input:focus, select:focus { border-color: #1d4ed8; }
+    .gps-btn { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 16px; white-space: nowrap; }
+    .radius-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+    .radius-row label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+    input[type=range] { flex: 1; accent-color: #1d4ed8; }
+    .radius-val { font-size: 14px; font-weight: 700; color: #1d4ed8; width: 56px; text-align: right; }
+    .sources-section { padding: 16px 24px; border-bottom: 1px solid #f1f5f9; }
+    .source-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+    .source-left { display: flex; align-items: center; gap: 10px; }
+    .source-icon { font-size: 20px; }
+    .source-name { font-size: 14px; font-weight: 600; }
+    .source-status { font-size: 12px; }
+    .source-on { color: #15803d; }
+    .source-off { color: #94a3b8; }
+    .toggle { width: 38px; height: 22px; background: #1d4ed8; border-radius: 99px; position: relative; cursor: pointer; }
+    .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: #fff; border-radius: 50%; top: 3px; right: 3px; }
+    .toggle-off { background: #e2e8f0; }
+    .toggle-off::after { left: 3px; right: auto; }
+    .search-btn { margin: 16px 24px; }
+    .btn-search { width: 100%; padding: 13px; background: #1d4ed8; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-search:hover { background: #1e40af; }
+    /* Results */
+    .results-pane { display: flex; flex-direction: column; overflow: hidden; }
+    .map-area { flex: 1; background: #e2e8f0; position: relative; min-height: 320px; overflow: hidden; }
+    .map-placeholder { width: 100%; height: 100%; background: linear-gradient(160deg, #bfdbfe 0%, #dbeafe 40%, #e0f2fe 70%, #cffafe 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; color: #1e40af; }
+    .map-pin { position: absolute; font-size: 28px; }
+    .pin1 { top: 35%; left: 48%; }
+    .pin2 { top: 52%; left: 60%; }
+    .pin3 { top: 28%; left: 62%; }
+    .pin-search { top: 44%; left: 44%; font-size: 40px; }
+    .map-label { background: #fff; border-radius: 8px; padding: 8px 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); font-size: 13px; font-weight: 600; color: #1e293b; }
+    .radius-circle { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 300px; height: 300px; border: 2px dashed #3b82f6; border-radius: 50%; opacity: .5; }
+    .results-list { height: 260px; overflow-y: auto; border-top: 1px solid #e2e8f0; background: #fff; }
+    .results-header { padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; background: #fff; position: sticky; top: 0; }
+    .results-header h3 { font-size: 15px; font-weight: 700; }
+    .results-count { background: #fee2e2; color: #b91c1c; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 99px; }
+    .result-item { padding: 14px 24px; display: flex; gap: 14px; border-bottom: 1px solid #f8fafc; cursor: pointer; }
+    .result-item:hover { background: #f8fafc; }
+    .result-photo { width: 56px; height: 56px; border-radius: 8px; background: #dbeafe; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+    .result-body { flex: 1; }
+    .result-source { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+    .src-petfinder { color: #7c3aed; }
+    .src-airtag { color: #0284c7; }
+    .src-community { color: #059669; }
+    .result-desc { font-size: 14px; font-weight: 600; margin: 2px 0; }
+    .result-meta { font-size: 12px; color: #64748b; }
+    .result-distance { font-size: 13px; font-weight: 700; color: #1d4ed8; white-space: nowrap; }
+    .streaming { padding: 10px 24px; background: #fffbeb; border-top: 1px solid #fde68a; font-size: 13px; color: #92400e; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Pet<span>Recovery</span></div>
+    <div class="nav-right">
+      <a href="dashboard.html">← My Pets</a>
+      <a href="report.html">Report Found</a>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <!-- Sidebar: Search Controls -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2>Find Lost Pet</h2>
+        <p class="sub">Search all sources simultaneously in your area.</p>
+      </div>
+
+      <div class="pet-selector">
+        <label>Searching for</label>
+        <div class="pet-chip">
+          <div class="pet-emoji">🐕</div>
+          <div class="pet-chip-info">
+            <div class="pet-chip-name">Bella</div>
+            <div class="pet-chip-desc">Yellow Lab · Female · 4 yrs</div>
+          </div>
+          <span class="pet-chip-badge">LOST</span>
+        </div>
+      </div>
+
+      <div class="search-controls">
+        <div class="control-label">Search Location</div>
+        <div class="location-input">
+          <input type="text" value="Zilker Park, Austin TX 78701" />
+          <button class="gps-btn">📍 GPS</button>
+        </div>
+        <div class="radius-row">
+          <label>Radius:</label>
+          <input type="range" min="1" max="100" value="10" />
+          <span class="radius-val">10 mi</span>
+        </div>
+      </div>
+
+      <div class="sources-section">
+        <div class="control-label">Sources to Search</div>
+        <div class="source-item">
+          <div class="source-left">
+            <span class="source-icon">🔵</span>
+            <div>
+              <div class="source-name">AirTag (Bella)</div>
+              <div class="source-status source-on">● Connected · Last seen 2h ago</div>
+            </div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="source-item">
+          <div class="source-left">
+            <span class="source-icon">📦</span>
+            <div>
+              <div class="source-name">Amazon Tracking Tag</div>
+              <div class="source-status source-off">Not linked</div>
+            </div>
+          </div>
+          <div class="toggle toggle-off"></div>
+        </div>
+        <div class="source-item">
+          <div class="source-left">
+            <span class="source-icon">🐾</span>
+            <div>
+              <div class="source-name">PetFinder Database</div>
+              <div class="source-status source-on">● Active</div>
+            </div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+        <div class="source-item">
+          <div class="source-left">
+            <span class="source-icon">🤝</span>
+            <div>
+              <div class="source-name">Community Reports</div>
+              <div class="source-status source-on">● Active · 847 reports nearby</div>
+            </div>
+          </div>
+          <div class="toggle"></div>
+        </div>
+      </div>
+
+      <div class="search-btn">
+        <button class="btn-search">🔍 Search All Sources</button>
+      </div>
+    </div>
+
+    <!-- Results Pane -->
+    <div class="results-pane">
+      <!-- Map -->
+      <div class="map-area">
+        <div class="map-placeholder">
+          <div class="radius-circle"></div>
+          <span class="map-pin pin-search">🐕</span>
+          <span class="map-pin pin1">📍</span>
+          <span class="map-pin pin2">📍</span>
+          <span class="map-pin pin3">📍</span>
+          <div class="map-label">Austin, TX · 10 mile radius · 7 results</div>
+        </div>
+      </div>
+
+      <!-- Streaming indicator -->
+      <div class="streaming">
+        <div class="dot"></div>
+        Searching PetFinder, AirTag location, and community reports… 3 sources queried, 7 results found
+      </div>
+
+      <!-- Results list -->
+      <div class="results-list">
+        <div class="results-header">
+          <h3>Search Results</h3>
+          <span class="results-count">7 matches</span>
+        </div>
+
+        <div class="result-item">
+          <div class="result-photo">🐕</div>
+          <div class="result-body">
+            <div class="result-source src-airtag">📡 AirTag Location</div>
+            <div class="result-desc">Bella's last known location</div>
+            <div class="result-meta">Barton Hills Area · Updated 2 hours ago</div>
+          </div>
+          <div class="result-distance">0.3 mi</div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-photo">🐕</div>
+          <div class="result-body">
+            <div class="result-source src-community">🤝 Community Report</div>
+            <div class="result-desc">Yellow lab found near Zilker Park trail</div>
+            <div class="result-meta">Submitted by finder · Today 9:14 AM</div>
+          </div>
+          <div class="result-distance">2.1 mi</div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-photo">🐕</div>
+          <div class="result-body">
+            <div class="result-source src-petfinder">🐾 PetFinder</div>
+            <div class="result-desc">Yellow Labrador Retriever — Austin Animal Center</div>
+            <div class="result-meta">Intake: Today · Austin Animal Center</div>
+          </div>
+          <div class="result-distance">3.4 mi</div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-photo">🐕</div>
+          <div class="result-body">
+            <div class="result-source src-petfinder">🐾 PetFinder</div>
+            <div class="result-desc">Female yellow Lab, no collar — Travis County Shelter</div>
+            <div class="result-meta">Intake: Yesterday · Travis County Animal Services</div>
+          </div>
+          <div class="result-distance">5.8 mi</div>
+        </div>
+
+        <div class="result-item">
+          <div class="result-photo">🐕</div>
+          <div class="result-body">
+            <div class="result-source src-community">🤝 Community Report</div>
+            <div class="result-desc">Golden dog spotted on S. Lamar Blvd</div>
+            <div class="result-meta">Anonymous · Yesterday 3:40 PM</div>
+          </div>
+          <div class="result-distance">4.2 mi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

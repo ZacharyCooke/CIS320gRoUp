@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Register</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; }
+    nav .logo span { color: #93c5fd; }
+    .container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 24px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,.09); padding: 48px 40px; width: 100%; max-width: 460px; }
+    .card h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .card .sub { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    input { width: 100%; padding: 11px 14px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 15px; outline: none; transition: border-color .2s; }
+    input:focus { border-color: #1d4ed8; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hint { font-size: 12px; color: #94a3b8; margin-top: 5px; }
+    .password-strength { height: 4px; border-radius: 2px; background: #e2e8f0; margin-top: 8px; overflow: hidden; }
+    .password-strength-bar { height: 100%; width: 60%; background: #f59e0b; border-radius: 2px; }
+    .strength-label { font-size: 11px; color: #f59e0b; margin-top: 4px; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: #94a3b8; font-size: 13px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+    .btn { width: 100%; padding: 13px; border-radius: 9px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; }
+    .btn-primary { background: #1d4ed8; color: #fff; }
+    .btn-primary:hover { background: #1e40af; }
+    .terms { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 16px; line-height: 1.6; }
+    .terms a { color: #1d4ed8; }
+    .login-link { text-align: center; margin-top: 24px; font-size: 14px; color: #64748b; }
+    .login-link a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <nav><div class="logo">Pet<span>Recovery</span></div></nav>
+  <div class="container">
+    <div class="card">
+      <div class="badge">🐾 Free Account</div>
+      <h1>Create your account</h1>
+      <p class="sub">Register in 3 minutes — protect your pets before anything happens.</p>
+
+      <div class="row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" placeholder="Zachary" value="Zachary" />
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" placeholder="Cooke" value="Cooke" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" placeholder="you@example.com" value="owner@example.com" />
+        <div class="hint">A verification code will be sent to this address.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Phone Number <span style="color:#94a3b8;font-weight:400">(optional)</span></label>
+        <input type="tel" placeholder="+1 (555) 000-0000" />
+        <div class="hint">Used for SMS alerts and account recovery.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" value="SecurePass123!" />
+        <div class="password-strength"><div class="password-strength-bar" style="width:80%;background:#22c55e"></div></div>
+        <div class="strength-label" style="color:#22c55e">Strong password</div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" value="SecurePass123!" />
+      </div>
+
+      <button class="btn btn-primary" onclick="location.href='verify.html'">Create Account →</button>
+      <p class="terms">By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+      <p class="login-link">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+</body>
+</html>

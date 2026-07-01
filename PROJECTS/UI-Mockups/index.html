@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Home</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-links a { color: #bfdbfe; text-decoration: none; margin-left: 28px; font-size: 15px; }
+    nav .nav-links a:hover { color: #fff; }
+    nav .btn-nav { background: #fff; color: #1d4ed8; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-left: 24px; font-size: 14px; }
+    .hero { background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 60%, #3b82f6 100%); color: #fff; padding: 96px 64px; text-align: center; }
+    .hero h1 { font-size: 52px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+    .hero h1 span { color: #93c5fd; }
+    .hero p { font-size: 20px; color: #bfdbfe; max-width: 600px; margin: 0 auto 40px; line-height: 1.6; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: #fff; color: #1d4ed8; padding: 14px 32px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; border: none; text-decoration: none; display: inline-block; }
+    .btn-secondary { background: transparent; color: #fff; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; border: 2px solid #93c5fd; text-decoration: none; display: inline-block; }
+    .features { padding: 80px 64px; max-width: 1100px; margin: 0 auto; }
+    .features h2 { text-align: center; font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .features .sub { text-align: center; color: #64748b; font-size: 17px; margin-bottom: 56px; }
+    .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .feature-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 32px 28px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .feature-icon { font-size: 36px; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #1e293b; }
+    .feature-card p { color: #64748b; font-size: 14px; line-height: 1.6; }
+    .stats { background: #1d4ed8; padding: 56px 64px; }
+    .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; text-align: center; }
+    .stat-num { color: #fff; font-size: 44px; font-weight: 800; }
+    .stat-label { color: #bfdbfe; font-size: 16px; margin-top: 4px; }
+    .cta { padding: 80px 64px; text-align: center; background: #f1f5f9; }
+    .cta h2 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .cta p { color: #64748b; font-size: 17px; margin-bottom: 32px; }
+    footer { background: #0f172a; color: #94a3b8; padding: 32px 64px; text-align: center; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Pet<span>Recovery</span></div>
+    <div class="nav-links">
+      <a href="search.html">Find a Pet</a>
+      <a href="report.html">Report Found</a>
+      <a href="#">How It Works</a>
+      <button class="btn-nav" onclick="location.href='login.html'">Sign In</button>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1>Find Your Lost Pet <span>Faster</span></h1>
+    <p>PetRecovery searches AirTags, Amazon tracking devices, and found-animal databases simultaneously — giving you the most complete search in your area.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="register.html">Register Your Pet</a>
+      <a class="btn-secondary" href="search.html">Search Now</a>
+    </div>
+  </div>
+
+  <section class="features">
+    <h2>Everything You Need to Bring Your Pet Home</h2>
+    <p class="sub">One platform. Multiple databases. Real-time results.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📡</div>
+        <h3>Multi-Source Search</h3>
+        <p>Simultaneously queries AirTag locations, Amazon tracking tags, PetFinder, and community found-pet reports in your area.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <h3>Location-Based Radius</h3>
+        <p>Set your search from 1 to 100 miles using your GPS or any address. Adjust in real-time as results come in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Instant Alerts</h3>
+        <p>Get notified the moment a community member reports finding a pet matching your description in your search area.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure Account</h3>
+        <p>Two-factor authentication with Microsoft Authenticator keeps your pet profiles and location data safe.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>Web & iOS App</h3>
+        <p>Full feature parity on website and iOS app. Start a search on your phone, monitor on your computer.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤝</div>
+        <h3>Community Reports</h3>
+        <p>Anyone can submit a found-pet report — no account needed. The more people who use it, the better it works.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stats-inner">
+      <div><div class="stat-num">12,400+</div><div class="stat-label">Pets Registered</div></div>
+      <div><div class="stat-num">8,900+</div><div class="stat-label">Pets Reunited</div></div>
+      <div><div class="stat-num">3 sec</div><div class="stat-label">Avg. Search Time</div></div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h2>Register Your Pet Today</h2>
+    <p>It only takes 3 minutes. If your pet ever goes missing, you'll already have everything set up.</p>
+    <a class="btn-primary" href="register.html" style="background:#1d4ed8;color:#fff;">Get Started Free</a>
+  </div>
+
+  <footer>© 2026 PetRecovery. All rights reserved. &nbsp;|&nbsp; Privacy Policy &nbsp;|&nbsp; Terms of Service</footer>
+</body>
+</html>
