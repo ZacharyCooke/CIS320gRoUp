@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Reward Escrow</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; text-decoration: none; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .bell { position: relative; font-size: 20px; text-decoration: none; }
+    .bell-badge { position: absolute; top: -6px; right: -8px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+
+    .main { max-width: 780px; margin: 0 auto; padding: 40px 24px; }
+    .breadcrumb { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+    .breadcrumb a { color: #1d4ed8; text-decoration: none; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: #64748b; font-size: 14px; }
+
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 26px 28px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .card-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+
+    /* Pet summary */
+    .pet-summary { display: flex; gap: 16px; align-items: center; }
+    .pet-avatar { width: 64px; height: 64px; background: #dbeafe; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+    .pet-summary-info h3 { font-size: 18px; font-weight: 700; }
+    .pet-summary-info p { font-size: 13px; color: #64748b; }
+    .lost-badge { display: inline-block; background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 99px; margin-top: 4px; }
+
+    /* Reward amount */
+    .amount-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .amount-prefix { font-size: 28px; font-weight: 800; color: #64748b; }
+    .amount-input { font-size: 36px; font-weight: 800; width: 180px; padding: 8px 12px; border: 2px solid #1d4ed8; border-radius: 10px; outline: none; color: #1d4ed8; }
+    .preset-amounts { display: flex; gap: 10px; flex-wrap: wrap; }
+    .preset-btn { background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #475569; font-size: 14px; font-weight: 700; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+    .preset-btn:hover, .preset-btn.active { background: #eff6ff; border-color: #1d4ed8; color: #1d4ed8; }
+
+    /* Payment methods */
+    .payment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .payment-method { border: 2px solid #e2e8f0; border-radius: 11px; padding: 14px 12px; text-align: center; cursor: pointer; transition: all .15s; }
+    .payment-method.selected { border-color: #1d4ed8; background: #eff6ff; }
+    .pm-logo { font-size: 28px; margin-bottom: 6px; }
+    .pm-name { font-size: 13px; font-weight: 700; }
+    .pm-type { font-size: 11px; color: #94a3b8; }
+    .pm-check { display: none; }
+    .payment-method.selected .pm-check { display: inline; color: #1d4ed8; font-size: 14px; }
+
+    /* Escrow info */
+    .escrow-flow { display: flex; align-items: center; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+    .flow-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 16px; font-size: 13px; flex: 1; min-width: 140px; }
+    .flow-step .step-num { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
+    .flow-step .step-text { font-weight: 600; color: #1e293b; }
+    .flow-arrow { font-size: 18px; color: #94a3b8; flex-shrink: 0; }
+
+    /* Proximity verification */
+    .prox-card { background: linear-gradient(135deg, #0f172a, #1e3a8a); border-radius: 14px; padding: 24px 26px; color: #fff; }
+    .prox-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .prox-card p { font-size: 13px; color: #bfdbfe; line-height: 1.6; margin-bottom: 20px; }
+    .prox-steps { display: flex; flex-direction: column; gap: 12px; }
+    .prox-step { display: flex; gap: 14px; align-items: flex-start; }
+    .prox-step-num { width: 28px; height: 28px; background: rgba(255,255,255,.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .prox-step-num.done { background: #22c55e; }
+    .prox-step-text { font-size: 13px; color: #bfdbfe; padding-top: 5px; }
+    .prox-step-text strong { color: #fff; }
+    .prox-visual { background: rgba(255,255,255,.08); border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center; }
+    .prox-map-ring { width: 120px; height: 120px; border-radius: 50%; border: 3px dashed #60a5fa; margin: 0 auto; position: relative; display: flex; align-items: center; justify-content: center; }
+    .prox-inner-ring { width: 40px; height: 40px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .prox-dot-finder { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .prox-label { font-size: 12px; color: #bfdbfe; margin-top: 10px; }
+    .prox-distance { font-size: 24px; font-weight: 800; color: #22c55e; margin-top: 6px; }
+
+    /* Verification checklist */
+    .verify-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .verify-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; }
+    .verify-item.pending { background: #fffbeb; border-color: #fde68a; }
+    .verify-item.locked { background: #f8fafc; border-color: #e2e8f0; }
+    .verify-check { font-size: 20px; }
+    .verify-text { font-size: 14px; }
+    .verify-text strong { display: block; font-weight: 700; color: #1e293b; }
+    .verify-text span { font-size: 12px; color: #64748b; }
+
+    /* Release button */
+    .release-section { text-align: center; }
+    .btn-release { background: linear-gradient(135deg, #22c55e, #059669); color: #fff; border: none; padding: 16px 48px; border-radius: 12px; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 16px rgba(5,150,105,.3); }
+    .btn-release:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
+    .release-note { font-size: 12px; color: #94a3b8; margin-top: 10px; }
+
+    /* Setup CTA */
+    .btn-primary { background: #1d4ed8; color: #fff; border: none; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 8px; }
+    .security-note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #1e40af; display: flex; gap: 10px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="index.html">Pet<span>Recovery</span></a>
+    <div class="nav-right">
+      <a href="pet-profile.html">← Bella's Profile</a>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <a class="bell" href="notifications.html">🔔<span class="bell-badge">3</span></a>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="breadcrumb"><a href="dashboard.html">My Pets</a> › <a href="pet-profile.html">Bella</a> › Reward Escrow</div>
+    <div class="page-header">
+      <h1>💰 Reward Escrow</h1>
+      <p>Post a reward for Bella's safe return. Funds are held securely and released only after verified reunion.</p>
+    </div>
+
+    <!-- Pet Summary -->
+    <div class="card">
+      <div class="card-title">🐾 Pet</div>
+      <div class="pet-summary">
+        <div class="pet-avatar">🐕</div>
+        <div class="pet-summary-info">
+          <h3>Bella — Yellow Labrador</h3>
+          <p>Last seen: Barton Hills, Austin TX · Reported missing 2h ago</p>
+          <span class="lost-badge">🚨 MISSING</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reward Amount -->
+    <div class="card">
+      <div class="card-title">💵 Reward Amount</div>
+      <div class="amount-row">
+        <div class="amount-prefix">$</div>
+        <input class="amount-input" type="number" value="500" min="0" />
+      </div>
+      <div class="preset-amounts">
+        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=100">$100</button>
+        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=250">$250</button>
+        <button class="preset-btn active" onclick="document.querySelector('.amount-input').value=500">$500</button>
+        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=1000">$1,000</button>
+        <button class="preset-btn" onclick="document.querySelector('.amount-input').value=2500">$2,500</button>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="card">
+      <div class="card-title">💳 Fund Escrow Via</div>
+      <div class="payment-grid">
+        <div class="payment-method selected" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">🅿</div>
+          <div class="pm-name">PayPal <span class="pm-check">✓</span></div>
+          <div class="pm-type">Instant transfer</div>
+        </div>
+        <div class="payment-method" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">💜</div>
+          <div class="pm-name">Venmo</div>
+          <div class="pm-type">Instant transfer</div>
+        </div>
+        <div class="payment-method" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">🟡</div>
+          <div class="pm-name">Zelle</div>
+          <div class="pm-type">Bank transfer</div>
+        </div>
+        <div class="payment-method" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">🟩</div>
+          <div class="pm-name">Cash App</div>
+          <div class="pm-type">Instant transfer</div>
+        </div>
+        <div class="payment-method" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">🟦</div>
+          <div class="pm-name">Apple Pay</div>
+          <div class="pm-type">Tap to pay</div>
+        </div>
+        <div class="payment-method" onclick="this.classList.toggle('selected')">
+          <div class="pm-logo">🔴</div>
+          <div class="pm-name">Google Pay</div>
+          <div class="pm-type">Tap to pay</div>
+        </div>
+      </div>
+      <div class="security-note">
+        <span>🔒</span>
+        <span>Funds go directly into a PetRecovery escrow account and are never accessible to the owner or finder until all verification steps are complete. If the pet is not recovered, funds are returned in full.</span>
+      </div>
+    </div>
+
+    <!-- Escrow Flow -->
+    <div class="card">
+      <div class="card-title">🔄 How Escrow Works</div>
+      <div class="escrow-flow">
+        <div class="flow-step">
+          <div class="step-num">Step 1</div>
+          <div class="step-text">Owner funds escrow via any supported payment app</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 2</div>
+          <div class="step-text">Finder locates pet & claims reward in-app</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 3</div>
+          <div class="step-text">All 3 verifications pass (below)</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 4</div>
+          <div class="step-text">Funds released to finder immediately</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="alert('Escrow of $500 created! Bella\'s reward is now live on her public profile.')">Fund $500 Escrow →</button>
+    </div>
+
+    <!-- Proximity Verification -->
+    <div class="prox-card" style="margin-bottom:20px;">
+      <h3>📍 Proximity-Based Payment Release</h3>
+      <p>The reward is released automatically when all three conditions below are confirmed. The GPS proximity check requires both the owner's and finder's devices to be within <strong>10 feet</strong> of each other — verified in real-time via device GPS.</p>
+
+      <div class="prox-visual">
+        <div class="prox-map-ring">
+          <div class="prox-inner-ring">🐕</div>
+          <div class="prox-dot-finder">👤</div>
+        </div>
+        <div class="prox-label">Owner + Finder GPS proximity</div>
+        <div class="prox-distance">8.3 ft — In Range ✓</div>
+      </div>
+
+      <div class="prox-steps">
+        <div class="prox-step">
+          <div class="prox-step-num done">1</div>
+          <div class="prox-step-text"><strong>GPS Proximity Verified</strong> — Owner and finder devices are within 10 feet of each other</div>
+        </div>
+        <div class="prox-step">
+          <div class="prox-step-num">2</div>
+          <div class="prox-step-text"><strong>Pet Identity Confirmed</strong> — Finder scans pet's QR tag or microchip is read by a vet to confirm it's the correct animal</div>
+        </div>
+        <div class="prox-step">
+          <div class="prox-step-num">3</div>
+          <div class="prox-step-text"><strong>Owner Identity Confirmed</strong> — Owner's PetRecovery account, registered microchip, and vet records match the recovered pet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verification Status (Finder's View) -->
+    <div class="card">
+      <div class="card-title">✅ Verification Checklist</div>
+      <div class="verify-list">
+        <div class="verify-item">
+          <span class="verify-check">✅</span>
+          <div class="verify-text">
+            <strong>GPS Proximity — 8.3 ft</strong>
+            <span>Owner and finder within 10-foot GPS range · Confirmed 14 sec ago</span>
+          </div>
+        </div>
+        <div class="verify-item pending">
+          <span class="verify-check">⏳</span>
+          <div class="verify-text">
+            <strong>Pet Identity — Pending</strong>
+            <span>Waiting for finder to scan Bella's QR tag or AirTag</span>
+          </div>
+        </div>
+        <div class="verify-item locked">
+          <span class="verify-check">🔒</span>
+          <div class="verify-text">
+            <strong>Owner Identity — Locked</strong>
+            <span>Confirmed automatically after pet identity verification completes</span>
+          </div>
+        </div>
+      </div>
+      <div class="release-section">
+        <button class="btn-release" disabled>Release $500 to Finder</button>
+        <div class="release-note">Button unlocks automatically when all 3 verifications pass · No manual intervention required</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

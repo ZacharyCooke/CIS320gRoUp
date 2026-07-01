@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetRecovery — Pet Profile</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    nav { background: #1d4ed8; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    nav .logo { color: #fff; font-size: 22px; font-weight: 700; text-decoration: none; }
+    nav .logo span { color: #93c5fd; }
+    nav .nav-right { display: flex; align-items: center; gap: 20px; }
+    nav .nav-right a { color: #bfdbfe; text-decoration: none; font-size: 14px; }
+    .store-link { background: #f59e0b; color: #1c1917 !important; font-weight: 700 !important; padding: 6px 14px; border-radius: 7px; font-size: 13px !important; }
+    .bell { position: relative; font-size: 20px; text-decoration: none; }
+    .bell-badge { position: absolute; top: -6px; right: -8px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 99px; }
+    .avatar { width: 36px; height: 36px; background: #93c5fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #1e3a8a; font-size: 15px; }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 36px 24px; }
+    .breadcrumb { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+    .breadcrumb a { color: #1d4ed8; text-decoration: none; }
+
+    /* Profile header */
+    .profile-header { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px 32px; display: flex; gap: 28px; align-items: flex-start; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .pet-photos { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+    .pet-main-photo { width: 160px; height: 160px; background: linear-gradient(135deg, #dbeafe, #eff6ff); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 80px; border: 2px solid #bfdbfe; cursor: pointer; position: relative; overflow: hidden; }
+    .pet-thumb-row { display: flex; gap: 6px; }
+    .pet-thumb { width: 48px; height: 48px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid transparent; }
+    .pet-thumb.active { border-color: #1d4ed8; }
+    .add-photo { width: 48px; height: 48px; background: #f8fafc; border: 2px dashed #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; color: #94a3b8; }
+    .profile-info { flex: 1; }
+    .pet-name-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .pet-name { font-size: 28px; font-weight: 800; }
+    .status-badge { padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+    .status-safe { background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; }
+    .status-lost { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+    .pet-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+    .meta-item { font-size: 14px; color: #64748b; }
+    .meta-item strong { color: #1e293b; }
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 9px 20px; border-radius: 9px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+    .btn-red { background: #ef4444; color: #fff; }
+    .btn-blue { background: #1d4ed8; color: #fff; }
+    .btn-outline { background: #fff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+    .btn-green { background: #059669; color: #fff; }
+    .btn-amber { background: #f59e0b; color: #1c1917; }
+    .qr-btn { background: #6d28d9; color: #fff; }
+
+    /* Sections */
+    .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .section-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+    .section-card.full { grid-column: 1 / -1; }
+    .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .field-row { margin-bottom: 14px; }
+    .field-label { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+    .field-value { font-size: 14px; color: #1e293b; font-weight: 500; }
+    input[type=text], input[type=email], input[type=tel], select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { border-color: #1d4ed8; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Temperament */
+    .approach-selector { display: flex; gap: 10px; margin-top: 6px; }
+    .approach-opt { flex: 1; border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px 10px; text-align: center; cursor: pointer; transition: all .15s; }
+    .approach-opt.selected-green { border-color: #22c55e; background: #f0fdf4; }
+    .approach-opt.selected-amber { border-color: #f59e0b; background: #fffbeb; }
+    .approach-opt.selected-red { border-color: #ef4444; background: #fee2e2; }
+    .approach-icon { font-size: 26px; margin-bottom: 4px; }
+    .approach-label { font-size: 12px; font-weight: 700; }
+    .approach-sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* Medical */
+    .medical-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #92400e; margin-bottom: 12px; }
+    .medical-tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .medical-tag { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 99px; display: flex; align-items: center; gap: 6px; }
+    .tag-remove { cursor: pointer; color: #b45309; font-size: 14px; }
+    .add-tag-row { display: flex; gap: 8px; }
+    .add-tag-input { flex: 1; }
+    .btn-add-tag { background: #f59e0b; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* Vet */
+    .vet-card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+    .vet-icon { font-size: 30px; }
+    .vet-info h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+    .vet-info p { font-size: 13px; color: #166534; }
+    .vet-info .vet-phone { font-size: 13px; color: #64748b; margin-top: 2px; }
+    .btn-edit-vet { background: #fff; border: 1.5px solid #bbf7d0; color: #059669; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 7px; cursor: pointer; margin-top: 8px; }
+
+    /* Tracking */
+    .device-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f8fafc; }
+    .device-left { display: flex; align-items: center; gap: 10px; }
+    .device-icon { font-size: 22px; }
+    .device-name { font-size: 14px; font-weight: 600; }
+    .device-id { font-size: 12px; color: #64748b; }
+    .device-status { font-size: 12px; font-weight: 700; }
+    .status-active { color: #15803d; }
+
+    /* QR panel */
+    .qr-panel { display: flex; gap: 20px; align-items: flex-start; }
+    .qr-box { width: 120px; height: 120px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .qr-placeholder { font-size: 64px; }
+    .qr-info h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .qr-info p { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 12px; }
+    .qr-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-qr { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+
+    /* Reward strip */
+    .reward-strip { background: linear-gradient(135deg, #1d4ed8, #4f46e5); border-radius: 12px; padding: 18px 22px; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; }
+    .reward-strip h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .reward-strip p { font-size: 13px; color: #bfdbfe; }
+    .btn-reward { background: #fff; color: #1d4ed8; border: none; padding: 10px 22px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
+
+    /* Camera scan modal */
+    .scan-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 999; align-items: center; justify-content: center; }
+    .scan-overlay.visible { display: flex; }
+    .scan-modal { background: #1e293b; border-radius: 16px; padding: 28px; width: 340px; text-align: center; color: #fff; }
+    .scan-viewfinder { width: 240px; height: 240px; border: 3px solid #3b82f6; border-radius: 12px; margin: 20px auto; display: flex; align-items: center; justify-content: center; background: #0f172a; position: relative; }
+    .scan-corner { position: absolute; width: 30px; height: 30px; border-color: #60a5fa; border-style: solid; }
+    .scan-corner.tl { top: -3px; left: -3px; border-width: 4px 0 0 4px; border-radius: 4px 0 0 0; }
+    .scan-corner.tr { top: -3px; right: -3px; border-width: 4px 4px 0 0; border-radius: 0 4px 0 0; }
+    .scan-corner.bl { bottom: -3px; left: -3px; border-width: 0 0 4px 4px; border-radius: 0 0 0 4px; }
+    .scan-corner.br { bottom: -3px; right: -3px; border-width: 0 4px 4px 0; border-radius: 0 0 4px 0; }
+    .scan-line { position: absolute; width: 80%; height: 2px; background: #3b82f6; animation: scanLine 2s ease-in-out infinite; }
+    @keyframes scanLine { 0%,100%{top:20px} 50%{top:calc(100% - 20px)} }
+    .scan-icon { font-size: 40px; }
+    .scan-modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .scan-modal p { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+    .btn-close-scan { background: #ef4444; color: #fff; border: none; padding: 10px 28px; border-radius: 9px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="logo" href="index.html">Pet<span>Recovery</span></a>
+    <div class="nav-right">
+      <a href="dashboard.html">← Dashboard</a>
+      <a class="store-link" href="store.html">🛍 Store</a>
+      <a class="bell" href="notifications.html">🔔<span class="bell-badge">3</span></a>
+      <div class="avatar">ZC</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="breadcrumb"><a href="dashboard.html">My Pets</a> › Bella</div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="pet-photos">
+        <div class="pet-main-photo">🐕</div>
+        <div class="pet-thumb-row">
+          <div class="pet-thumb active">🐕</div>
+          <div class="pet-thumb">🦮</div>
+          <div class="pet-thumb">🐾</div>
+          <div class="add-photo" title="Add photo">+</div>
+        </div>
+      </div>
+      <div class="profile-info">
+        <div class="pet-name-row">
+          <div class="pet-name">Bella</div>
+          <span class="status-badge status-safe">✓ Safe at Home</span>
+        </div>
+        <div class="pet-meta">
+          <span class="meta-item"><strong>Species:</strong> Dog</span>
+          <span class="meta-item"><strong>Breed:</strong> Yellow Labrador</span>
+          <span class="meta-item"><strong>Color:</strong> Golden/Yellow</span>
+          <span class="meta-item"><strong>Age:</strong> 4 years</span>
+          <span class="meta-item"><strong>Weight:</strong> 58 lbs</span>
+          <span class="meta-item"><strong>Microchip:</strong> 985112004567891</span>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-red" onclick="location.href='search.html'">🚨 Report Lost</button>
+          <button class="btn btn-outline">✏️ Edit Profile</button>
+          <button class="btn qr-btn" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan QR</button>
+          <button class="btn btn-amber" onclick="location.href='reward.html'">💰 Set Reward</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sections">
+
+      <!-- Temperament / Approach -->
+      <div class="section-card">
+        <div class="section-title">🐾 Temperament & Approach</div>
+        <div class="field-label">How should someone approach this pet?</div>
+        <div class="approach-selector">
+          <div class="approach-opt selected-green">
+            <div class="approach-icon">😊</div>
+            <div class="approach-label" style="color:#15803d">Friendly</div>
+            <div class="approach-sub">Safe to approach & handle</div>
+          </div>
+          <div class="approach-opt">
+            <div class="approach-icon">⚠️</div>
+            <div class="approach-label" style="color:#92400e">Cautious</div>
+            <div class="approach-sub">Approach slowly, no sudden moves</div>
+          </div>
+          <div class="approach-opt">
+            <div class="approach-icon">🚫</div>
+            <div class="approach-label" style="color:#b91c1c">Report Only</div>
+            <div class="approach-sub">Do NOT approach — call owner</div>
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:14px">
+          <div class="field-label">Additional notes for finders</div>
+          <textarea placeholder="e.g. Responds to 'Bella', loves treats, scared of loud noises, comes when you crouch down...">Loves treats! Responds to her name. May be scared and hide under cars. Approach slowly and crouch down — she'll come to you.</textarea>
+        </div>
+      </div>
+
+      <!-- Medical Conditions -->
+      <div class="section-card">
+        <div class="section-title">🏥 Medical Information</div>
+        <div class="medical-note">ℹ️ Only share what you choose. This information is displayed on BOLO alerts to help finders and shelters provide proper care. HIPAA does not apply to pet records — information is shared at your discretion.</div>
+        <div class="field-label">Conditions / Medications to share publicly</div>
+        <div class="medical-tag-row">
+          <span class="medical-tag">Hypothyroidism<span class="tag-remove">✕</span></span>
+          <span class="medical-tag">Daily Thyroid Medication<span class="tag-remove">✕</span></span>
+          <span class="medical-tag">Allergic to chicken<span class="tag-remove">✕</span></span>
+        </div>
+        <div class="add-tag-row">
+          <input type="text" class="add-tag-input" placeholder="Add condition or medication..." />
+          <button class="btn-add-tag">+ Add</button>
+        </div>
+        <div class="field-row" style="margin-top:14px">
+          <div class="field-label">Emergency medical notes for shelters/vets</div>
+          <textarea placeholder="Any critical info a vet or shelter should know immediately...">Requires 0.3mg Levothyroxine daily with food. Do not feed chicken-based foods — causes severe GI reaction. Has had two knee surgeries (both ACLs). Spayed.</textarea>
+        </div>
+      </div>
+
+      <!-- Primary Vet -->
+      <div class="section-card">
+        <div class="section-title">🩺 Primary Veterinarian</div>
+        <div class="vet-card">
+          <div class="vet-icon">🏥</div>
+          <div class="vet-info">
+            <h4>South Austin Animal Hospital</h4>
+            <p>2500 W William Cannon Dr, Austin, TX 78745</p>
+            <p class="vet-phone">📞 (512) 444-2234 · saah@southaustinvet.com</p>
+            <button class="btn-edit-vet">✏️ Edit Vet Info</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#64748b;margin-top:10px;">When Bella is reported missing, PetRecovery will automatically email all veterinary clinics within 2 miles of the last known location with a BOLO alert including her photos and medical info.</div>
+      </div>
+
+      <!-- Tracking Devices -->
+      <div class="section-card">
+        <div class="section-title">📡 Linked Tracking Devices</div>
+        <div class="device-row">
+          <div class="device-left">
+            <div class="device-icon">📍</div>
+            <div>
+              <div class="device-name">Apple AirTag</div>
+              <div class="device-id">Last ping: 6 min ago · Barton Hills, Austin</div>
+            </div>
+          </div>
+          <span class="device-status status-active">● Active</span>
+        </div>
+        <div class="device-row">
+          <div class="device-left">
+            <div class="device-icon">📦</div>
+            <div>
+              <div class="device-name">Amazon Smart Tag</div>
+              <div class="device-id">Share URL linked · Updated 2h ago</div>
+            </div>
+          </div>
+          <span class="device-status status-active">● Active</span>
+        </div>
+        <button class="btn btn-outline" style="margin-top:14px;width:100%;font-size:13px;">+ Link Device</button>
+      </div>
+
+      <!-- QR Code -->
+      <div class="section-card">
+        <div class="section-title">📲 QR Code & Smart Tag</div>
+        <div class="qr-panel">
+          <div class="qr-box">
+            <div class="qr-placeholder">▦</div>
+          </div>
+          <div class="qr-info">
+            <h4>Bella's PetRecovery QR</h4>
+            <p>Anyone who scans this code sees Bella's profile, your contact info, temperament notes, and medical conditions you've chosen to share. No app required.</p>
+            <div class="qr-actions">
+              <button class="btn-qr" style="background:#1d4ed8;color:#fff;border:none;border-radius:7px" onclick="alert('QR code downloaded!')">⬇ Download</button>
+              <button class="btn-qr" style="background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:7px" onclick="alert('Printing QR...')">🖨 Print Tag</button>
+              <button class="btn-qr" style="background:#f8fafc;color:#475569;border:1px solid #e2e8f0;border-radius:7px" onclick="document.getElementById('scanOverlay').classList.add('visible')">📷 Scan Code</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- External Search Sources -->
+      <div class="section-card">
+        <div class="section-title">🔗 External Sources Linked</div>
+        <div class="device-row">
+          <div class="device-left">
+            <div class="device-icon">🐾</div>
+            <div>
+              <div class="device-name">PetFinder</div>
+              <div class="device-id">Auto-synced · Pet ID: PF-2847193</div>
+            </div>
+          </div>
+          <span class="device-status status-active">● Live</span>
+        </div>
+        <div class="device-row">
+          <div class="device-left">
+            <div class="device-icon">🔵</div>
+            <div>
+              <div class="device-name">24PetWatch Microchip</div>
+              <div class="device-id">Chip: 985112004567891 · Registered</div>
+            </div>
+          </div>
+          <span class="device-status status-active">● Verified</span>
+        </div>
+        <div class="device-row">
+          <div class="device-left">
+            <div class="device-icon">👤</div>
+            <div>
+              <div class="device-name">Facebook Groups</div>
+              <div class="device-id">3 local groups connected</div>
+            </div>
+          </div>
+          <span class="device-status" style="color:#f59e0b">● Auth Required</span>
+        </div>
+      </div>
+
+      <!-- Vet Email BOLO Preview -->
+      <div class="section-card full">
+        <div class="section-title">📧 Auto-Email BOLO to Nearby Vets — Preview</div>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;font-size:13px;font-family:monospace;line-height:1.8;color:#1e293b;">
+          <strong>Subject:</strong> 🚨 BOLO — Lost Dog: Bella (Yellow Labrador) — Near Your Clinic<br/>
+          <strong>To:</strong> [Vet clinics within 2 miles of last known GPS location]<br/>
+          <strong>From:</strong> alerts@petrecovery.app<br/>
+          ─────────────────────────────────────<br/>
+          Dear [Clinic Name] Team,<br/><br/>
+          A dog named <strong>Bella</strong> was reported missing near your location on [DATE] at [TIME].<br/><br/>
+          <strong>Description:</strong> Yellow Labrador · Female · 4 years · 58 lbs<br/>
+          <strong>Microchip:</strong> 985112004567891<br/>
+          <strong>Medical notes:</strong> Requires daily Levothyroxine · Allergic to chicken · Two prior ACL surgeries<br/>
+          <strong>Approach:</strong> Friendly — safe to handle<br/><br/>
+          If this animal is brought to your clinic, please contact:<br/>
+          Owner: Zachary Cooke · (555) 867-5309 · zc@email.com<br/><br/>
+          [Pet photos attached: bella_1.jpg, bella_2.jpg]<br/><br/>
+          View full profile: petrecovery.app/pets/bella-2847<br/>
+          ─────────────────────────────────────<br/>
+          This alert was sent automatically by PetRecovery to all veterinary clinics within 2 miles of the pet's last known GPS location.
+        </div>
+        <div style="font-size:12px;color:#64748b;margin-top:10px;">This email is sent automatically when you tap <strong>"Report Lost"</strong>. Vet clinic addresses are sourced from Google Places API.</div>
+      </div>
+
+    </div>
+
+    <!-- Reward Strip -->
+    <div class="reward-strip">
+      <div>
+        <h4>💰 No Reward Posted Yet</h4>
+        <p>Add a reward to incentivize the community. Funds are held in secure escrow and released only after verification.</p>
+      </div>
+      <button class="btn-reward" onclick="location.href='reward.html'">Set Up Reward →</button>
+    </div>
+  </div>
+
+  <!-- QR Scan Overlay -->
+  <div class="scan-overlay" id="scanOverlay">
+    <div class="scan-modal">
+      <h3>📷 Scan Pet QR Code</h3>
+      <p>Point your camera at any PetRecovery QR tag to instantly view that pet's profile and contact their owner.</p>
+      <div class="scan-viewfinder">
+        <div class="scan-corner tl"></div>
+        <div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div>
+        <div class="scan-corner br"></div>
+        <div class="scan-line"></div>
+        <div class="scan-icon">📱</div>
+      </div>
+      <p style="font-size:12px;color:#64748b;margin-bottom:16px;">Camera access required. Your camera feed is never stored or transmitted.</p>
+      <button class="btn-close-scan" onclick="document.getElementById('scanOverlay').classList.remove('visible')">✕ Close</button>
+    </div>
+  </div>
+
+</body>
+</html>

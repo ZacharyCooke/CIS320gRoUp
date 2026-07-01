@@ -24,7 +24,7 @@
 | 12 | Use Spec Kit (spec.md, plan.md, tasks.md) | ✅ All generated |
 | 13 | Push all files to GitHub repo (ZacharyCooke/CIS320gRoUp) | ✅ Done |
 | 14 | Create 85 GitHub Issues from tasks.md | ✅ Done |
-| 15 | UI mockups — 6 HTML screens for screen recording | ✅ Done |
+| 15 | UI mockups — HTML screens for screen recording | ✅ Done |
 | 16 | Real map integration (OpenStreetMap via Leaflet + Google Maps toggle) | ✅ Done |
 | 17 | PetRecovery logo = home quicklink on all pages | ✅ Done |
 | 18 | Advertisement space — free app supported by ads + in-app store | ✅ UI done |
@@ -37,36 +37,78 @@
 | 25 | Passwords and personal data stored locally on device only (never on server) | ✅ Spec noted |
 | 26 | Location data pulled only for active lost pet notifications | ✅ Spec noted |
 | 27 | groupdata.md — feature tracker and brainstorm file | ✅ This file |
+| 28 | Camera and photo access for QR code scanning | ✅ UI done (pet-profile.html) |
+| 29 | HIPAA-covered items excluded — vet records not accessed without clinic consent | ✅ Policy set |
+| 30 | Pet profiles: optional medical conditions field (owner chooses what to share) | ✅ UI done (pet-profile.html) |
+| 31 | Pet profiles: temperament / approach instructions (Friendly / Cautious / Report Only) | ✅ UI done (pet-profile.html) |
+| 32 | Pet profiles: primary veterinarian contact field | ✅ UI done (pet-profile.html) |
+| 33 | Auto-email BOLO to all vet clinics within 2 miles when pet reported missing (via GPS) | ✅ UI + email preview done |
+| 34 | Reward escrow account — funds held until verified reunion | ✅ UI done (reward.html) |
+| 35 | Accept reward payments via PayPal, Venmo, Zelle, CashApp, Google Pay, Apple Pay | ✅ UI done (reward.html) |
+| 36 | Proximity-based payment release — both devices within 10 feet via GPS | ✅ UI done (reward.html) |
+| 37 | Reunion verification: correct pet confirmed + owner identity confirmed + proximity met | ✅ UI done (reward.html) |
+| 38 | QR code scanning via camera — scan any PetRecovery tag to view that pet's profile | ✅ UI done (pet-profile.html) |
+| 39 | Volunteer search network — community opt-in to physically help search for lost pets | ✅ Spec noted |
+| 40 | Automated social media post — auto-post to local FB groups when pet marked lost | ✅ Spec noted |
+| 41 | In-app chat — direct messaging between finder and owner | ✅ Spec noted |
+| 42 | Microchip lookup — AAHA Universal Pet Microchip Lookup integration | ✅ databases.md |
+| 43 | Pet insurance link — link policy info for emergency medical during recovery | ✅ Spec noted |
+| 44 | Dark mode | ✅ Spec noted |
+| 45 | Multi-language support | ✅ Spec noted |
+| 46 | Annual pet profile renewal reminder — keep photos and info current | ✅ Spec noted |
+| 47 | Found pet photo AI matching — compare found pet photo to registered profiles | ✅ Spec noted |
+| 48 | SMS-only mode — no app required, works via text messages | ✅ Spec noted |
+| 49 | Local shelter API partnerships — direct integrations with regional shelters | ✅ databases.md |
 
 ---
 
 ## Privacy & Security Decisions
 
-- **Passwords**: Hashed locally; never transmitted or stored in plaintext on any server
-- **Personal data** (name, contact info): Stored on user's local device; only minimum required data sent to server for matching
-- **Location data**: Pulled only when a pet is actively marked as lost; not tracked otherwise
-- **Facebook**: OAuth login used only to query local Facebook groups; PetRecovery does not store Facebook credentials
-- **2FA**: TOTP via Microsoft Authenticator; triggered only on new or unrecognized IP address
+| Topic | Decision |
+|---|---|
+| Passwords | Hashed locally; never transmitted or stored in plaintext on any server |
+| Personal data | Stored on user's local device; minimum required data sent for matching only |
+| Location data | Pulled only when a pet is actively marked as lost; not tracked otherwise |
+| Facebook | OAuth login only; PetRecovery does not store Facebook credentials |
+| 2FA | TOTP via Microsoft Authenticator; triggered only on new or unrecognized IP |
+| HIPAA | Vet records not accessed without explicit clinic consent; pet medical info is owner-controlled and shared at owner's discretion (HIPAA does not apply to animal records) |
+| Medical data | Owner chooses exactly what medical info to share publicly on BOLO alerts |
+| Camera | QR scan camera feed is never stored or transmitted — used locally only |
+| Reward escrow | Funds never accessible to owner or finder until all 3 verification steps pass |
+| GPS proximity | 10-foot reunion verification uses device GPS; location not stored after verification |
 
 ---
 
-## Brainstorm — Potential Future Features
+## Brainstorm — Implemented Features (moved from brainstorm)
 
-These have NOT been requested yet but could add significant value:
+Features that started as brainstorm ideas and have been implemented:
+
+| Feature | Now In |
+|---|---|
+| QR Code pet tags (scannable, links to profile) | pet-profile.html, store.html |
+| Reward posting with escrow | reward.html |
+| Vet office BOLO email automation | pet-profile.html (auto-email preview) |
+| Microchip lookup | databases.md |
+| Camera QR scanning | pet-profile.html |
+| Pet medical conditions field | pet-profile.html |
+
+---
+
+## Brainstorm — Future Features (not yet implemented)
 
 | Idea | Value | Complexity |
 |---|---|---|
-| **QR Code pet tags** — scannable tag links to pet profile | High — anyone who finds pet can instantly see owner info | Low |
-| **Microchip lookup** — search AAHA Universal Pet Microchip Lookup | High — reunites pets at shelters instantly | Medium |
-| **Volunteer search network** — users opt in to help physically search for lost pets | High — community engagement | Medium |
-| **Automated social media post** — auto-post to local FB groups when pet marked lost | High — reaches wider audience fast | High |
-| **In-app chat** — direct messaging between finder and owner | High — reduces friction in reunification | Medium |
-| **Reward posting** — owner can post a reward amount on the lost pet listing | Medium — incentivizes finders | Low |
-| **Vet office integration** — nearby vets notified when a pet goes missing | High — stray pets often taken to vets | High |
-| **Pet insurance link** — link policy info for medical emergencies during recovery | Medium — added peace of mind | Medium |
-| **Dark mode** | Medium — accessibility and user comfort | Low |
+| **Volunteer search network** — users opt-in to physically help search | High — community engagement | Medium |
+| **Automated social media post** — auto-post to FB groups on report | High — wider reach | High |
+| **In-app chat** — direct messaging between finder and owner | High — reduces friction | Medium |
+| **Pet insurance link** — link policy for emergency medical during recovery | Medium — peace of mind | Medium |
+| **Dark mode** | Medium — accessibility | Low |
 | **Multi-language support** | High — international reach | Medium |
-| **Annual pet profile renewal reminder** — ensure photos/info stay current | Medium — data quality | Low |
-| **Found pet photo AI matching** — compare found pet photo to registered profile photos | Very High — automated matching | Very High |
-| **SMS-only mode** — no app required, works via text messages | High — older/less tech-savvy users | High |
-| **Local shelter API partnerships** — direct integrations with Austin, Dallas, Houston shelters | High — real-time shelter data | High |
+| **Annual renewal reminder** — keep pet photos and info current | Medium — data quality | Low |
+| **Found pet photo AI matching** — compare photos to registered profiles | Very High — automated matching | Very High |
+| **SMS-only mode** — no app required, works via text message | High — older/less tech-savvy users | High |
+| **Local shelter API partnerships** — direct Austin, Dallas, Houston integrations | High — real-time shelter data | High |
+| **Petco Love Lost integration** — growing national photo database | Medium — added coverage | Medium |
+| **Ring Neighbors full integration** — hyperlocal community reach | Medium — needs Amazon partnership | High |
+| **Nextdoor integration** — neighborhood-level alerts | High — hyperlocal | High (needs partnership) |
+| **Apple/Google Wallet pet ID card** — digital pet ID in phone wallet | Medium — easy access | Medium |

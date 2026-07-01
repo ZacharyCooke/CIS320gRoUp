@@ -14,9 +14,10 @@
 | **AAHA Universal Microchip Lookup** | Multi-registry microchip search | Public web lookup (screenscrape or partner API) | Searches 70+ chip registries at once |
 | **Petco Love Lost** | Lost & found pet database | Public search interface; no official API — scraping viable | Free; good photo matching |
 | **OpenStreetMap / Nominatim** | Address geocoding & map tiles | Free API, no key required | Used for map display and address-to-coordinate conversion |
-| **Google Maps Platform** | Maps, geocoding, directions | REST API (requires API key; free tier: $200/month credit) | Used for Google Maps toggle in search |
+| **Google Maps Platform** | Maps, geocoding, directions, Places (vet search) | REST API (requires API key; free tier: $200/month credit) | Used for Google Maps toggle and finding nearby vets via Places API |
+| **Google Places API** | Nearby veterinary clinic search | REST API (same key as Maps) | Used to find vet clinics within 2 miles of lost pet GPS location for BOLO emails |
 | **Twilio** | SMS notifications | REST API (paid per message) | Used for SMS OTP and BOLO alerts |
-| **SendGrid** | Email notifications | REST API (free tier: 100 emails/day) | Used for email OTP and owner updates |
+| **SendGrid** | Email notifications | REST API (free tier: 100 emails/day) | Used for email OTP, owner updates, and auto-BOLO emails to nearby vets |
 | **Amazon Ring Neighbors (limited)** | Community safety & found animal posts | Ring API is restricted; Neighbors posts are semi-public | Can deep-link to Neighbors app; full API requires Ring partnership |
 
 ---
@@ -42,7 +43,23 @@
 | **Nextdoor (without partnership)** | No public API; account required; no scraping without ToS violation |
 | **Local TV station lost pet segments** | No structured data; would require manual curation |
 | **Individual rescue organization databases** | Hundreds of separate systems with no standard format |
-| **Veterinary clinic records** | HIPAA-equivalent privacy laws (VCPR); cannot access without clinic partnership |
+| **Veterinary clinic records** | Covered under VCPR (Veterinary-Client-Patient Relationship) privacy norms — cannot access without clinic partnership. PetRecovery does NOT access vet records; owners manually input medical info they choose to share. |
+
+---
+
+## Payment Processors (Reward Escrow)
+
+| Provider | Type | Integration | Notes |
+|---|---|---|---|
+| **PayPal** | Digital wallet / bank | REST API (PayPal Commerce Platform) | Most widely used; supports escrow-style holds |
+| **Venmo** | Social payments | Venmo API (requires PayPal partnership) | Popular with younger users; instant transfer |
+| **Zelle** | Bank-to-bank transfer | Zelle Partner API (requires bank agreements) | No app needed; instant; tied to existing bank account |
+| **Cash App** | Digital wallet | Cash App Pay API (Block/Square) | Popular with Gen Z; instant transfer |
+| **Apple Pay** | Device-based payment | Stripe + Apple Pay JS / PassKit | No credentials stored; Face ID / Touch ID authorization |
+| **Google Pay** | Device-based payment | Google Pay API | Android + web; no credentials stored in app |
+| **Stripe** | Backend payment processor | Stripe REST API | Powers all payment methods on the backend; supports escrow/holds natively via Stripe Connect |
+
+**Escrow Architecture Note**: All payments flow through Stripe Connect, which natively supports holding funds and releasing them on a trigger. Individual payment methods (PayPal, Venmo, Apple Pay, etc.) are presented as deposit options; Stripe handles the actual holding and release logic. Funds are released only after all three proximity + identity verification steps pass.
 
 ---
 
@@ -53,10 +70,16 @@
 | P1 | PetFinder API | Best coverage, reliable, free |
 | P1 | 24PetWatch Microchip Lookup | Instant shelter identification |
 | P1 | OpenStreetMap + Google Maps | Core map functionality |
+| P1 | Google Places API | Find nearby vets for BOLO auto-email |
+| P1 | SendGrid | BOLO emails to vets, OTP, owner alerts |
+| P1 | Stripe Connect | Reward escrow + all payment methods |
 | P2 | PetFBI | National missing pet database |
 | P2 | Facebook Graph API | Large local community reach |
 | P2 | Petco Love Lost | Growing national database |
+| P2 | Apple Pay / Google Pay | Frictionless reward payment |
+| P2 | Twilio | SMS OTP and text alerts |
 | P3 | Amazon Ring Neighbors | Hyperlocal community reach (needs partnership) |
 | P3 | AAHA Universal Microchip | Broadest chip coverage |
+| P3 | PayPal / Venmo / Zelle / CashApp | Additional reward payment options |
 | Future | Nextdoor | Pending partnership |
 | Future | Local shelter direct APIs | Shelter-by-shelter integration |
