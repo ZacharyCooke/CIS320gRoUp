@@ -21,6 +21,18 @@ petsRouter.get(
   })
 );
 
+petsRouter.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const pet = await pets.read(req.user!.id, param(req.params.id));
+    if (!pet) {
+      res.status(404).json({ error: "pet_not_found" });
+      return;
+    }
+    res.json({ pet });
+  })
+);
+
 petsRouter.post(
   "/",
   asyncHandler(async (req, res) => {

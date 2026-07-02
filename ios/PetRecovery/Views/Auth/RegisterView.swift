@@ -4,19 +4,60 @@ struct RegisterView: View {
     @State private var email = ""
     @State private var phone = ""
     @State private var password = ""
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var pendingUserId: String?
+    @State private var navigateToVerify = false
 
     var body: some View {
-        Form {
-            Section("Create Account") {
-                TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                TextField("Phone", text: $phone)
-                    .textContentType(.telephoneNumber)
-                SecureField("Password", text: $password)
-            }
+        NavigationStack {
+            Form {
+                Section("Create Account") {
+                    TextField("Email", text: $email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                    TextField("Phone (optional)", text: $phone)
+                        .textContentType(.telephoneNumber)
+                        .keyboardType(.phonePad)
+                    SecureField("Password (12+ characters)", text: $password)
+                        .textContentType(.newPassword)
+                }
 
-            Button("Register") {}
+                if let error = errorMessage {
+                    Section {
+                        Text(error).foregroundStyle(.red)
+                    }
+                }
+
+                Section {
+                    Button("Register") {
+                        Task { await register() }
+                    }
+                    .disabled(isLoading || email.isEmpty || password.count < 12)
+                }
+            }
+            .navigationTitle("Register")
+            .navigationDestination(isPresented: $navigateToVerify) {
+                VerifyContactView(userId: pendingUserId ?? "")
+            }
         }
-        .navigationTitle("Register")
+    }
+
+    private func register() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            let response = try await APIClient.shared.register(
+                email: email,
+                password: password,
+                phone: phone.isEmpty ? nil : phone
+            )
+            pendingUserId = response.user_id
+            navigateToVerify = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isLoading = false
     }
 }

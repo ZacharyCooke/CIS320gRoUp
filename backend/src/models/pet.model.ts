@@ -53,7 +53,7 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
        owner_id, name, species, breed, color, size, weight_lbs,
        microchip_number, license_tag, temperament, approach_notes
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, 'friendly'), $11)
+     VALUES ($1, $2, $3::pet_species, $4, $5, $6::pet_size, $7, $8, $9, COALESCE($10::pet_temperament, 'friendly'::pet_temperament), $11)
      RETURNING *`,
     [
       input.owner_id,

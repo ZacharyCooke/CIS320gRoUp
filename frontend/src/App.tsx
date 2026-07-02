@@ -1,35 +1,25 @@
-import { PlaceholderPage } from "./components/PlaceholderPage";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import { VerifyContactPage } from "./pages/auth/VerifyContactPage";
+import { DashboardPage } from "./pages/pets/DashboardPage";
+import { PetFormPage } from "./pages/pets/PetFormPage";
+import { PetProfilePage } from "./pages/pets/PetProfilePage";
+import { setAccessToken } from "./services/api-client";
 
-const plannedPages = [
-  "Register",
-  "Verify Contact",
-  "Login",
-  "Pet Dashboard",
-  "Pet Profile",
-  "Search Results",
-  "Found Pet Report",
-  "Notifications",
-  "Reward Setup",
-  "Store"
-];
+const stored = localStorage.getItem("access_token");
+if (stored) setAccessToken(stored);
 
 export function App() {
   return (
-    <main className="app-shell">
-      <section className="app-header">
-        <p className="eyebrow">PetRecovery</p>
-        <h1>Implementation scaffold ready</h1>
-        <p>
-          Phase 1-2 app structure is in place. Feature pages will be built from the
-          Spec Kit tasks using the static HTML mockups as visual references.
-        </p>
-      </section>
-
-      <section className="page-grid" aria-label="Planned pages">
-        {plannedPages.map((page) => (
-          <PlaceholderPage key={page} title={page} />
-        ))}
-      </section>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/register" replace />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify" element={<VerifyContactPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/pets/new" element={<PetFormPage />} />
+        <Route path="/pets/:id" element={<PetProfilePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

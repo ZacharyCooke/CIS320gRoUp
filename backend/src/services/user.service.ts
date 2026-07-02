@@ -46,6 +46,9 @@ function setPendingOtp(userId: string, channel: VerificationChannel): string {
     expiresAt: Date.now() + OTP_TTL_MS,
     attempts: 0
   });
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[dev-otp] ${channel}:${userId} = ${code}`);
+  }
   return code;
 }
 

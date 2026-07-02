@@ -18,4 +18,9 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", router);
+
+app.use((_req, res) => {
+  res.status(404).json({ error: "not_found" });
+});
+
 app.use(errorHandler);

@@ -6,7 +6,9 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  const message = error instanceof Error ? error.message : "Unexpected error";
+  const message = error instanceof Error
+    ? (error.message || (error as NodeJS.ErrnoException).code || "Unexpected error")
+    : "Unexpected error";
   res.status(500).json({
     error: "internal_server_error",
     message

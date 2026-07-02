@@ -10,7 +10,7 @@ export function rateLimitMiddleware(req: Request, res: Response, next: NextFunct
     return;
   }
 
-  const key = req.ipHash || "unknown";
+  const key = `${req.path}:${req.ipHash || "unknown"}`;
   const now = Date.now();
   const current = attempts.get(key);
 
