@@ -15,7 +15,6 @@ import { findPetById, updatePetStatus } from "../../models/pet.model.js";
 import { runSearch } from "../../services/search-aggregator.service.js";
 
 export const searchRouter = Router();
-searchRouter.use(authMiddleware);
 
 function param(v: string | string[] | undefined): string {
   return Array.isArray(v) ? v[0] : v ?? "";
@@ -35,6 +34,7 @@ const patchSearchSchema = z.object({
 // POST /pets/:id/mark-lost
 searchRouter.post(
   "/pets/:id/mark-lost",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const petId = param(req.params.id);
     const ownerId = req.user!.id;
@@ -79,6 +79,7 @@ searchRouter.post(
 // POST /pets/:id/mark-recovered
 searchRouter.post(
   "/pets/:id/mark-recovered",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const petId = param(req.params.id);
     const ownerId = req.user!.id;
@@ -104,6 +105,7 @@ searchRouter.post(
 // GET /searches/:id/results
 searchRouter.get(
   "/searches/:id/results",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const searchId = param(req.params.id);
     const ownerId = req.user!.id;
@@ -122,6 +124,7 @@ searchRouter.get(
 // PATCH /searches/:id
 searchRouter.patch(
   "/searches/:id",
+  authMiddleware,
   asyncHandler(async (req, res) => {
     const searchId = param(req.params.id);
     const ownerId = req.user!.id;

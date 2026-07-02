@@ -127,19 +127,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T056 [P] [US3] Create FoundReport model in backend/src/models/found-report.model.ts
-- [ ] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts
-- [ ] T058 [US3] Create database migrations for FoundReport and Notification tables in backend/src/migrations/
-- [ ] T059 [US3] Implement FoundReportService with create(), queryByRadius(), and claim() methods in backend/src/services/found-report.service.ts
-- [ ] T060 [US3] Implement NotificationService dispatching in-app WebSocket events plus email/SMS via SendGrid and Twilio in backend/src/services/notification.service.ts
-- [ ] T061 [US3] Wire found-report creation to broadcast found_report_match events on all overlapping active searches in backend/src/services/found-report.service.ts
-- [ ] T062 [US3] Implement found-report routes (POST /found-reports, GET /found-reports, GET /found-reports/:id) in backend/src/api/routes/found-reports.routes.ts
-- [ ] T063 [P] [US3] Implement notification route (GET /notifications) in backend/src/api/routes/notifications.routes.ts
-- [ ] T064 [P] [US3] Build Submit Found Pet page accessible without login with photo upload in frontend/src/pages/search/FoundReportPage.tsx
-- [ ] T065 [P] [US3] Build Notification bell component and notification list drawer in frontend/src/components/NotificationBell.tsx
-- [ ] T066 [P] [US3] Implement Submit Found Pet screen in ios/PetRecovery/Views/Search/FoundReportView.swift
-- [ ] T067 [P] [US3] Implement Notifications list screen in ios/PetRecovery/Views/Notifications/NotificationsView.swift
-- [ ] T068 [US3] Functional check: confirm found-pet report triggers real-time notification on owner's active search on web and iOS with no errors
+- [x] T056 [P] [US3] Create FoundReport model in backend/src/models/found-report.model.ts
+- [x] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts
+- [x] T058 [US3] Create database migrations for FoundReport and Notification tables in backend/src/migrations/
+- [x] T059 [US3] Implement FoundReportService with create(), queryByRadius(), and claim() methods in backend/src/services/found-report.service.ts
+- [x] T060 [US3] Implement NotificationService dispatching in-app WebSocket events plus email/SMS via SendGrid and Twilio in backend/src/services/notification.service.ts
+- [x] T061 [US3] Wire found-report creation to broadcast found_report_match events on all overlapping active searches in backend/src/services/found-report.service.ts
+- [x] T062 [US3] Implement found-report routes (POST /found-reports, GET /found-reports, GET /found-reports/:id) in backend/src/api/routes/found-reports.routes.ts
+- [x] T063 [P] [US3] Implement notification route (GET /notifications) in backend/src/api/routes/notifications.routes.ts
+- [x] T064 [P] [US3] Build Submit Found Pet page accessible without login with photo upload in frontend/src/pages/search/FoundReportPage.tsx
+- [x] T065 [P] [US3] Build Notification bell component and notification list drawer in frontend/src/components/NotificationBell.tsx
+- [x] T066 [P] [US3] Implement Submit Found Pet screen in ios/PetRecovery/Views/Search/FoundReportView.swift
+- [x] T067 [P] [US3] Implement Notifications list screen in ios/PetRecovery/Views/Notifications/NotificationsView.swift
+- [x] T068 [US3] Functional check: confirm found-pet report triggers real-time notification on owner's active search on web and iOS with no errors
 
 **Checkpoint**: User Stories 1, 2, and 3 all independently functional.
 

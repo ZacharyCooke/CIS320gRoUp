@@ -10,10 +10,9 @@ export function initSocketServer(httpServer: HttpServer): SocketServer {
   });
 
   io.on("connection", (socket) => {
-    const { searchId } = socket.handshake.query;
-    if (typeof searchId === "string") {
-      socket.join(`search:${searchId}`);
-    }
+    const { searchId, userId } = socket.handshake.query;
+    if (typeof searchId === "string") socket.join(`search:${searchId}`);
+    if (typeof userId === "string") socket.join(`user:${userId}`);
   });
 
   return io;
