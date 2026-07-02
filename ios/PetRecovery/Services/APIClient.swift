@@ -87,6 +87,29 @@ final class APIClient {
         struct Body: Encodable { let source_type: String; let source_name: String; let source_url: String }
         _ = try await request(path: "pets/\(petId)/external-sources", method: "POST", body: Body(source_type: sourceType, source_name: sourceName, source_url: sourceUrl))
     }
+
+    // MARK: - Search
+
+    func markPetLost(petId: String, centerLat: Double, centerLng: Double, radiusMiles: Double) async throws -> MarkLostResponse {
+        struct Body: Encodable { let center_lat: Double; let center_lng: Double; let radius_miles: Double }
+        let (data, _) = try await request(path: "pets/\(petId)/mark-lost", method: "POST",
+            body: Body(center_lat: centerLat, center_lng: centerLng, radius_miles: radiusMiles))
+        return try JSONDecoder().decode(MarkLostResponse.self, from: data)
+    }
+
+    func markPetRecovered(petId: String) async throws {
+        _ = try await request(path: "pets/\(petId)/mark-recovered", method: "POST")
+    }
+
+    func getSearchResults(searchId: String) async throws -> SearchResultsResponse {
+        let (data, _) = try await request(path: "searches/\(searchId)/results")
+        return try JSONDecoder().decode(SearchResultsResponse.self, from: data)
+    }
+
+    func closeSearchAndCleanLocation(searchId: String) async {
+        struct Body: Encodable { let status: String }
+        _ = try? await request(path: "searches/\(searchId)", method: "PATCH", body: Body(status: "closed"))
+    }
 }
 
 // MARK: - Response types
@@ -111,6 +134,38 @@ struct PetDTO: Decodable {
     let species: String
     let color: String
     let status: String
+}
+
+struct MarkLostResponse: Decodable {
+    let search: SearchDTO
+}
+
+struct SearchDTO: Decodable {
+    let id: String
+    let pet_id: String
+    let status: String
+    let center_lat: Double
+    let center_lng: Double
+    let radius_miles: Double
+}
+
+struct SearchResultsResponse: Decodable {
+    let search: SearchDTO
+    let results: [SearchResultDTO]
+}
+
+struct SearchResultDTO: Decodable {
+    let id: String
+    let source: String
+    let name: String?
+    let species: String?
+    let breed: String?
+    let color: String?
+    let photo_url: String?
+    let distance_miles: Double?
+    let description: String?
+    let contact_info: String?
+    let source_url: String?
 }
 
 private struct EmptyBody: Encodable {}

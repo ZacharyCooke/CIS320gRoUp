@@ -21,7 +21,9 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   GOOGLE_MAPS_API_KEY: z.string().optional(),
   FACEBOOK_APP_ID: z.string().optional(),
-  FACEBOOK_APP_SECRET: z.string().optional()
+  FACEBOOK_APP_SECRET: z.string().optional(),
+  PETFINDER_API_KEY: z.string().optional(),
+  PETFINDER_SECRET: z.string().optional()
 });
 
 export const env = envSchema.parse(process.env);

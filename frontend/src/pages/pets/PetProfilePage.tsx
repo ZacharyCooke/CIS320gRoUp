@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { MarkLostModal } from "../search/MarkLostModal";
 
 interface Pet {
   id: string;
@@ -19,6 +20,7 @@ export function PetProfilePage() {
   const [sourceType, setSourceType] = useState("petfinder_api");
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [showMarkLost, setShowMarkLost] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -79,9 +81,17 @@ export function PetProfilePage() {
 
   return (
     <section>
+      {showMarkLost && (
+        <MarkLostModal petId={pet.id} petName={pet.name} onClose={() => setShowMarkLost(false)} />
+      )}
       <Link to="/dashboard">← Dashboard</Link>
       <h1>{pet.name}</h1>
       <p>{pet.species} · {pet.color} · {pet.status}</p>
+      {pet.status !== "lost" && (
+        <button type="button" style={{ color: "red" }} onClick={() => setShowMarkLost(true)}>
+          Mark as Lost
+        </button>
+      )}
 
       {actionMsg && <p style={{ color: "green" }}>{actionMsg}</p>}
       {actionError && <p role="alert" style={{ color: "red" }}>{actionError}</p>}

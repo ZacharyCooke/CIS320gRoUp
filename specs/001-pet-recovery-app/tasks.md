@@ -96,24 +96,24 @@
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Create LostPetSearch model in backend/src/models/lost-pet-search.model.ts
-- [ ] T042 [P] [US2] Create SearchResult model in backend/src/models/search-result.model.ts
-- [ ] T043 [US2] Create database migrations for LostPetSearch and SearchResult tables in backend/src/migrations/
-- [ ] T044 [US2] Implement GeoService with Haversine radius filter and bounding-box pre-filter in backend/src/services/geo.service.ts
-- [ ] T045 [US2] Implement PetFinder API v2 client with OAuth2 token fetch and animal search by location in backend/src/integrations/petfinder.client.ts
-- [ ] T046 [US2] Implement SearchAggregatorService running all source queries in parallel and writing results to DB in backend/src/services/search-aggregator.service.ts
-- [ ] T047 [US2] Implement Socket.io WebSocket server emitting new_result and search_complete events in backend/src/integrations/websocket.server.ts
-- [ ] T048 [US2] Implement search routes (POST /pets/:id/mark-lost, POST /pets/:id/mark-recovered, GET /searches/:id/results, PATCH /searches/:id) in backend/src/api/routes/search.routes.ts
-- [ ] T049 [US2] Implement WebSocket client for real-time result streaming in frontend/src/services/websocket.client.ts
-- [ ] T050 [P] [US2] Build Mark Pet Lost modal with GPS auto-fill and manual address entry and radius slider in frontend/src/pages/search/MarkLostModal.tsx
-- [ ] T051 [US2] Build Search Results page with Leaflet.js map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
-- [ ] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request; set desiredAccuracy = .bestForNavigation for proximity checks in ios/PetRecovery/Services/LocationService.swift
-- [ ] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in backend/src/services/location-privacy.service.ts
-- [ ] T052b [US2] Add cleanup logic that deletes or anonymizes active-search location records when a pet is marked recovered or a search is closed
-- [ ] T053 [P] [US2] Implement Mark Pet Lost screen with MapKit radius picker in ios/PetRecovery/Views/Search/MarkLostView.swift
-- [ ] T054 [US2] Implement Search Results screen with MapKit map and live-updating result list in ios/PetRecovery/Views/Search/SearchResultsView.swift
-- [ ] T055 [US2] Functional check: confirm multi-source search returns consolidated results in under 10 seconds on web and iOS with no errors
-- [ ] T055a [US2] Functional check: confirm location data is collected only during active lost-pet searches and removed when the search closes
+- [x] T041 [P] [US2] Create LostPetSearch model in backend/src/models/lost-pet-search.model.ts
+- [x] T042 [P] [US2] Create SearchResult model in backend/src/models/search-result.model.ts
+- [x] T043 [US2] Create database migrations for LostPetSearch and SearchResult tables in backend/src/migrations/
+- [x] T044 [US2] Implement GeoService with Haversine radius filter and bounding-box pre-filter in backend/src/services/geo.service.ts
+- [x] T045 [US2] Implement PetFinder API v2 client with OAuth2 token fetch and animal search by location in backend/src/integrations/petfinder.client.ts
+- [x] T046 [US2] Implement SearchAggregatorService running all source queries in parallel and writing results to DB in backend/src/services/search-aggregator.service.ts
+- [x] T047 [US2] Implement Socket.io WebSocket server emitting new_result and search_complete events in backend/src/integrations/websocket.server.ts
+- [x] T048 [US2] Implement search routes (POST /pets/:id/mark-lost, POST /pets/:id/mark-recovered, GET /searches/:id/results, PATCH /searches/:id) in backend/src/api/routes/search.routes.ts
+- [x] T049 [US2] Implement WebSocket client for real-time result streaming in frontend/src/services/websocket.client.ts
+- [x] T050 [P] [US2] Build Mark Pet Lost modal with GPS auto-fill and manual address entry and radius slider in frontend/src/pages/search/MarkLostModal.tsx
+- [x] T051 [US2] Build Search Results page with Leaflet.js map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
+- [x] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request; set desiredAccuracy = .bestForNavigation for proximity checks in ios/PetRecovery/Services/LocationService.swift
+- [x] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in backend/src/services/location-privacy.service.ts
+- [x] T052b [US2] Add cleanup logic that deletes or anonymizes active-search location records when a pet is marked recovered or a search is closed
+- [x] T053 [P] [US2] Implement Mark Pet Lost screen with MapKit radius picker in ios/PetRecovery/Views/Search/MarkLostView.swift
+- [x] T054 [US2] Implement Search Results screen with MapKit map and live-updating result list in ios/PetRecovery/Views/Search/SearchResultsView.swift
+- [x] T055 [US2] Functional check: confirm multi-source search returns consolidated results in under 10 seconds on web and iOS with no errors
+- [x] T055a [US2] Functional check: confirm location data is collected only during active lost-pet searches and removed when the search closes
 
 **Checkpoint**: User Stories 1 and 2 fully functional and independently testable.
 

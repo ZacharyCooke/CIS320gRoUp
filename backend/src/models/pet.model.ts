@@ -139,6 +139,18 @@ export async function appendPetPhotoUrl(
   return result.rows[0] ?? null;
 }
 
+export async function updatePetStatus(
+  id: string,
+  ownerId: string,
+  status: PetStatus
+): Promise<Pet | null> {
+  const result = await pool.query<Pet>(
+    `UPDATE pets SET status = $3::pet_status, updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING *`,
+    [id, ownerId, status]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function deletePetById(id: string, ownerId: string): Promise<boolean> {
   const result = await pool.query("DELETE FROM pets WHERE id = $1 AND owner_id = $2", [
     id,

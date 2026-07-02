@@ -1,0 +1,102 @@
+import { pool } from "../config/database.js";
+
+export type SearchStatus = "active" | "paused" | "closed";
+
+export interface LostPetSearch {
+  id: string;
+  pet_id: string;
+  owner_id: string;
+  status: SearchStatus;
+  center_lat: number;
+  center_lng: number;
+  radius_miles: number;
+  started_at: Date;
+  closed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateLostPetSearchInput {
+  pet_id: string;
+  owner_id: string;
+  center_lat: number;
+  center_lng: number;
+  radius_miles: number;
+}
+
+export async function createLostPetSearch(
+  input: CreateLostPetSearchInput
+): Promise<LostPetSearch> {
+  const result = await pool.query<LostPetSearch>(
+    `INSERT INTO lost_pet_searches
+       (pet_id, owner_id, center_lat, center_lng, radius_miles)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [input.pet_id, input.owner_id, input.center_lat, input.center_lng, input.radius_miles]
+  );
+  return result.rows[0];
+}
+
+export async function findSearchById(id: string): Promise<LostPetSearch | null> {
+  const result = await pool.query<LostPetSearch>(
+    "SELECT * FROM lost_pet_searches WHERE id = $1",
+    [id]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function findActiveSearchByPetId(petId: string): Promise<LostPetSearch | null> {
+  const result = await pool.query<LostPetSearch>(
+    "SELECT * FROM lost_pet_searches WHERE pet_id = $1 AND status = 'active' ORDER BY started_at DESC LIMIT 1",
+    [petId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function findActiveSearches(): Promise<LostPetSearch[]> {
+  const result = await pool.query<LostPetSearch>(
+    "SELECT * FROM lost_pet_searches WHERE status = 'active' ORDER BY started_at DESC"
+  );
+  return result.rows;
+}
+
+export async function updateSearchStatus(
+  id: string,
+  ownerId: string,
+  status: SearchStatus
+): Promise<LostPetSearch | null> {
+  const result = await pool.query<LostPetSearch>(
+    `UPDATE lost_pet_searches
+     SET status = $3::search_status,
+         closed_at = CASE WHEN $3::search_status = 'closed'::search_status THEN now() ELSE closed_at END,
+         updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
+    [id, ownerId, status]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateSearchRadius(
+  id: string,
+  ownerId: string,
+  radiusMiles: number
+): Promise<LostPetSearch | null> {
+  const result = await pool.query<LostPetSearch>(
+    `UPDATE lost_pet_searches
+     SET radius_miles = $3, updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
+    [id, ownerId, radiusMiles]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function deleteActiveSearchLocationsByPetId(petId: string): Promise<void> {
+  await pool.query(
+    `UPDATE lost_pet_searches
+     SET center_lat = 0, center_lng = 0, updated_at = now()
+     WHERE pet_id = $1 AND status = 'closed'`,
+    [petId]
+  );
+}

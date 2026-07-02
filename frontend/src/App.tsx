@@ -4,6 +4,7 @@ import { VerifyContactPage } from "./pages/auth/VerifyContactPage";
 import { DashboardPage } from "./pages/pets/DashboardPage";
 import { PetFormPage } from "./pages/pets/PetFormPage";
 import { PetProfilePage } from "./pages/pets/PetProfilePage";
+import { SearchResultsPage } from "./pages/search/SearchResultsPage";
 import { setAccessToken } from "./services/api-client";
 
 const stored = localStorage.getItem("access_token");
@@ -19,6 +20,7 @@ export function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/pets/new" element={<PetFormPage />} />
         <Route path="/pets/:id" element={<PetProfilePage />} />
+        <Route path="/searches/:id" element={<SearchResultsPage />} />
       </Routes>
     </BrowserRouter>
   );

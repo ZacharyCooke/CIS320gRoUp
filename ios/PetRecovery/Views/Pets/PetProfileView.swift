@@ -10,6 +10,7 @@ struct PetProfileView: View {
     @State private var errorMessage: String?
     @State private var isLinkingDevice = false
     @State private var isLinkingSource = false
+    @State private var showMarkLost = false
 
     private let sourceNames = ["petfinder_api": "PetFinder", "petfbi_scrape": "PetFBI", "facebook_groups": "Facebook Groups", "manual_link": "Manual link"]
     private let sourceUrls = ["petfinder_api": "https://www.petfinder.com", "petfbi_scrape": "https://www.petfbi.org", "facebook_groups": "https://www.facebook.com", "manual_link": "https://petrecovery.app"]
@@ -21,6 +22,12 @@ struct PetProfileView: View {
                 LabeledContent("Species", value: pet.species)
                 LabeledContent("Color", value: pet.color)
                 LabeledContent("Status", value: pet.status)
+                if pet.status != "lost" {
+                    Button("Mark as Lost", role: .destructive) { showMarkLost = true }
+                }
+            }
+            .sheet(isPresented: $showMarkLost) {
+                MarkLostView(pet: pet)
             }
 
             if let msg = statusMessage {
