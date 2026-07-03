@@ -206,10 +206,12 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 - **Owner**: A registered user who owns one or more pets.
 - **Pet**: An animal profile with identifying attributes, photos, medical conditions, temperament, vet info, tracking devices, and current status (safe/lost).
+- **PetVet**: A pet's primary veterinarian contact (clinic name, address, phone, email); one per pet.
 - **TrackingDevice**: A linked AirTag or Amazon tag associated with a specific pet.
 - **ExternalSource**: A linked found-animal website queried during searches.
 - **FoundReport**: A community-submitted record of a found animal.
 - **LostPetSearch**: A query session initiated by an owner for a lost pet.
+- **SearchResult**: An individual match returned by a lost-pet search from one source (tracking device, external source, or PetFinder), linked to a LostPetSearch.
 - **Notification**: In-app/push alert with type (red = owner search update, blue = BOLO alert within 1 mile, green = community alert within 2 miles, amber = finder claim or reward proximity alert) and trigger condition.
 - **VetBOLO**: An outbound automated email to a veterinary clinic when a pet is marked lost.
 - **Reward**: An escrowed monetary amount posted by the owner; held until verification passes.
