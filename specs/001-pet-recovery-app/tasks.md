@@ -103,7 +103,7 @@
 - [x] T045 [US2] Implement PetFinder API v2 client with OAuth2 token fetch and animal search by location in backend/src/integrations/petfinder.client.ts
 - [x] T046 [US2] Implement SearchAggregatorService running all source queries in parallel and writing results to DB in backend/src/services/search-aggregator.service.ts
 - [x] T047 [US2] Implement Socket.io WebSocket server emitting new_result and search_complete events in backend/src/integrations/websocket.server.ts
-- [x] T048 [US2] Implement search routes (POST /pets/:id/mark-lost, POST /pets/:id/mark-recovered, GET /searches/:id/results, PATCH /searches/:id) in backend/src/api/routes/search.routes.ts
+- [x] T048 [US2] Implement search routes (POST /pets/:id/mark-lost, POST /pets/:id/mark-recovered, GET /searches/:id/results, PATCH /searches/:id) in backend/src/api/routes/search.routes.ts — ⚠️ mark-recovered does not yet refund an active reward (FR-027); see T134a in Phase 7E
 - [x] T049 [US2] Implement WebSocket client for real-time result streaming in frontend/src/services/websocket.client.ts
 - [x] T050 [P] [US2] Build Mark Pet Lost modal with GPS auto-fill and manual address entry and radius slider in frontend/src/pages/search/MarkLostModal.tsx
 - [x] T051 [US2] Build Search Results page with Leaflet.js map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
@@ -367,7 +367,8 @@ With four developers:
 - [ ] T131 [P] [US5] Build Proximity Verification page with live GPS ring visualization, 3-step checklist, and auto-release status in frontend/src/pages/reward/ProximityVerificationPage.tsx
 - [ ] T132 [P] [US5] Implement reward setup and escrow flow in iOS in ios/PetRecovery/Views/Reward/RewardSetupView.swift
 - [ ] T133 [P] [US5] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift — MUST set desiredAccuracy = .bestForNavigation and requestTemporaryFullAccuracyAuthorization before submitting coordinates to proximity API; default accuracy (~65 m) may fail the 50-foot check; show manual confirmation prompt if device reports accuracy > 15 m
-- [ ] T134 [US5] Functional check: confirm reward creates Stripe payment intent, all three verifications pass in sequence, funds release automatically, and cancel triggers full Stripe refund
+- [ ] T134a [US5] Wire POST /pets/:id/mark-recovered (T048) to auto-refund any active, unreleased reward on that pet via RewardService.cancel() (FR-027 "recovered through any other means") in backend/src/api/routes/search.routes.ts and backend/src/services/reward.service.ts — depends on T127, T048
+- [ ] T134 [US5] Functional check: confirm reward creates Stripe payment intent, all three verifications pass in sequence, funds release automatically, cancel triggers full Stripe refund, and marking the pet recovered outside the reward flow (T134a) also triggers full refund
 
 ---
 
@@ -423,7 +424,7 @@ With four developers:
 - [ ] T157 Validate BOLO emails dispatch within 60 seconds of lost-pet report
 - [ ] T158 Validate QR public profile loads in under 3 seconds
 - [ ] T159 Validate reward release completes within 10 seconds after all three verifications pass
-- [ ] T160 Validate GPS proximity check confirms 10-foot reunion with >=95% accuracy on supported devices
+- [ ] T160 Validate GPS proximity check confirms 50-foot reunion with >=95% accuracy on supported devices
 - [ ] T161 Validate website/iOS feature parity for all critical flows
 
 ### Polish & Cross-Cutting Concerns

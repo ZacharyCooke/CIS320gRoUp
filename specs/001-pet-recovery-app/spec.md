@@ -74,7 +74,7 @@ The system pushes location-aware notifications to users based on GPS proximity. 
 
 1. **Given** a user grants push notification permission, **When** a pet is reported lost within 2 miles of their GPS, **Then** they receive a green community alert with the pet's name, species, color, and owner contact.
 2. **Given** a user is traveling, **When** they enter within 1 mile of any location where a pet was originally reported missing, **Then** they receive a blue BOLO alert with the pet's name, breed, and color.
-3. **Given** an owner whose pet is marked lost, **When** any update occurs (sighting reported, database match, AirTag ping), **Then** they receive a red notification with the detail.
+3. **Given** an owner whose pet is marked lost, **When** any update occurs (sighting reported, database match, vet BOLO sent), **Then** they receive a red notification with the detail.
 4. **Given** a user who has not granted notification permission, **When** they open the app or notifications page, **Then** a permission request card is presented before any alerts are shown.
 5. **Given** a user in notification settings, **When** they toggle individual notification types, **Then** only those types are delivered going forward.
 
@@ -171,7 +171,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 **Notifications**
 - **FR-018**: System MUST request push notification permission from the user on first use.
-- **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, AirTag ping, vet BOLO sent).
+- **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, vet BOLO sent). Tracking-device data (AirTag, Amazon tag) is owner-pasted share URLs with no real-time polling (see Assumptions) and does not currently generate live ping-triggered notifications.
 - **FR-020**: System MUST send blue BOLO alerts to any user who enters within 1 mile of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
 - **FR-021**: System MUST send green community alerts to any user within 2 miles of their current GPS location when a new pet is reported lost.
 - **FR-022**: System MUST allow users to individually toggle notification types in settings.
