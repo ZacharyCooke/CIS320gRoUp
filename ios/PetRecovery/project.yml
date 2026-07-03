@@ -1,0 +1,75 @@
+name: PetRecovery
+options:
+  bundleIdPrefix: com.petrecovery
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  Stripe:
+    url: https://github.com/stripe/stripe-ios-spm
+    from: 23.18.0
+
+targets:
+  PetRecovery:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: App
+      - path: Models
+      - path: Services
+      - path: Views
+    info:
+      path: Info.plist
+      properties:
+        UILaunchScreen: {}
+    entitlements:
+      path: PetRecovery.entitlements
+      properties:
+        aps-environment: development
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.petrecovery.app
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.petrecovery.app
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    dependencies:
+      # Adjust the product name to whichever Stripe module you actually
+      # use — StripePaymentSheet covers the escrow/reward payment flow;
+      # swap or add StripePayments / StripeApplePay if needed.
+      - package: Stripe
+        product: StripePaymentSheet
+    capabilities:
+      - PushNotifications
+      - InAppPurchase
+      - Keychain
+
+  PetRecoveryTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: PetRecoveryTests
+    dependencies:
+      - target: PetRecovery
+
+schemes:
+  PetRecovery:
+    build:
+      targets:
+        PetRecovery: all
+        PetRecoveryTests: [test]
+    test:
+      targets:
+        - PetRecoveryTests
+    run:
+      config: Debug
+    archive:
+      config: Release
