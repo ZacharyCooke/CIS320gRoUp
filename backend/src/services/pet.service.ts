@@ -4,8 +4,11 @@ import {
   deletePetById,
   findPetById,
   findPetsByOwnerId,
+  rotatePetQrToken,
   updatePetById,
+  updatePetMedical,
   type CreatePetInput,
+  type MedicalCondition,
   type Pet
 } from "../models/pet.model.js";
 
@@ -36,4 +39,26 @@ export async function remove(ownerId: string, petId: string): Promise<boolean> {
 
 export async function addPhoto(ownerId: string, petId: string, photoUrl: string): Promise<Pet | null> {
   return appendPetPhotoUrl(petId, ownerId, photoUrl);
+}
+
+export async function rotateQr(ownerId: string, petId: string): Promise<Pet | null> {
+  return rotatePetQrToken(petId, ownerId);
+}
+
+export async function updateMedical(
+  ownerId: string,
+  petId: string,
+  data: {
+    medical_conditions: MedicalCondition[];
+    medical_emergency_notes?: string | null;
+    share_emergency_notes?: boolean;
+  }
+): Promise<Pet | null> {
+  return updatePetMedical(
+    petId,
+    ownerId,
+    data.medical_conditions,
+    data.medical_emergency_notes ?? null,
+    data.share_emergency_notes ?? true
+  );
 }

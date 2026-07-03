@@ -35,7 +35,7 @@ Build a multi-platform pet recovery service (website + iOS app) that allows owne
 | Leaflet.js | Open-source interactive maps (web frontend) |
 | MapKit | Native maps (iOS) |
 
-**Storage**: PostgreSQL 16 (primary data); Redis 7 (sessions, IP record cache, notification queue)
+**Storage**: PostgreSQL 17 (primary data); Redis 7 (sessions, IP record cache, notification queue)
 
 **Testing**: Jest + Supertest (backend); React Testing Library + Vitest (frontend); XCTest (iOS)
 
@@ -94,13 +94,25 @@ specs/001-pet-recovery-app/
 backend/
 ├── src/
 │   ├── models/          # DB entity definitions and queries
-│   ├── services/
-│   │   ├── auth/        # JWT, TOTP, OTP, IP hashing, Facebook OAuth
-│   │   ├── pets/        # Pet CRUD, QR generation, medical/temperament
-│   │   ├── search/      # Multi-source search orchestration, Haversine
-│   │   ├── notifications/  # WebSocket push, BOLO alerts, proximity triggers
-│   │   ├── vets/        # Google Places vet discovery, SendGrid BOLO emails
-│   │   └── payments/    # Stripe Connect escrow, payment intents, release logic
+│   ├── services/        # Flat service files (no subdirectories)
+│   │   ├── user.service.ts          # Registration, OTP verification
+│   │   ├── password.service.ts      # bcrypt hashing and verification
+│   │   ├── totp.service.ts          # TOTP setup, QR URI, verify (speakeasy)
+│   │   ├── ip-record.service.ts     # IP hashing, trusted-IP lookup
+│   │   ├── pet.service.ts           # Pet CRUD, photo upload
+│   │   ├── pet-vet.service.ts       # Vet upsert/get (Phase 7A)
+│   │   ├── qr.service.ts            # QR PNG/SVG generation (Phase 7B)
+│   │   ├── tracking-device.service.ts
+│   │   ├── external-source.service.ts
+│   │   ├── geo.service.ts           # Haversine, bounding-box filter
+│   │   ├── search-aggregator.service.ts  # Parallel multi-source search
+│   │   ├── found-report.service.ts
+│   │   ├── notification.service.ts  # WebSocket + email/SMS dispatch
+│   │   ├── vet-bolo.service.ts      # Google Places + SendGrid BOLO (Phase 7C)
+│   │   ├── reward.service.ts        # Escrow create/fund/release/cancel
+│   │   ├── proximity.service.ts     # Nonce, coordinates, 50-ft check
+│   │   ├── facebook-groups.service.ts  # Facebook post keyword filter
+│   │   └── stripe-subscription.service.ts  # Premium billing (Phase 7G)
 │   ├── api/
 │   │   ├── routes/      # Express route handlers per domain
 │   │   └── middleware/  # Auth, IP detection, rate limiting, ad injection
@@ -161,7 +173,7 @@ ios/
 | QR scanning (iOS) | AVFoundation | Native, no third-party required |
 | Vet discovery | Google Places API (Nearby Search) | Most complete clinic dataset; same key as Maps |
 | Vet email delivery | SendGrid templated emails | Reliable, free tier covers v1 BOLO volume |
-| GPS proximity check | Haversine formula on live coordinates | Server validates; client sends coordinates signed with timestamp |
+| GPS proximity check | Haversine formula on live coordinates | Server validates 50-ft threshold; client sends coordinates signed with timestamp; manual confirmation prompt when device accuracy > 15 m |
 | Facebook integration | passport-facebook OAuth | Reads user's groups only; zero credential storage |
 | Ad delivery | Direct-sold banner slots (v1) | Simple HTML/CSS banners; no third-party ad SDK in v1 |
 | Premium billing (web) | Stripe Subscriptions | Same Stripe account as escrow; simplifies billing |

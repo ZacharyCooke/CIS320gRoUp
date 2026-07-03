@@ -26,6 +26,9 @@ export function VerifyContactPage() {
       if (data.access_token) {
         setAccessToken(data.access_token);
         localStorage.setItem("access_token", data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token);
+        }
         sessionStorage.removeItem("pending_user_id");
       }
       navigate("/dashboard");

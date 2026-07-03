@@ -28,6 +28,7 @@ export interface Pet {
   approach_notes: string | null;
   medical_conditions: MedicalCondition[];
   medical_emergency_notes: string | null;
+  share_emergency_notes: boolean;
   qr_code_token: string;
   created_at: Date;
   updated_at: Date;
@@ -151,10 +152,62 @@ export async function updatePetStatus(
   return result.rows[0] ?? null;
 }
 
+export async function updatePetMedical(
+  id: string,
+  ownerId: string,
+  medical_conditions: MedicalCondition[],
+  medical_emergency_notes: string | null,
+  share_emergency_notes: boolean
+): Promise<Pet | null> {
+  const result = await pool.query<Pet>(
+    `UPDATE pets
+     SET medical_conditions = $3::jsonb,
+         medical_emergency_notes = $4,
+         share_emergency_notes = $5,
+         updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
+    [id, ownerId, JSON.stringify(medical_conditions), medical_emergency_notes, share_emergency_notes]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function deletePetById(id: string, ownerId: string): Promise<boolean> {
   const result = await pool.query("DELETE FROM pets WHERE id = $1 AND owner_id = $2", [
     id,
     ownerId
   ]);
   return Boolean(result.rowCount);
+}
+
+export async function rotatePetQrToken(id: string, ownerId: string): Promise<Pet | null> {
+  const result = await pool.query<Pet>(
+    `UPDATE pets SET qr_code_token = gen_random_uuid(), updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
+    [id, ownerId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export interface PetWithOwner extends Pet {
+  owner_first_name: string | null;
+  owner_last_name: string | null;
+  owner_email: string;
+  owner_phone: string | null;
+}
+
+export async function findPetWithOwnerByQrToken(token: string): Promise<PetWithOwner | null> {
+  const result = await pool.query<PetWithOwner>(
+    `SELECT p.*,
+            u.first_name AS owner_first_name,
+            u.last_name  AS owner_last_name,
+            u.email      AS owner_email,
+            u.phone      AS owner_phone
+     FROM pets p
+     JOIN users u ON u.id = p.owner_id
+     WHERE p.qr_code_token = $1`,
+    [token]
+  );
+  return result.rows[0] ?? null;
 }

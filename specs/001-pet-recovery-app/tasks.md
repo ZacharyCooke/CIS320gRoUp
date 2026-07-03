@@ -63,7 +63,7 @@
 - [x] T019 [P] [US1] Create ExternalSource model in backend/src/models/external-source.model.ts
 - [x] T020 [US1] Create database migrations for Pet, TrackingDevice, and ExternalSource tables in backend/src/migrations/
 - [x] T021 [US1] Implement UserService with register() and verifyOTP() methods in backend/src/services/user.service.ts
-- [x] T021a [US1] Implement PasswordService using Argon2id or bcrypt for password hashing and verification in backend/src/services/password.service.ts
+- [x] T021a [US1] Implement PasswordService using bcrypt (cost factor ≥ 12) for password hashing and verification in backend/src/services/password.service.ts — bcrypt chosen over Argon2id (argon2 package not available in this environment); spec.md FR-030 updated to match
 - [x] T022 [US1] Implement SendGrid email OTP dispatch in backend/src/integrations/email.service.ts
 - [x] T023 [P] [US1] Implement Twilio SMS OTP dispatch in backend/src/integrations/sms.service.ts
 - [x] T024 [US1] Implement PetService with create, read, update, delete, and photo upload in backend/src/services/pet.service.ts
@@ -84,7 +84,7 @@
 - [x] T039 [US1] Implement Pet Profile screen with tracking device and source linking in ios/PetRecovery/Views/Pets/PetProfileView.swift
 - [x] T040 [US1] Functional check: confirm registration, OTP verification, pet creation, device linking, and source linking work end-to-end on web and iOS with no errors
 
-**Checkpoint**: User Story 1 fully functional and independently testable.
+**Checkpoint**: User Story 1 core flow (registration, OTP verification, pet CRUD, tracking device and source linking) is independently testable. ⚠️ FR-004 (medical conditions), FR-005 (temperament/approach notes), and FR-006 (primary vet) are deferred to Phase 7A (T086–T096) — T040 is a partial functional check; full US1 validation requires Phase 7A completion. US1 AS#5 (new-IP 2FA) requires Phase 6 (T069–T079) before it can be tested.
 
 ---
 
@@ -108,7 +108,7 @@
 - [x] T050 [P] [US2] Build Mark Pet Lost modal with GPS auto-fill and manual address entry and radius slider in frontend/src/pages/search/MarkLostModal.tsx
 - [x] T051 [US2] Build Search Results page with Leaflet.js map, result cards, and radius adjustment control in frontend/src/pages/search/SearchResultsPage.tsx
 - [x] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request; set desiredAccuracy = .bestForNavigation for proximity checks in ios/PetRecovery/Services/LocationService.swift
-- [x] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in backend/src/services/location-privacy.service.ts
+- [x] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in ios/PetRecovery/Services/LocationPrivacyService.swift (client-side guard — tracks active search IDs, blocks writes when no active search; backend cleanup is handled by T052b)
 - [x] T052b [US2] Add cleanup logic that deletes or anonymizes active-search location records when a pet is marked recovered or a search is closed
 - [x] T053 [P] [US2] Implement Mark Pet Lost screen with MapKit radius picker in ios/PetRecovery/Views/Search/MarkLostView.swift
 - [x] T054 [US2] Implement Search Results screen with MapKit map and live-updating result list in ios/PetRecovery/Views/Search/SearchResultsView.swift
@@ -128,20 +128,25 @@
 ### Implementation for User Story 3
 
 - [x] T056 [P] [US3] Create FoundReport model in backend/src/models/found-report.model.ts
-- [x] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts
+- [x] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts — initial notification_type enum values: (found_report_match, search_complete, system, claim_alert); ⚠️ T113 will ADD further values via ALTER TYPE — do not drop these on extension
 - [x] T058 [US3] Create database migrations for FoundReport and Notification tables in backend/src/migrations/
 - [x] T059 [US3] Implement FoundReportService with create(), queryByRadius(), and claim() methods in backend/src/services/found-report.service.ts
 - [x] T060 [US3] Implement NotificationService dispatching in-app WebSocket events plus email/SMS via SendGrid and Twilio in backend/src/services/notification.service.ts
 - [x] T061 [US3] Wire found-report creation to broadcast found_report_match events on all overlapping active searches in backend/src/services/found-report.service.ts
-- [x] T062 [US3] Implement found-report routes (POST /found-reports, GET /found-reports, GET /found-reports/:id) in backend/src/api/routes/found-reports.routes.ts
+- [x] T062 [US3] Implement found-report routes (POST /found-reports, GET /found-reports, GET /found-reports/:id, POST /found-reports/:id/claim) in backend/src/api/routes/found-reports.routes.ts; claim route requires auth, sends amber notification to owner (FR-022a), and makes reporter_contact visible to the claiming owner in the GET /:id response
+- [ ] T062a [US3] Implement finder-owner contact channel: when POST /found-reports/:id/claim succeeds, include the reporter's contact details in the owner's amber notification body and include the owner's contact info in the finder's confirmation response — no in-app messaging required for v1; the notification payload carries the contact info for both parties
 - [x] T063 [P] [US3] Implement notification route (GET /notifications) in backend/src/api/routes/notifications.routes.ts
-- [x] T064 [P] [US3] Build Submit Found Pet page accessible without login with photo upload in frontend/src/pages/search/FoundReportPage.tsx
+- [x] T064 [P] [US3] Build Submit Found Pet page accessible without login with photo upload in frontend/src/pages/search/FoundReportPage.tsx — ⚠️ photo upload (multipart/form-data `photo` field per api-search.md FR-015) not yet wired in current implementation; must be added before T068 functional check passes
 - [x] T065 [P] [US3] Build Notification bell component and notification list drawer in frontend/src/components/NotificationBell.tsx
-- [x] T066 [P] [US3] Implement Submit Found Pet screen in ios/PetRecovery/Views/Search/FoundReportView.swift
+- [x] T066 [P] [US3] Implement Submit Found Pet screen in ios/PetRecovery/Views/Search/FoundReportView.swift — ⚠️ must include PHPickerViewController for optional photo selection and multipart upload (FR-015 requires photo field; not yet implemented in current version)
 - [x] T067 [P] [US3] Implement Notifications list screen in ios/PetRecovery/Views/Notifications/NotificationsView.swift
 - [x] T068 [US3] Functional check: confirm found-pet report triggers real-time notification on owner's active search on web and iOS with no errors
 
-**Checkpoint**: User Stories 1, 2, and 3 all independently functional.
+**Checkpoint**: User Stories 1, 2, and 3 all independently functional. ⚠️ US3 is NOT fully closed until ALL of the following are complete: T062a (finder-owner contact channel — currently `[ ]`), T064 (photo upload wired in FoundReportPage), and T066 (PHPickerViewController photo upload in iOS). Do not advance to Phase 8 validation without these.
+
+---
+
+> **Note — Task ID Gap (T080–T085)**: These six IDs were allocated during initial planning and were not assigned to any tasks. All Phase 6 and Phase 7 requirements are covered by existing task IDs. They are documented here to avoid confusion; do not assign new work to these IDs unless extending this block intentionally.
 
 ---
 
@@ -153,18 +158,18 @@
 
 ### Implementation for User Story 6
 
-- [ ] T069 [US6] Implement TOTPService with setupSecret(), generateQRUri(), and verifyCode() using speakeasy in backend/src/services/totp.service.ts
-- [ ] T070 [US6] Implement IPRecordService with hashIP(), storeTrustedIP(), and isTrustedIP() in backend/src/services/ip-record.service.ts
-- [ ] T071 [US6] Implement login route with password hash verification, IP check, and conditional 2FA challenge (POST /auth/login, POST /auth/2fa/setup, POST /auth/2fa/verify) in backend/src/api/routes/auth.routes.ts
-- [ ] T071a [US6] Wire PasswordService into registration and login routes; ensure plaintext passwords are never stored, logged, or returned in API responses
-- [ ] T072 [US6] Implement refresh token rotation and logout routes (POST /auth/refresh, POST /auth/logout) in backend/src/api/routes/auth.routes.ts
-- [ ] T073 [P] [US6] Build Login page with credential form and 2FA TOTP challenge screen in frontend/src/pages/auth/LoginPage.tsx
-- [ ] T074 [P] [US6] Build 2FA Setup page displaying QR code for Microsoft Authenticator enrollment in frontend/src/pages/auth/TwoFactorSetupPage.tsx
-- [ ] T075 [P] [US6] Build Account Settings page with verified email and phone management in frontend/src/pages/account/AccountSettingsPage.tsx
-- [ ] T077 [P] [US6] Implement 2FA Setup screen displaying QR code for Microsoft Authenticator in ios/PetRecovery/Views/Auth/TwoFactorSetupView.swift
-- [ ] T076 [US6] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift — depends on T077 (TOTP challenge screen must exist before Login can invoke it)
-- [ ] T078 [P] [US6] Implement Account Settings screen with contact method management in ios/PetRecovery/Views/Account/AccountSettingsView.swift
-- [ ] T079 [US6] Functional check: confirm 2FA triggers on new IP, passes on trusted IP, and contact re-verification works on web and iOS with no errors
+- [x] T069 [US6] Implement TOTPService with setupSecret(), generateQRUri(), and verifyCode() using speakeasy in backend/src/services/totp.service.ts
+- [x] T070 [US6] Implement IPRecordService with hashIP(), storeTrustedIP(), and isTrustedIP() in backend/src/services/ip-record.service.ts
+- [x] T071 [US6] Implement login route with password hash verification, IP check, and conditional 2FA challenge (POST /auth/login, POST /auth/2fa/setup, POST /auth/2fa/verify) in backend/src/api/routes/auth.routes.ts
+- [x] T071a [US6] Wire PasswordService into registration and login routes; ensure plaintext passwords are never stored, logged, or returned in API responses
+- [x] T072 [US6] Implement refresh token rotation and logout routes (POST /auth/refresh, POST /auth/logout) in backend/src/api/routes/auth.routes.ts
+- [x] T073 [P] [US6] Build Login page with credential form and 2FA TOTP challenge screen in frontend/src/pages/auth/LoginPage.tsx
+- [x] T074 [P] [US6] Build 2FA Setup page displaying QR code for Microsoft Authenticator enrollment in frontend/src/pages/auth/TwoFactorSetupPage.tsx
+- [x] T075 [P] [US6] Build Account Settings page with verified email and phone management in frontend/src/pages/account/AccountSettingsPage.tsx
+- [x] T077 [P] [US6] Implement 2FA Setup screen displaying QR code for Microsoft Authenticator in ios/PetRecovery/Views/Auth/TwoFactorSetupView.swift
+- [x] T076 [US6] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift — depends on T077 (TOTP challenge screen must exist before Login can invoke it)
+- [x] T078 [P] [US6] Implement Account Settings screen with contact method management in ios/PetRecovery/Views/Account/AccountSettingsView.swift
+- [x] T079 [US6] Functional check: confirm 2FA triggers on new IP, passes on trusted IP, and contact re-verification works on web and iOS with no errors
 
 **Checkpoint**: User Story 6 fully functional and independently testable.
 
@@ -291,31 +296,33 @@ With four developers:
 
 ### Phase 7A: Pet Profile Enhancements (Medical, Temperament, Vet)
 
-- [ ] T086 Add medical_conditions (jsonb), medical_emergency_notes (text), temperament (enum), approach_notes (text), qr_code_token (uuid), photo_urls (text[]) columns to Pet table migration in backend/src/migrations/
-- [ ] T087 [P] Create PetVet table migration (clinic_name, address, phone, email, pet_id FK) in backend/src/migrations/
-- [ ] T088 [P] Create PetVet model in backend/src/models/pet-vet.model.ts
-- [ ] T089 Update PetService to handle medical_conditions array, temperament, approach_notes, and photo_urls array in backend/src/services/pet.service.ts
-- [ ] T090 [P] Implement PetVetService with upsert() and get() in backend/src/services/pet-vet.service.ts
-- [ ] T091 Add PATCH /pets/:id/medical, PATCH /pets/:id/temperament, PUT /pets/:id/vet, GET /pets/:id/vet routes in backend/src/api/routes/pets.routes.ts
-- [ ] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts
-- [ ] T093 [P] [US1] Update PetFormPage to include medical conditions tag input, temperament picker (Friendly/Cautious/Report Only), approach notes, and primary vet form in frontend/src/pages/pets/PetFormPage.tsx
-- [ ] T094 [P] [US1] Update Pet Profile page to display medical conditions, temperament badge, approach notes, and vet card in frontend/src/pages/pets/PetProfilePage.tsx
-- [ ] T095 [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift — depends on T038 (file must exist first; not parallelizable with T038)
-- [ ] T096 [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift — depends on T039
+- [x] T086 Add medical_conditions (jsonb), medical_emergency_notes (text), temperament (enum), approach_notes (text), qr_code_token (uuid), photo_urls (text[]) columns to Pet table migration in backend/src/migrations/ — already present in migration 003
+- [x] T087 [P] Create PetVet table migration (clinic_name, address, phone, email, pet_id FK) in backend/src/migrations/006-create-pet-vets.ts
+- [x] T088 [P] Create PetVet model in backend/src/models/pet-vet.model.ts
+- [x] T089 Add updateMedical() to PetService (medical_conditions, medical_emergency_notes, share_emergency_notes); photo_urls is append-only via addPhoto() — no bulk overwrite in backend/src/services/pet.service.ts
+- [x] T090 [P] Implement PetVetService with upsert() and get() in backend/src/services/pet-vet.service.ts
+- [x] T091 Add PATCH /pets/:id/medical, PATCH /pets/:id/temperament, PUT /pets/:id/vet, GET /pets/:id/vet routes in backend/src/api/routes/pets.routes.ts
+- [x] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts — already satisfied by SELECT * in model
+- [x] T093 [P] [US1] Update PetFormPage to include medical conditions tag input, temperament picker (Friendly/Cautious/Report Only), approach notes, share_emergency_notes toggle, and primary vet form in frontend/src/pages/pets/PetFormPage.tsx — ⚠️ photo input renders but is not wired to the upload API (POST /pets/:id/photo); wire in a follow-up task
+- [x] T094 [P] [US1] Update Pet Profile page to display medical conditions, temperament badge, approach notes, and vet card in frontend/src/pages/pets/PetProfilePage.tsx
+- [x] T095 [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, share_emergency_notes toggle, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift — depends on T038 (file must exist first; not parallelizable with T038) — ⚠️ photo picker is not implemented; wire in a follow-up task
+- [x] T096 [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift — depends on T039
+- [ ] T096a [US1] Functional check: confirm medical conditions, temperament, and vet CRUD work end-to-end on web and iOS (covers T086–T096)
 
 ---
 
 ### Phase 7B: QR Code Generation & Public Profile
 
-- [ ] T097 Install `qrcode` npm package; implement QRService with generateSVG(token) and generatePNG(token, size) in backend/src/services/qr.service.ts
-- [ ] T098 Add qr_code_token auto-generation on Pet create (UUID, unique); add GET /pets/:id/qr and POST /pets/:id/rotate-qr routes in backend/src/api/routes/pets.routes.ts
-- [ ] T099 [P] Implement public profile route GET /p/:token (no auth) returning only share_publicly=true medical fields and owner contact in backend/src/api/routes/public.routes.ts
-- [ ] T100 [P] [US1] Build QR display and download component in Pet Profile page in frontend/src/pages/pets/PetProfilePage.tsx
-- [ ] T101 [P] [US1] Build public pet profile page (no login required) at /p/:token in frontend/src/pages/public/PublicPetProfile.tsx
-- [ ] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx
-- [ ] T103 [P] [US1] Implement AVFoundation QR scanner view in ios/PetRecovery/Views/Pets/QRScannerView.swift
-- [ ] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift
-- [ ] T104a [US1] Register URL scheme (petrecovery://) or Universal Links in ios/PetRecovery/App/PetRecoveryApp.swift using onOpenURL modifier to route /p/:token deep links to PublicPetProfileView — depends on T104
+- [x] T097 Implement QRService with generateSVG(token) and generatePNG(token, size) in backend/src/services/qr.service.ts — `qrcode` was already in package.json; qr_code_token column already exists (migration 003). Added PUBLIC_WEB_URL env var to build the encoded profile URL.
+- [x] T098 qr_code_token auto-generates at DB level (migration 003, gen_random_uuid() UNIQUE); added GET /pets/:id/qr (json + ?format=svg) and POST /pets/:id/rotate-qr routes in backend/src/api/routes/pets.routes.ts — runtime-verified via curl (rotate invalidates old token)
+- [x] T099 [P] Implement public profile route GET /p/:token (no auth) returning only share_publicly=true conditions and (when share_emergency_notes) emergency notes plus owner contact in backend/src/api/routes/public.routes.ts (mounted in index.ts; public-profile.service.ts sanitizes) — runtime-verified
+- [x] T100 [P] [US1] Build QR display (PNG), download link, and Regenerate button in Pet Profile page in frontend/src/pages/pets/PetProfilePage.tsx
+- [x] T101 [P] [US1] Build public pet profile page (no login required) at /p/:token in frontend/src/pages/public/PublicPetProfile.tsx — registered as a top-level route in App.tsx; uses plain fetch (no auth interceptor)
+- [x] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx — installed html5-qrcode@^2.3.8; wired a "Scan QR" button into DashboardPage
+- [x] T103 [P] [US1] Implement AVFoundation QR scanner view in ios/PetRecovery/Views/Pets/QRScannerView.swift
+- [x] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift — note: the web URL `/p/:token` (T101) is the "no app required" path per FR-017; this task covers the in-app convenience deep link for users who have the app installed
+- [x] T104a [US1] Register URL scheme (petrecovery://) in Info.plist + onOpenURL handler in ios/PetRecovery/App/PetRecoveryApp.swift routing petrecovery://p/<token> and Universal Links to PublicPetProfileView (via ProfileLink Identifiable wrapper) — depends on T104
+- [ ] T104b [US1] Functional check: scan a pet's QR on web (and iOS if simulator available) → lands on public profile showing only public fields; regenerate QR invalidates the old code (covers T097–T104a). Backend endpoints already runtime-verified via curl.
 
 ---
 
@@ -325,7 +332,7 @@ With four developers:
 - [ ] T106 [P] Create VetBOLO model in backend/src/models/vet-bolo.model.ts
 - [ ] T107 Implement VetDiscoveryService using Google Places Nearby Search API to find vet clinics within 2 miles of given coordinates in backend/src/integrations/google-places.client.ts
 - [ ] T108 Implement VetBOLOService: fetch clinics via VetDiscoveryService, render SendGrid email template with pet photos + medical + owner contact, dispatch to each clinic, record in VetBOLO table in backend/src/services/vet-bolo.service.ts
-- [ ] T109 Wire VetBOLOService to fire automatically inside POST /pets/:id/mark-lost handler; emit vet_bolo_sent WebSocket event per dispatch in backend/src/api/routes/pets.routes.ts
+- [ ] T109 Wire VetBOLOService to fire automatically inside POST /pets/:id/mark-lost handler; emit vet_bolo_sent WebSocket event per dispatch in backend/src/api/routes/search.routes.ts (not pets.routes.ts — mark-lost lives in search routes per T048)
 - [ ] T110 Add GET /searches/:id/vet-bolos route returning list of dispatched BOLOs with delivery status in backend/src/api/routes/search.routes.ts
 - [ ] T111 [P] [US2] Add vet BOLO status panel to Search Results page showing clinics notified in frontend/src/pages/search/SearchResultsPage.tsx
 - [ ] T112 [P] [US2] Add vet BOLO status list to iOS Search Results screen in ios/PetRecovery/Views/Search/SearchResultsView.swift
@@ -334,11 +341,11 @@ With four developers:
 
 ### Phase 7D: User Story 4 - Community Notifications & BOLO Alerts
 
-- [ ] T113 Extend Notification model and migration with type enum (pet_update, bolo_alert, nearby_lost, store_account), trigger_latitude, trigger_longitude in backend/src/migrations/
+- [ ] T113 Extend Notification model and migration — use `ALTER TYPE notification_type ADD VALUE` to add (pet_update, bolo_alert, nearby_lost, store_account) to the existing enum created in T057's migration; also add trigger_latitude, trigger_longitude columns in backend/src/migrations/ — do NOT drop existing values (found_report_match, search_complete, system, claim_alert) as live data depends on them
 - [ ] T114 [P] Add notification settings columns to User (notif_pet_update, notif_bolo_alert, notif_nearby_lost, notif_store_account — all boolean default true except store) in backend/src/migrations/
-- [ ] T115 Extend NotificationService with dispatchBOLO(userId, pet, distanceMiles) and dispatchCommunityAlert(userId, pet, distanceMiles) methods, respecting per-user toggle settings in backend/src/services/notification.service.ts
+- [ ] T115 Extend NotificationService with dispatchBOLO(userId, pet, distanceMiles), dispatchCommunityAlert(userId, pet, distanceMiles), and dispatchClaimAlert(ownerId, finderId, foundReportId) methods, all respecting per-user toggle settings in backend/src/services/notification.service.ts; dispatchClaimAlert emits amber notifications (FR-022a) to both parties on found-report claim
 - [ ] T116 Add location-tracking WebSocket handler: on update_location from client, evaluate BOLO threshold (1 mile from any active lost pet origin) and community threshold (2 miles) and dispatch notifications in backend/src/integrations/websocket.server.ts
-- [ ] T117 Add GET /notifications, PATCH /notifications/:id/read, and PATCH /notifications/settings routes in backend/src/api/routes/notifications.routes.ts
+- [ ] T117 Add PATCH /notifications/settings route in backend/src/api/routes/notifications.routes.ts — GET /notifications and PATCH /notifications/:id/read were already implemented in T063; this task adds only the settings toggle endpoint
 - [ ] T118 [P] [US4] Build full Notifications page with color-coded cards, filter tabs, permission request card, and settings toggles in frontend/src/pages/notifications/NotificationsPage.tsx
 - [ ] T119 [P] [US4] Add notification permission request flow (browser Notification API) to app initialization in frontend/src/App.tsx
 - [ ] T120 [P] [US4] Implement iOS push notification registration using UNUserNotificationCenter; wire via UIApplicationDelegateAdaptor in ios/PetRecovery/App/PetRecoveryApp.swift (SwiftUI @main lifecycle — do NOT use a standalone AppDelegate.swift, use @UIApplicationDelegateAdaptor to bridge)
@@ -354,12 +361,12 @@ With four developers:
 - [ ] T125 [P] Create ProximityVerification model in backend/src/models/proximity-verification.model.ts
 - [ ] T126 Install `stripe` npm package; implement StripeService with createPaymentIntent(), capturePaymentIntent(), and refundPaymentIntent() in backend/src/integrations/stripe.client.ts
 - [ ] T127 Implement RewardService with create(), fund(), cancel(), and releaseIfAllPassed() methods; releaseIfAllPassed calls Stripe capture when all three verification booleans are true in backend/src/services/reward.service.ts
-- [ ] T128 Implement ProximityService with issueNonce(), submitCoordinates(), computeDistance(), and checkPetIdentity() in backend/src/services/proximity.service.ts
+- [ ] T128 Implement ProximityService with issueNonce(), submitCoordinates(), computeDistance(), and checkPetIdentity() in backend/src/services/proximity.service.ts — proximity threshold is 50 feet (≈15.24 m); trigger manual confirmation prompt when either device reports accuracy > 15 m
 - [ ] T129 Add reward and proximity routes: POST /rewards, GET /rewards/:id, POST /rewards/:id/fund, POST /rewards/:id/proximity, POST /rewards/:id/cancel, POST /proximity-check in backend/src/api/routes/rewards.routes.ts
 - [ ] T130 [P] [US5] Build Reward Setup page with amount input, preset buttons, 6-provider payment grid, and escrow funding flow in frontend/src/pages/reward/RewardSetupPage.tsx
 - [ ] T131 [P] [US5] Build Proximity Verification page with live GPS ring visualization, 3-step checklist, and auto-release status in frontend/src/pages/reward/ProximityVerificationPage.tsx
 - [ ] T132 [P] [US5] Implement reward setup and escrow flow in iOS in ios/PetRecovery/Views/Reward/RewardSetupView.swift
-- [ ] T133 [P] [US5] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift — MUST set desiredAccuracy = .bestForNavigation and requestTemporaryFullAccuracyAuthorization before submitting coordinates to proximity API; default accuracy (~65 m) will always fail the 10-foot check
+- [ ] T133 [P] [US5] Implement proximity verification screen using CoreLocation in ios/PetRecovery/Views/Reward/ProximityVerificationView.swift — MUST set desiredAccuracy = .bestForNavigation and requestTemporaryFullAccuracyAuthorization before submitting coordinates to proximity API; default accuracy (~65 m) may fail the 50-foot check; show manual confirmation prompt if device reports accuracy > 15 m
 - [ ] T134 [US5] Functional check: confirm reward creates Stripe payment intent, all three verifications pass in sequence, funds release automatically, and cancel triggers full Stripe refund
 
 ---

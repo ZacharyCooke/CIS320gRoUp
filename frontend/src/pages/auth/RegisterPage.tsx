@@ -10,6 +10,8 @@ function useMathCaptcha() {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +31,8 @@ export function RegisterPage() {
     setLoading(true);
     try {
       const { data } = await apiClient.post("/auth/register", {
+        first_name: firstName || undefined,
+        last_name: lastName || undefined,
         email,
         password,
         phone: phone || undefined
@@ -51,6 +55,25 @@ export function RegisterPage() {
         {error && <p role="alert" style={{ color: "#dc2626", marginBottom: 8 }}>{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          <div style={{ display: "flex", gap: "12px" }}>
+            <label style={{ flex: 1 }}>
+              First name
+              <input
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+              />
+            </label>
+            <label style={{ flex: 1 }}>
+              Last name
+              <input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                autoComplete="family-name"
+              />
+            </label>
+          </div>
+
           <label>
             Email
             <input

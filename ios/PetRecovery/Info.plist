@@ -10,5 +10,16 @@
 	<string>PetRecovery uses your location to search for lost pets and verify reunions.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>PetRecovery uses your photo library so you can upload pet profile photos.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.petrecovery.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>petrecovery</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

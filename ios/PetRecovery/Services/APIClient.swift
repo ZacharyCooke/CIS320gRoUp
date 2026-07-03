@@ -56,9 +56,13 @@ final class APIClient {
 
     // MARK: - Auth
 
-    func register(email: String, password: String, phone: String?) async throws -> RegisterResponse {
-        struct Body: Encodable { let email: String; let password: String; let phone: String? }
-        let (data, _) = try await request(path: "auth/register", method: "POST", body: Body(email: email, password: password, phone: phone))
+    func register(firstName: String?, lastName: String?, email: String, password: String, phone: String?) async throws -> RegisterResponse {
+        struct Body: Encodable {
+            let first_name: String?; let last_name: String?
+            let email: String; let password: String; let phone: String?
+        }
+        let (data, _) = try await request(path: "auth/register", method: "POST",
+            body: Body(first_name: firstName, last_name: lastName, email: email, password: password, phone: phone))
         return try JSONDecoder().decode(RegisterResponse.self, from: data)
     }
 
@@ -72,10 +76,58 @@ final class APIClient {
 
     // MARK: - Pets
 
-    func createPet(name: String, species: String, color: String, size: String) async throws -> PetResponse {
-        struct Body: Encodable { let name: String; let species: String; let color: String; let size: String }
-        let (data, _) = try await request(path: "pets", method: "POST", body: Body(name: name, species: species, color: color, size: size))
+    func createPet(name: String, species: String, color: String, size: String,
+                   temperament: String = "friendly", approachNotes: String? = nil) async throws -> PetResponse {
+        struct Body: Encodable {
+            let name: String; let species: String; let color: String; let size: String
+            let temperament: String; let approach_notes: String?
+        }
+        let (data, _) = try await request(path: "pets", method: "POST",
+            body: Body(name: name, species: species, color: color, size: size,
+                       temperament: temperament, approach_notes: approachNotes))
         return try JSONDecoder().decode(PetResponse.self, from: data)
+    }
+
+    func updatePetMedical(petId: String, conditions: [MedicalConditionPayload], emergencyNotes: String?, shareEmergencyNotes: Bool = true) async throws {
+        struct Body: Encodable {
+            let medical_conditions: [MedicalConditionPayload]
+            let medical_emergency_notes: String?
+            let share_emergency_notes: Bool
+        }
+        _ = try await request(path: "pets/\(petId)/medical", method: "PATCH",
+            body: Body(medical_conditions: conditions, medical_emergency_notes: emergencyNotes, share_emergency_notes: shareEmergencyNotes))
+    }
+
+    func upsertPetVet(petId: String, clinicName: String, address: String?, phone: String?, email: String?) async throws -> VetDTO {
+        struct Body: Encodable { let clinic_name: String; let address: String?; let phone: String?; let email: String? }
+        let (data, _) = try await request(path: "pets/\(petId)/vet", method: "PUT",
+            body: Body(clinic_name: clinicName, address: address, phone: phone, email: email))
+        struct Response: Decodable { let vet: VetDTO }
+        return try JSONDecoder().decode(Response.self, from: data).vet
+    }
+
+    func getPetVet(petId: String) async throws -> VetDTO? {
+        let (data, _) = try await request(path: "pets/\(petId)/vet")
+        struct Response: Decodable { let vet: VetDTO? }
+        return try JSONDecoder().decode(Response.self, from: data).vet
+    }
+
+    func getPetQR(petId: String) async throws -> QRCodeDTO {
+        let (data, _) = try await request(path: "pets/\(petId)/qr")
+        return try JSONDecoder().decode(QRCodeDTO.self, from: data)
+    }
+
+    func rotatePetQR(petId: String) async throws -> QRCodeDTO {
+        let (data, _) = try await request(path: "pets/\(petId)/rotate-qr", method: "POST")
+        return try JSONDecoder().decode(QRCodeDTO.self, from: data)
+    }
+
+    // MARK: - Public profile (no auth required)
+
+    func getPublicProfile(token: String) async throws -> PublicProfileDTO {
+        let (data, _) = try await request(path: "p/\(token)")
+        struct Response: Decodable { let profile: PublicProfileDTO }
+        return try JSONDecoder().decode(Response.self, from: data).profile
     }
 
     func linkTrackingDevice(petId: String, deviceType: String, shareUrl: String) async throws {
@@ -133,7 +185,59 @@ struct PetDTO: Decodable {
     let name: String
     let species: String
     let color: String
+    let size: String
     let status: String
+    let temperament: String
+    let approach_notes: String?
+    let medical_conditions: [MedicalConditionDTO]
+    let medical_emergency_notes: String?
+    let share_emergency_notes: Bool
+    let qr_code_token: String
+}
+
+struct MedicalConditionDTO: Decodable {
+    let condition: String
+    let share_publicly: Bool
+}
+
+struct MedicalConditionPayload: Encodable {
+    let condition: String
+    let share_publicly: Bool
+}
+
+struct VetDTO: Decodable {
+    let id: String
+    let clinic_name: String
+    let address: String?
+    let phone: String?
+    let email: String?
+}
+
+struct QRCodeDTO: Decodable {
+    let token: String
+    let profile_url: String
+    let png_data_url: String?
+}
+
+struct PublicProfileDTO: Decodable {
+    let name: String
+    let species: String
+    let breed: String?
+    let color: String
+    let size: String
+    let photo_urls: [String]
+    let status: String
+    let temperament: String
+    let approach_notes: String?
+    let medical_conditions: [String]
+    let medical_emergency_notes: String?
+    let owner: PublicOwnerDTO
+
+    struct PublicOwnerDTO: Decodable {
+        let name: String?
+        let email: String
+        let phone: String?
+    }
 }
 
 struct MarkLostResponse: Decodable {

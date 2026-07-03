@@ -12,6 +12,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.7.9",
+    "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

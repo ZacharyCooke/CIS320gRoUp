@@ -16,6 +16,8 @@ interface PendingOtp {
 }
 
 export interface RegisterUserInput {
+  first_name?: string | null;
+  last_name?: string | null;
   email: string;
   phone?: string | null;
   password?: string;
@@ -67,6 +69,8 @@ export async function register(input: RegisterUserInput): Promise<RegisterUserRe
   }
 
   const user = await createUser({
+    first_name: input.first_name ?? null,
+    last_name: input.last_name ?? null,
     email: input.email,
     phone: input.phone ?? null,
     password_hash

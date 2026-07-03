@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct RegisterView: View {
+    @State private var firstName = ""
+    @State private var lastName = ""
     @State private var email = ""
     @State private var phone = ""
     @State private var password = ""
@@ -13,6 +15,10 @@ struct RegisterView: View {
         NavigationStack {
             Form {
                 Section("Create Account") {
+                    TextField("First name", text: $firstName)
+                        .textContentType(.givenName)
+                    TextField("Last name", text: $lastName)
+                        .textContentType(.familyName)
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
@@ -49,6 +55,8 @@ struct RegisterView: View {
         errorMessage = nil
         do {
             let response = try await APIClient.shared.register(
+                firstName: firstName.isEmpty ? nil : firstName,
+                lastName: lastName.isEmpty ? nil : lastName,
                 email: email,
                 password: password,
                 phone: phone.isEmpty ? nil : phone

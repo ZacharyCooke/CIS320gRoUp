@@ -2,6 +2,8 @@ import { pool } from "../config/database.js";
 
 export interface User {
   id: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string;
   phone: string | null;
   password_hash: string;
@@ -17,6 +19,8 @@ export interface User {
 }
 
 export interface CreateUserInput {
+  first_name?: string | null;
+  last_name?: string | null;
   email: string;
   phone?: string | null;
   password_hash: string;
@@ -24,10 +28,10 @@ export interface CreateUserInput {
 
 export async function createUser(input: CreateUserInput): Promise<User> {
   const result = await pool.query<User>(
-    `INSERT INTO users (email, phone, password_hash)
-     VALUES ($1, $2, $3)
+    `INSERT INTO users (first_name, last_name, email, phone, password_hash)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [input.email, input.phone ?? null, input.password_hash]
+    [input.first_name ?? null, input.last_name ?? null, input.email, input.phone ?? null, input.password_hash]
   );
   return result.rows[0];
 }
@@ -39,6 +43,25 @@ export async function findUserById(id: string): Promise<User | null> {
 
 export async function findUserByEmail(email: string): Promise<User | null> {
   const result = await pool.query<User>("SELECT * FROM users WHERE email = $1", [email]);
+  return result.rows[0] ?? null;
+}
+
+export async function updateUserTotpSecret(
+  id: string,
+  secret: string
+): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET totp_secret = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, secret]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function enableUserTwoFactor(id: string): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET is_2fa_enabled = true, updated_at = now() WHERE id = $1 RETURNING *",
+    [id]
+  );
   return result.rows[0] ?? null;
 }
 
