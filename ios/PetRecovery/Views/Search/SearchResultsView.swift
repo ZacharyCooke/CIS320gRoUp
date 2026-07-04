@@ -6,6 +6,7 @@ struct SearchResultsView: View {
     let pet: PetDTO
 
     @State private var results: [SearchResultDTO] = []
+    @State private var vetBolos: [VetBoloDTO] = []
     @State private var isComplete = false
     @State private var radiusMiles: Double
     @State private var errorMessage: String?
@@ -62,9 +63,22 @@ struct SearchResultsView: View {
                     }
                 }
             }
+
+            Section("Vet Clinics Notified") {
+                if vetBolos.isEmpty {
+                    Text("No nearby vet clinics notified yet").foregroundStyle(.secondary)
+                } else {
+                    ForEach(vetBolos) { bolo in
+                        VetBoloRow(bolo: bolo)
+                    }
+                }
+            }
         }
         .navigationTitle("Search: \(pet.name)")
-        .task { await loadResults() }
+        .task {
+            await loadResults()
+            await loadVetBolos()
+        }
     }
 
     private struct GeoResult: Identifiable {
@@ -87,6 +101,15 @@ struct SearchResultsView: View {
             isComplete = response.search.status != "active"
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadVetBolos() async {
+        do {
+            let response = try await APIClient.shared.getVetBolos(searchId: search.id)
+            vetBolos = response.vet_bolos
+        } catch {
+            // Best-effort — vet BOLO status is supplementary, don't block the results screen
         }
     }
 
@@ -129,6 +152,35 @@ private struct ResultRow: View {
             }
             if let url = result.source_url, let link = URL(string: url) {
                 Link("View on \(result.source)", destination: link).font(.caption)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct VetBoloRow: View {
+    let bolo: VetBoloDTO
+
+    var statusColor: Color {
+        switch bolo.email_status {
+        case "sent": return .green
+        case "bounced": return .orange
+        default: return .secondary
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(bolo.clinic_name).bold()
+                Spacer()
+                Text(bolo.email_status).foregroundStyle(statusColor)
+            }
+            if let dist = bolo.distance_miles {
+                Text(String(format: "%.1f mi away", dist)).font(.caption).foregroundStyle(.secondary)
+            }
+            if let address = bolo.clinic_address {
+                Text(address).font(.caption2).foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 4)

@@ -29,11 +29,20 @@ interface Search {
   radius_miles: number;
 }
 
+interface VetBolo {
+  id: string;
+  clinic_name: string;
+  clinic_address: string | null;
+  distance_miles: number | null;
+  email_status: string;
+}
+
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [search, setSearch] = useState<Search | null>(null);
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [vetBolos, setVetBolos] = useState<VetBolo[]>([]);
   const [complete, setComplete] = useState(false);
   const [radius, setRadius] = useState(10);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +59,27 @@ export function SearchResultsPage() {
       setResults(data.results ?? []);
     }).catch(() => setError("Search not found."));
 
+    apiClient.get(`/searches/${id}/vet-bolos`).then(({ data }) => {
+      setVetBolos(data.vet_bolos ?? []);
+    }).catch(() => {});
+
     const socket = connectToSearch(id);
     socket.on("new_result", (result: SearchResult) => {
       setResults((prev) => [...prev, result]);
     });
     socket.on("search_complete", () => setComplete(true));
+    socket.on("vet_bolo_sent", (bolo: { clinic_name: string; email_status: string }) => {
+      setVetBolos((prev) => [
+        ...prev,
+        {
+          id: `${bolo.clinic_name}-${prev.length}`,
+          clinic_name: bolo.clinic_name,
+          clinic_address: null,
+          distance_miles: null,
+          email_status: bolo.email_status
+        }
+      ]);
+    });
 
     return () => disconnectSearch();
   }, [id]);
@@ -143,8 +168,36 @@ export function SearchResultsPage() {
           </li>
         ))}
       </ul>
+
+      <h3>Vet Clinics Notified ({vetBolos.length})</h3>
+      {vetBolos.length === 0 ? (
+        <p style={{ color: "#555" }}>No nearby vet clinics notified yet.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {vetBolos.map((v) => (
+            <li key={v.id} style={card}>
+              <div>
+                <strong>{v.clinic_name}</strong>
+                <span style={{ marginLeft: "0.5rem", color: statusColor(v.email_status) }}>
+                  {v.email_status}
+                </span>
+                {v.distance_miles != null && <span> — {v.distance_miles.toFixed(1)} mi away</span>}
+                {v.clinic_address && (
+                  <div style={{ fontSize: "0.85rem", color: "#555" }}>{v.clinic_address}</div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
+}
+
+function statusColor(status: string): string {
+  if (status === "sent") return "#16a34a";
+  if (status === "bounced") return "#ea580c";
+  return "#6b7280";
 }
 
 const card: React.CSSProperties = {

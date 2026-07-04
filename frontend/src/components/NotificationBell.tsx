@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { apiClient } from "../services/api-client";
-import { io } from "socket.io-client";
+import { connectToUser, disconnectUser } from "../services/websocket.client";
 
 interface Notification {
   id: string;
@@ -11,8 +12,6 @@ interface Notification {
   created_at: string;
 }
 
-const WS_URL = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ?? "http://localhost:3000";
-
 export function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -22,14 +21,14 @@ export function NotificationBell({ userId }: { userId: string }) {
   useEffect(() => {
     loadNotifications();
 
-    const socket = io(WS_URL, { query: { userId }, transports: ["websocket"] });
-    socket.on("new_result", (n: Notification) => {
+    const socket = connectToUser();
+    socket.on("new_notification", (n: Notification) => {
       if (n.type && n.title) {
         setNotifications((prev) => [n, ...prev]);
         setUnread((u) => u + 1);
       }
     });
-    return () => { socket.disconnect(); };
+    return () => { disconnectUser(); };
   }, [userId]);
 
   useEffect(() => {
@@ -95,12 +94,17 @@ export function NotificationBell({ userId }: { userId: string }) {
             padding: "12px 16px", borderBottom: "1px solid #e5e7eb"
           }}>
             <strong>Notifications</strong>
-            {unread > 0 && (
-              <button type="button" onClick={markAllRead}
-                style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "0.85rem" }}>
-                Mark all read
-              </button>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {unread > 0 && (
+                <button type="button" onClick={markAllRead}
+                  style={{ background: "none", border: "none", color: "#0f766e", cursor: "pointer", fontSize: "0.85rem" }}>
+                  Mark all read
+                </button>
+              )}
+              <Link to="/notifications" style={{ fontSize: "0.85rem", color: "#0f766e" }} onClick={() => setOpen(false)}>
+                View all
+              </Link>
+            </div>
           </div>
 
           {notifications.length === 0 ? (

@@ -5,10 +5,10 @@ import {
   type CreateFoundReportInput,
   type FoundReport
 } from "../models/found-report.model.js";
-import { findActiveSearches } from "../models/lost-pet-search.model.js";
+import { findActiveSearches, findSearchById } from "../models/lost-pet-search.model.js";
 import { createSearchResult } from "../models/search-result.model.js";
 import { boundingBox, haversineDistanceMiles, isWithinRadius } from "./geo.service.js";
-import { notify } from "./notification.service.js";
+import { notify, dispatchClaimAlert } from "./notification.service.js";
 import { emitNewResult } from "../integrations/websocket.server.js";
 
 export async function submitFoundReport(input: CreateFoundReportInput): Promise<FoundReport> {
@@ -56,6 +56,7 @@ async function matchReportToActiveSearches(report: FoundReport): Promise<void> {
     await notify({
       userId: search.owner_id,
       type: "found_report_match",
+      socketEvent: "found_report_match",
       title: "Found pet report nearby",
       body: `A ${report.species ?? "pet"} was reported found ${distance.toFixed(1)} mi from your search center.`,
       data: { search_id: search.id, report_id: report.id, result_id: result.id }
@@ -77,5 +78,15 @@ export async function claimReport(
   reportId: string,
   searchId: string
 ): Promise<FoundReport | null> {
-  return claimFoundReport(reportId, searchId);
+  const report = await claimFoundReport(reportId, searchId);
+  if (!report) return null;
+
+  const search = await findSearchById(searchId);
+  if (search) {
+    dispatchClaimAlert(search, report).catch((err) =>
+      console.error("[found-report] claim alert error:", err)
+    );
+  }
+
+  return report;
 }

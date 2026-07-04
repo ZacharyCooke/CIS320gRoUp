@@ -8,6 +8,7 @@ import { PetFormPage } from "./pages/pets/PetFormPage";
 import { PetProfilePage } from "./pages/pets/PetProfilePage";
 import { SearchResultsPage } from "./pages/search/SearchResultsPage";
 import { FoundReportPage } from "./pages/search/FoundReportPage";
+import { NotificationsPage } from "./pages/notifications/NotificationsPage";
 import { AccountSettingsPage } from "./pages/account/AccountSettingsPage";
 import { PublicPetProfile } from "./pages/public/PublicPetProfile";
 import { setAccessToken } from "./services/api-client";
@@ -29,6 +30,7 @@ export function App() {
         <Route path="/pets/:id" element={<PetProfilePage />} />
         <Route path="/searches/:id" element={<SearchResultsPage />} />
         <Route path="/found-report" element={<FoundReportPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/account/settings" element={<AccountSettingsPage />} />
         <Route path="/account/2fa-setup" element={<TwoFactorSetupPage />} />
       </Routes>

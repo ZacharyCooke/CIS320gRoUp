@@ -1,6 +1,14 @@
 import { pool } from "../config/database.js";
 
-export type NotificationType = "found_report_match" | "search_complete" | "system";
+export type NotificationType =
+  | "found_report_match"
+  | "search_complete"
+  | "system"
+  | "pet_update"
+  | "bolo_alert"
+  | "nearby_lost"
+  | "store_account"
+  | "claim_alert";
 
 export interface Notification {
   id: string;
@@ -10,6 +18,8 @@ export interface Notification {
   body: string;
   data: Record<string, unknown>;
   read: boolean;
+  trigger_latitude: number | null;
+  trigger_longitude: number | null;
   created_at: Date;
 }
 
@@ -19,21 +29,25 @@ export interface CreateNotificationInput {
   title: string;
   body: string;
   data?: Record<string, unknown>;
+  trigger_latitude?: number | null;
+  trigger_longitude?: number | null;
 }
 
 export async function createNotification(
   input: CreateNotificationInput
 ): Promise<Notification> {
   const result = await pool.query<Notification>(
-    `INSERT INTO notifications (user_id, type, title, body, data)
-     VALUES ($1, $2::notification_type, $3, $4, $5)
+    `INSERT INTO notifications (user_id, type, title, body, data, trigger_latitude, trigger_longitude)
+     VALUES ($1, $2::notification_type, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       input.user_id,
       input.type,
       input.title,
       input.body,
-      JSON.stringify(input.data ?? {})
+      JSON.stringify(input.data ?? {}),
+      input.trigger_latitude ?? null,
+      input.trigger_longitude ?? null
     ]
   );
   return result.rows[0];

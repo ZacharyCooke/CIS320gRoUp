@@ -14,8 +14,20 @@ export interface User {
   facebook_access_token_encrypted: string | null;
   is_premium: boolean;
   stripe_customer_id: string | null;
+  notif_pet_update: boolean;
+  notif_bolo_alert: boolean;
+  notif_nearby_lost: boolean;
+  notif_store_account: boolean;
+  apns_device_token: string | null;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface NotificationSettingsPatch {
+  notif_pet_update?: boolean;
+  notif_bolo_alert?: boolean;
+  notif_nearby_lost?: boolean;
+  notif_store_account?: boolean;
 }
 
 export interface CreateUserInput {
@@ -73,6 +85,46 @@ export async function markUserContactVerified(
   const result = await pool.query<User>(
     `UPDATE users SET ${column} = true, updated_at = now() WHERE id = $1 RETURNING *`,
     [id]
+  );
+  return result.rows[0] ?? null;
+}
+
+const NOTIFICATION_SETTINGS_COLUMNS = [
+  "notif_pet_update",
+  "notif_bolo_alert",
+  "notif_nearby_lost",
+  "notif_store_account"
+] as const;
+
+export async function updateNotificationSettings(
+  id: string,
+  patch: NotificationSettingsPatch
+): Promise<User | null> {
+  const assignments: string[] = [];
+  const values: unknown[] = [id];
+
+  for (const column of NOTIFICATION_SETTINGS_COLUMNS) {
+    if (patch[column] !== undefined) {
+      values.push(patch[column]);
+      assignments.push(`${column} = $${values.length}`);
+    }
+  }
+
+  if (assignments.length === 0) {
+    return findUserById(id);
+  }
+
+  const result = await pool.query<User>(
+    `UPDATE users SET ${assignments.join(", ")}, updated_at = now() WHERE id = $1 RETURNING *`,
+    values
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateApnsDeviceToken(id: string, token: string): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET apns_device_token = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, token]
   );
   return result.rows[0] ?? null;
 }

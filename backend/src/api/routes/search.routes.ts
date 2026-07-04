@@ -13,6 +13,9 @@ import {
 import { findResultsBySearchId } from "../../models/search-result.model.js";
 import { findPetById, updatePetStatus } from "../../models/pet.model.js";
 import { runSearch } from "../../services/search-aggregator.service.js";
+import { findNearbyVetClinics } from "../../integrations/google-places.client.js";
+import { dispatchVetBolos } from "../../services/vet-bolo.service.js";
+import { findVetBolosBySearchId } from "../../models/vet-bolo.model.js";
 
 export const searchRouter = Router();
 
@@ -72,7 +75,14 @@ searchRouter.post(
       console.error("[search] aggregator error:", err)
     );
 
-    res.status(201).json({ search });
+    // Clinic discovery is fast and cached, so we await it to report a count; the actual
+    // email sends run in the background so a slow/down SendGrid never blocks this response.
+    const clinics = await findNearbyVetClinics(body.data.center_lat, body.data.center_lng);
+    dispatchVetBolos(search, pet, clinics).catch((err) =>
+      console.error("[vet-bolo] dispatch error:", err)
+    );
+
+    res.status(201).json({ search, vet_bolos_dispatched: clinics.length });
   })
 );
 
@@ -118,6 +128,25 @@ searchRouter.get(
 
     const results = await findResultsBySearchId(searchId);
     res.json({ search, results });
+  })
+);
+
+// GET /searches/:id/vet-bolos
+searchRouter.get(
+  "/searches/:id/vet-bolos",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const searchId = param(req.params.id);
+    const ownerId = req.user!.id;
+
+    const search = await findSearchById(searchId);
+    if (!search || search.owner_id !== ownerId) {
+      res.status(403).json({ error: "forbidden" });
+      return;
+    }
+
+    const vetBolos = await findVetBolosBySearchId(searchId);
+    res.json({ search_id: searchId, vet_bolos: vetBolos, total: vetBolos.length });
   })
 );
 

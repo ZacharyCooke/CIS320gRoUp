@@ -158,9 +158,40 @@ final class APIClient {
         return try JSONDecoder().decode(SearchResultsResponse.self, from: data)
     }
 
+    func getVetBolos(searchId: String) async throws -> VetBolosResponse {
+        let (data, _) = try await request(path: "searches/\(searchId)/vet-bolos")
+        return try JSONDecoder().decode(VetBolosResponse.self, from: data)
+    }
+
     func closeSearchAndCleanLocation(searchId: String) async {
         struct Body: Encodable { let status: String }
         _ = try? await request(path: "searches/\(searchId)", method: "PATCH", body: Body(status: "closed"))
+    }
+
+    // MARK: - Notifications
+
+    func getMe() async throws -> MeResponse {
+        let (data, _) = try await request(path: "auth/me")
+        return try JSONDecoder().decode(MeResponse.self, from: data)
+    }
+
+    func updateNotificationSettings(
+        petUpdate: Bool? = nil, boloAlert: Bool? = nil, nearbyLost: Bool? = nil, storeAccount: Bool? = nil
+    ) async throws {
+        struct Body: Encodable {
+            let notif_pet_update: Bool?
+            let notif_bolo_alert: Bool?
+            let notif_nearby_lost: Bool?
+            let notif_store_account: Bool?
+        }
+        _ = try await request(path: "notifications/settings", method: "PATCH",
+            body: Body(notif_pet_update: petUpdate, notif_bolo_alert: boloAlert,
+                       notif_nearby_lost: nearbyLost, notif_store_account: storeAccount))
+    }
+
+    func registerPushToken(_ token: String) async throws {
+        struct Body: Encodable { let token: String }
+        _ = try await request(path: "notifications/device-token", method: "POST", body: Body(token: token))
     }
 }
 
@@ -270,6 +301,33 @@ struct SearchResultDTO: Decodable {
     let description: String?
     let contact_info: String?
     let source_url: String?
+}
+
+struct VetBolosResponse: Decodable {
+    let search_id: String
+    let vet_bolos: [VetBoloDTO]
+    let total: Int
+}
+
+struct VetBoloDTO: Decodable, Identifiable {
+    let id: String
+    let clinic_name: String
+    let clinic_address: String?
+    let distance_miles: Double?
+    let email_status: String
+}
+
+struct MeResponse: Decodable {
+    let user: MeUserDTO
+}
+
+struct MeUserDTO: Decodable {
+    let id: String
+    let email: String
+    let notif_pet_update: Bool
+    let notif_bolo_alert: Bool
+    let notif_nearby_lost: Bool
+    let notif_store_account: Bool
 }
 
 private struct EmptyBody: Encodable {}
