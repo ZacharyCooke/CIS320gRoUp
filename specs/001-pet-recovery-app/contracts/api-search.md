@@ -1,7 +1,7 @@
 # API Contract: Search, Found Reports, Notifications, Vet BOLOs & Proximity
 
 **Base path**: `/api`
-**Last Updated**: 2026-07-04
+**Last Updated**: 2026-07-05
 
 ---
 
@@ -170,14 +170,14 @@ List all vet BOLO emails dispatched for a given search. Includes delivery status
 
 ## GET /notifications
 
-List the authenticated user's notifications, newest first.
+List the authenticated user's notifications, newest first. There is no
+type/unread filter or pagination on this endpoint currently - only a flat
+result count cap.
 
 **Auth**: Required.
 
 **Query params**:
-- `type` - optional filter: `pet_update`, `bolo_alert`, `nearby_lost`, `claim_alert`, `store_account`
-- `unread_only` â€” boolean, default false
-- `page` (default: 1), `per_page` (default: 20)
+- `limit` (default: 50, max: 100)
 
 **Response 200**:
 ```json
@@ -185,17 +185,30 @@ List the authenticated user's notifications, newest first.
   "notifications": [
     {
       "id": "uuid",
+      "user_id": "uuid",
       "type": "pet_update",
       "title": "New community sighting reported",
       "body": "A yellow Labrador was spotted near S. Lamar Blvd.",
-      "is_read": false,
-      "created_at": "2026-07-01T12:05:00Z",
-      "related_entity_id": "uuid"
+      "data": {},
+      "read": false,
+      "trigger_latitude": 30.265,
+      "trigger_longitude": -97.771,
+      "created_at": "2026-07-01T12:05:00Z"
     }
   ],
   "unread": 3
 }
 ```
+
+`type` is one of: `found_report_match`, `search_complete`, `system`,
+`pet_update`, `bolo_alert`, `nearby_lost`, `store_account`, `claim_alert` -
+a broader set than the four toggleable categories in
+`PATCH /notifications/settings` below. `data` is a free-form JSON payload
+whose shape depends on `type` (there is no `related_entity_id` field; any
+related ID lives inside `data`). `trigger_latitude`/`trigger_longitude` are a
+one-time snapshot of the recipient's location when the notification was
+generated - not pet-search-lifecycle location data, so it is not purged by
+`POST /pets/:id/mark-recovered` (see data-model.md's Validation Rules).
 
 ---
 
@@ -205,8 +218,18 @@ Mark a single notification as read.
 
 **Auth**: Required.
 
-**Response 200**: `{ "notification": { "id": "uuid", "is_read": true } }`
+**Response 200**: `{ "notification": { "id": "uuid", "read": true, ... } }`
 **Response 404**: Notification not found or does not belong to user.
+
+---
+
+## POST /notifications/read-all
+
+Mark all of the authenticated user's unread notifications as read.
+
+**Auth**: Required.
+
+**Response 200**: `{ "ok": true }`
 
 ---
 
@@ -229,6 +252,27 @@ Update the user's per-type notification toggle settings.
 All fields optional â€” only provided fields are updated.
 
 **Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_store_account": false } }`
+
+---
+
+## POST /notifications/device-token
+
+Register or replace the authenticated user's APNs device token for iOS push
+notifications, stored on `User.apns_device_token`.
+
+**Auth**: Required.
+
+**Request**:
+```json
+{
+  "token": "a1b2c3d4e5f6..."
+}
+```
+
+`token` must be a string of at least 10 characters.
+
+**Response 200**: `{ "ok": true }`
+**Response 400**: Validation error (token missing or too short).
 
 ---
 

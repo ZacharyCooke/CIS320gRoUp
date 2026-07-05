@@ -24,6 +24,19 @@ const vetSchema = z.object({
   email: z.string().email().nullable().optional()
 });
 
+const trackingDeviceSchema = z.object({
+  device_type: z.enum(["airtag", "amazon_tag"]),
+  share_url: z.string().url(),
+  last_known_latitude: z.number().optional(),
+  last_known_longitude: z.number().optional()
+});
+
+const externalSourceSchema = z.object({
+  source_name: z.string().min(1),
+  source_url: z.string().url(),
+  source_type: z.enum(["petfinder_api", "petfbi_scrape", "manual_link", "facebook_groups"])
+});
+
 export const petsRouter = Router();
 
 petsRouter.use(authMiddleware);
@@ -112,8 +125,13 @@ petsRouter.get(
 petsRouter.post(
   "/:id/tracking-devices",
   asyncHandler(async (req, res) => {
+    const parsed = trackingDeviceSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
+      return;
+    }
     const trackingDevice = await trackingDevices.link(req.user!.id, {
-      ...req.body,
+      ...parsed.data,
       pet_id: param(req.params.id)
     });
     res.status(201).json({ tracking_device: trackingDevice });
@@ -151,8 +169,13 @@ petsRouter.get(
 petsRouter.post(
   "/:id/external-sources",
   asyncHandler(async (req, res) => {
+    const parsed = externalSourceSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
+      return;
+    }
     const source = await externalSources.link({
-      ...req.body,
+      ...parsed.data,
       owner_id: req.user!.id
     });
     res.status(201).json({ external_source: source });

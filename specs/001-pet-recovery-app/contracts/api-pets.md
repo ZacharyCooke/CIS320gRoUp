@@ -2,7 +2,7 @@
 
 **Base path**: `/api`
 **Auth**: All endpoints require Bearer token unless noted.
-**Last Updated**: 2026-07-04
+**Last Updated**: 2026-07-05
 
 ---
 
@@ -31,9 +31,23 @@ List all pets belonging to the authenticated owner.
 
 ---
 
+## GET /pets/:id
+
+Retrieve a single pet profile belonging to the authenticated owner.
+
+**Response 200**: `{ "pet": Pet }`
+**Response 404**: Pet not found or does not belong to the authenticated user.
+
+---
+
 ## POST /pets
 
-Create a new pet profile.
+Create a new pet profile. `temperament` and `approach_notes` are set here
+(or via `PUT /pets/:id` below) — there is no dedicated
+`PATCH /pets/:id/temperament` route.
+
+Non-Premium owners (`User.is_premium = false`) are capped at 3 pet profiles
+(`FREE_TIER_PET_LIMIT`); Premium subscribers are unlimited.
 
 **Request**:
 ```json
@@ -53,12 +67,15 @@ Create a new pet profile.
 
 **Response 201**: Full pet object with `id` and generated `qr_code_token`.
 **Response 400**: Validation errors (missing required fields, duplicate microchip).
+**Response 403** (`pet_limit_reached`): Non-Premium owner already has 3 pet profiles.
 
 ---
 
 ## PUT /pets/:id
 
-Update a pet profile. Partial updates supported.
+Update a pet profile. Partial updates supported (including `temperament` and
+`approach_notes` — this route is also how those two fields are edited after
+creation, since no separate temperament endpoint exists).
 
 **Response 200**: Updated pet object.
 **Response 403**: Pet does not belong to authenticated user.
@@ -89,31 +106,29 @@ Update the pet's medical conditions array. Each item has a `condition` string an
     { "condition": "Allergic to chicken", "share_publicly": true },
     { "condition": "Anxiety â€” requires Trazodone", "share_publicly": false }
   ],
-  "medical_emergency_notes": "Requires 0.3mg Levothyroxine daily with food. Spayed. Two prior ACL surgeries."
+  "medical_emergency_notes": "Requires 0.3mg Levothyroxine daily with food. Spayed. Two prior ACL surgeries.",
+  "share_emergency_notes": true
 }
 ```
 
-**Response 200**: Updated pet object with `medical_conditions` and `medical_emergency_notes`.
+`share_emergency_notes` defaults to `true` if omitted. When `true`,
+`medical_emergency_notes` is always included in vet BOLO emails regardless of
+each condition's individual `share_publicly` flag (safety-critical exception,
+per rules.md). It has no effect on the public QR profile (`GET /p/:token`),
+which never includes `medical_emergency_notes`.
+
+**Response 200**: Updated pet object with `medical_conditions`,
+`medical_emergency_notes`, and `share_emergency_notes`.
 **Response 400**: Invalid structure (missing `condition` or `share_publicly` fields).
 
 ---
 
-## PATCH /pets/:id/temperament
+## Temperament & approach notes
 
-Update the pet's temperament classification and finder approach notes.
-
-**Request**:
-```json
-{
-  "temperament": "cautious",
-  "approach_notes": "Approach slowly, no direct eye contact. Do not reach for her â€” let her sniff your hand first."
-}
-```
-
-`temperament` must be one of: `friendly`, `cautious`, `report_only`.
-
-**Response 200**: Updated pet object.
-**Response 400**: Invalid temperament value.
+There is no dedicated `PATCH /pets/:id/temperament` route. `temperament`
+(`friendly` | `cautious` | `report_only`) and `approach_notes` are set via
+`POST /pets` at creation or updated later via `PUT /pets/:id`, same as any
+other pet field.
 
 ---
 
@@ -141,6 +156,15 @@ Create or update the pet's primary veterinarian. Upserts â€” one primary ve
 Retrieve the primary vet for a pet.
 
 **Response 200**: `{ "vet": PetVet | null }`
+
+---
+
+## DELETE /pets/:id/vet
+
+Remove the pet's primary vet record.
+
+**Response 204**: No content.
+**Response 404**: No vet on file for this pet.
 
 ---
 
@@ -227,17 +251,49 @@ Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email
     "status": "active",
     "started_at": "2026-07-01T12:00:00Z"
   },
-  "vet_bolos_dispatched": 4
+  "vet_bolos_dispatched": 4,
+  "is_premium": false
 }
 ```
+
+`is_premium` reflects the owner's account at the moment the search opened
+(used by the web client to decide whether to keep showing ads during the
+search flow).
+
+**Response 404**: Pet not found or does not belong to the authenticated user.
+**Response 409**: `{ "error": "active_search_exists", "search_id": "uuid" }` - pet already has an open search.
 
 ---
 
 ## POST /pets/:id/mark-recovered
 
-Mark a pet as safe and close the active search.
+Mark a pet as safe and close the active search. Also purges retained
+location data for this pet: the closed search's `center_lat`/`center_lng`
+and any linked tracking device's `last_known_latitude`/`last_known_longitude`
+are cleared (rules.md: location data is retained only while a pet is lost).
+If an active (non-mid-verification) reward escrow exists for this pet, it is
+automatically cancelled and refunded, since the pet was recovered outside the
+app's own proximity-verification flow.
 
 **Response 200**: `{ "pet_id": "uuid", "status": "safe", "search_closed": true, "reward_refunded": false }`
+
+---
+
+## GET /pets/:id/active-search
+
+Retrieve the pet's currently active search, if any (used by the pet profile
+page to decide whether to show "search in progress" state).
+
+**Response 200**: `{ "search": LostPetSearch | null }`
+**Response 404**: Pet not found or does not belong to the authenticated user.
+
+---
+
+## GET /pets/:id/tracking-devices
+
+List all tracking devices linked to a pet.
+
+**Response 200**: `{ "tracking_devices": TrackingDevice[] }`
 
 ---
 
@@ -254,6 +310,12 @@ Link a tracking device to a pet.
   "last_known_longitude": -97.743
 }
 ```
+
+`device_type` must be one of: `airtag`, `amazon_tag`. `share_url` must be a
+valid URL. `last_known_latitude`/`last_known_longitude` are optional.
+`last_known_latitude`/`last_known_longitude` are cleared (set to `null`)
+automatically when the pet is marked recovered - see
+`POST /pets/:id/mark-recovered` below.
 
 **Response 201**: Created TrackingDevice object.
 **Response 400**: Invalid `device_type` or URL format.
