@@ -135,8 +135,9 @@ A community-submitted record of a found animal.
 | latitude | decimal | Required |
 | longitude | decimal | Required |
 | location_name | string | Human-readable address/area |
-| date_found | date | Required |
-| reporter_contact | string | Email or phone; required |
+| found_at | timestamp | Required |
+| reporter_email | string | Optional email contact; unauthenticated reports require reporter_email or reporter_phone |
+| reporter_phone | string | Optional phone contact; unauthenticated reports require reporter_email or reporter_phone |
 | status | enum | open, claimed, closed |
 | created_at | timestamp | |
 
@@ -153,8 +154,8 @@ A search session initiated by an owner for a lost pet.
 | id | UUID | Primary key |
 | pet_id | UUID | FK â†’ Pet |
 | owner_id | UUID | FK â†’ User |
-| center_latitude | decimal | Required |
-| center_longitude | decimal | Required |
+| center_lat | decimal | Required |
+| center_lng | decimal | Required |
 | radius_miles | decimal | Default 5; range 0.5â€“100 |
 | status | enum | active, resolved, cancelled |
 | started_at | timestamp | |

@@ -100,7 +100,11 @@ export function PetFormPage() {
       navigate(`/pets/${petId}`);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
-      setError(e.response?.data?.error ?? "Failed to create pet");
+      if (e.response?.data?.error === "pet_limit_reached") {
+        setError("Free accounts can create up to 3 pet profiles. Upgrade to Premium in the Store to add more pets.");
+      } else {
+        setError(e.response?.data?.error ?? "Failed to create pet");
+      }
     } finally {
       setLoading(false);
     }
@@ -110,7 +114,16 @@ export function PetFormPage() {
     <div className="form-page-wrapper">
     <section className="form-page">
       <h1>Add pet profile</h1>
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <div role="alert" style={{ color: "red" }}>
+          <p>{error}</p>
+          {error.includes("Upgrade to Premium") && (
+            <button type="button" className="btn-outline" onClick={() => navigate("/store")}>
+              View Premium
+            </button>
+          )}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
 
         <fieldset>

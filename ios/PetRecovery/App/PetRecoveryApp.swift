@@ -75,13 +75,3 @@ struct PetRecoveryApp: App {
         return extractProfileToken(from: url.absoluteString)
     }
 }
-
-struct PlaceholderRootView: View {
-    var body: some View {
-        List {
-            Text("PetRecovery implementation scaffold")
-            Text("Feature screens will be added by user-story tasks.")
-        }
-        .navigationTitle("PetRecovery")
-    }
-}

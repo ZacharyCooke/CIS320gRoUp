@@ -16,30 +16,18 @@ export function NavBar() {
   }
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "14px 24px",
-        background: "#fff",
-        borderBottom: "1px solid #e2e8f0"
-      }}
-    >
-      <Link to="/" style={{ fontWeight: 800, color: "#0f766e", fontSize: "1.1rem", textDecoration: "none" }}>
-        🐾 PetRecovery
+    <nav className="top-nav">
+      <Link to="/" className="brand-logo" aria-label="PetRecovery home">
+        <span className="brand-mark">PR</span>
+        <span>PetRecovery</span>
       </Link>
-      <div style={{ display: "flex", gap: 20, alignItems: "center", fontSize: "0.9rem" }}>
+      <div className="top-nav-links">
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/search">Find a Pet</Link>
         <Link to="/notifications">Notifications</Link>
-        <Link to="/store">🛍 Store</Link>
+        <Link to="/store">Store</Link>
         <Link to="/account/settings">Account</Link>
-        <button
-          type="button"
-          onClick={handleSignOut}
-          style={{ background: "none", color: "#5f6f89", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}
-        >
+        <button type="button" onClick={handleSignOut} className="link-button">
           Sign out
         </button>
       </div>

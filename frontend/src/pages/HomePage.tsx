@@ -11,48 +11,103 @@ export function HomePage() {
   return (
     <>
       {authed && <NavBar />}
-      <div className="app-shell">
-        <header style={{ textAlign: "center", marginBottom: 40 }}>
-          <p className="eyebrow">PetRecovery</p>
-          <h1 style={{ fontSize: "2.25rem", margin: "0 0 12px" }}>
-            Reunite lost pets with their families, faster.
-          </h1>
-          <p style={{ color: "#5f6f89", fontSize: "1.05rem", maxWidth: 560, margin: "0 auto" }}>
-            Register your pet, run a multi-source lost-pet search, alert nearby vet clinics
-            automatically, and let the community help bring them home.
-          </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 28 }}>
-            {authed ? (
-              <Link to="/dashboard"><button type="button">Go to Dashboard</button></Link>
-            ) : (
-              <>
-                <Link to="/register"><button type="button">Create an account</button></Link>
-                <Link to="/login">
-                  <button type="button" style={{ background: "#fff", color: "#0f766e", border: "1px solid #0f766e" }}>
-                    Log in
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </header>
+      <main className="home-page">
+        <div className="home-shell">
+          {!authed && (
+            <header className="home-topbar">
+              <Link to="/" className="brand-logo brand-logo-large" aria-label="PetRecovery home">
+                <span className="brand-mark">PR</span>
+                <span>PetRecovery</span>
+              </Link>
+              <nav className="home-topbar-links">
+                <Link to="/found-report">Report Found Pet</Link>
+                <Link to="/store">Store</Link>
+                <Link to="/login">Log in</Link>
+              </nav>
+            </header>
+          )}
 
-        <div className="page-grid">
-          <article className="placeholder-page">
-            <h2>Found a pet?</h2>
-            <p>No account needed — submit a found-pet report in a couple minutes.</p>
-            <Link to="/found-report">Report a found pet →</Link>
-          </article>
-          <article className="placeholder-page">
-            <h2>Multi-source search</h2>
-            <p>Searches tracking devices, linked sites, and the community simultaneously.</p>
-          </article>
-          <article className="placeholder-page">
-            <h2>Automatic vet BOLO</h2>
-            <p>Nearby vet clinics are emailed automatically the moment a pet is marked lost.</p>
-          </article>
+          <section className="home-hero">
+            <div className="home-hero-copy">
+              <p className="eyebrow">PetRecovery</p>
+              <h1>Bring lost pets home with one coordinated recovery hub.</h1>
+              <p>
+                PetRecovery keeps your pet profile, public QR tag, lost-pet search, vet alerts,
+                found-pet reports, and reward verification in one place so the first hour after a
+                pet goes missing is organized instead of chaotic.
+              </p>
+              <div className="home-actions">
+                {authed ? (
+                  <Link to="/dashboard"><button type="button">Go to Dashboard</button></Link>
+                ) : (
+                  <>
+                    <Link to="/register"><button type="button">Create an account</button></Link>
+                    <Link to="/login"><button type="button" className="btn-outline">Log in</button></Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="home-hero-panel" aria-label="PetRecovery feature summary">
+              <div>
+                <strong>1 profile</strong>
+                <span>Medical notes, approach guidance, photos, vet contact, and QR tag.</span>
+              </div>
+              <div>
+                <strong>5 mile search</strong>
+                <span>Run nearby found reports, linked sources, trackers, and vet BOLOs together.</span>
+              </div>
+              <div>
+                <strong>3 checks</strong>
+                <span>Rewards release only after proximity, pet identity, and owner identity pass.</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="home-info-grid">
+            <article>
+              <span className="info-kicker">Before</span>
+              <h2>Register each pet once</h2>
+              <p>
+                Store photos, color, size, temperament, medical conditions, emergency notes,
+                primary vet details, and optional tracking-device links before anything goes wrong.
+              </p>
+            </article>
+            <article>
+              <span className="info-kicker">During</span>
+              <h2>Launch a focused search</h2>
+              <p>
+                Mark a pet lost, choose the search radius, stream matching results, alert nearby
+                vet clinics, and keep your active search map in one owner dashboard.
+              </p>
+            </article>
+            <article>
+              <span className="info-kicker">Community</span>
+              <h2>Let anyone help safely</h2>
+              <p>
+                A finder can submit a found-pet report without an account. Public QR profiles show
+                only owner-approved information and contact details.
+              </p>
+            </article>
+            <article>
+              <span className="info-kicker">Recovery</span>
+              <h2>Verify reunions carefully</h2>
+              <p>
+                Optional reward escrow uses proximity, pet identity, and owner confirmation before
+                releasing funds, with audit logs for each step.
+              </p>
+            </article>
+          </section>
+
+          <section className="home-callout">
+            <div>
+              <h2>Found a pet?</h2>
+              <p>No account is required. Submit a report with location, description, contact info, and an optional photo.</p>
+            </div>
+            <Link to="/found-report"><button type="button">Report a found pet</button></Link>
+          </section>
         </div>
-      </div>
+      </main>
     </>
   );
 }
