@@ -14,11 +14,12 @@ struct VerifyContactView: View {
                 Section("Verification Code") {
                     TextField("6-digit code", text: $code)
                         .keyboardType(.numberPad)
+                        .accessibilityHint("Enter the 6-digit code sent to your email or phone")
                 }
 
                 if let error = errorMessage {
                     Section {
-                        Text(error).foregroundStyle(.red)
+                        Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)")
                     }
                 }
 

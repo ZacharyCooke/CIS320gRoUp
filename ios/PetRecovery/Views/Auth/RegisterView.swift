@@ -32,7 +32,7 @@ struct RegisterView: View {
 
                 if let error = errorMessage {
                     Section {
-                        Text(error).foregroundStyle(.red)
+                        Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)")
                     }
                 }
 

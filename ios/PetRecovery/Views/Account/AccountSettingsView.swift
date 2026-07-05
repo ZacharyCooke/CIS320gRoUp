@@ -35,7 +35,7 @@ struct AccountSettingsView: View {
                 if isLoading {
                     ProgressView()
                 } else if let error = loadError {
-                    Text(error).foregroundStyle(.red).padding()
+                    Text(error).foregroundStyle(.red).padding().accessibilityLabel("Error: \(error)")
                 } else if let p = profile {
                     settingsContent(p)
                 }
@@ -57,12 +57,14 @@ struct AccountSettingsView: View {
                         Text(p.email).foregroundStyle(.primary)
                         verifiedBadge(p.is_email_verified)
                     }
+                    .accessibilityElement(children: .combine)
                 }
                 LabeledContent("Phone") {
                     HStack(spacing: 6) {
                         Text(p.phone ?? "Not added").foregroundStyle(p.phone == nil ? .secondary : .primary)
                         if p.phone != nil { verifiedBadge(p.is_phone_verified) }
                     }
+                    .accessibilityElement(children: .combine)
                 }
             }
 
@@ -79,7 +81,7 @@ struct AccountSettingsView: View {
 
             Section("Facebook") {
                 if let facebookError {
-                    Text(facebookError).foregroundStyle(.red).font(.caption)
+                    Text(facebookError).foregroundStyle(.red).font(.caption).accessibilityLabel("Error: \(facebookError)")
                 }
                 if p.facebook_connected {
                     Label("Connected", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
@@ -90,6 +92,7 @@ struct AccountSettingsView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     Button("Connect Facebook") { Task { await connectFacebook() } }
                         .disabled(facebookBusy)
+                        .accessibilityHint("Read-only access to scan groups you've joined for lost pet matches; never used to log in or post")
                 }
             }
 

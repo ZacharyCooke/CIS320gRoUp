@@ -1,6 +1,6 @@
 ﻿# Research: Pet Recovery Application
 
-**Phase**: 0 â€” Pre-Design Research
+**Phase**: 0 — Pre-Design Research
 **Date**: 2026-06-30 | **Last Updated**: 2026-07-04
 **Feature**: specs/001-pet-recovery-app/spec.md
 
@@ -78,7 +78,7 @@
 | Backend API | Node.js 20 + TypeScript + Express | Strong async I/O for parallel external queries |
 | Web Frontend | React 18 + TypeScript + Vite | Component model suits dashboard and map views |
 | iOS App | Swift 5.9 + SwiftUI | Native iOS, CoreLocation for GPS, AVFoundation for QR scan |
-| Database | PostgreSQL 16 | Relational integrity for ownerâ†’petâ†’deviceâ†’reward chains |
+| Database | PostgreSQL 16 | Relational integrity for owner→pet→device→reward chains |
 | Cache/Session | Redis 7 | Fast session store, IP cache, notification queue |
 | Email | SendGrid | OTP delivery, owner alerts, vet BOLO emails; free tier covers v1 |
 | SMS | Twilio | OTP and text alerts |
@@ -118,7 +118,7 @@
 
 **Decision**: Server generates a QR code per pet containing a unique token URL (e.g., `petrecovery.app/p/{qr_code_token}`). The public profile page requires no login. Scanning works with any camera app; the PetRecovery app also includes an in-app scanner.
 
-**Rationale**: A token-based QR URL (not the pet UUID) allows the code to be rotated if needed without changing the pet's ID. The public profile page shows only owner-consented data (contact info, temperament, shared medical conditions). No app is required for a finder to scan the tag â€” any smartphone camera suffices.
+**Rationale**: A token-based QR URL (not the pet UUID) allows the code to be rotated if needed without changing the pet's ID. The public profile page shows only owner-consented data (contact info, temperament, shared medical conditions). No app is required for a finder to scan the tag — any smartphone camera suffices.
 
 **Implementation note**: QR codes are pre-generated and stored as SVGs. The `qr_code_token` field on Pet is a separate random UUID-style token, rotatable independently.
 

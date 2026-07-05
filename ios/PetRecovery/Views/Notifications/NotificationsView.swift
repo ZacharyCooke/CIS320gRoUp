@@ -77,6 +77,7 @@ struct NotificationsView: View {
                             Section {
                                 VStack(spacing: 12) {
                                     Image(systemName: "bell.slash").font(.system(size: 40)).foregroundStyle(.secondary)
+                                        .accessibilityHidden(true)
                                     Text("No notifications yet").foregroundStyle(.secondary)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -168,10 +169,12 @@ private struct NotificationRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Circle().fill(color).frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
                 Text(notification.title).bold()
                 Spacer()
                 if !notification.read {
                     Circle().fill(.teal).frame(width: 8, height: 8)
+                        .accessibilityHidden(true)
                 }
             }
             Text(notification.body).font(.subheadline).foregroundStyle(.secondary)
@@ -180,6 +183,9 @@ private struct NotificationRow: View {
         }
         .padding(.vertical, 4)
         .listRowBackground(notification.read ? Color.clear : Color.teal.opacity(0.06))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(notification.read ? "" : "Unread. ")\(notificationColor(for: notification.type).filter.rawValue): \(notification.title)")
+        .accessibilityValue("\(notification.body), \(formatDate(notification.created_at))")
     }
 
     private func formatDate(_ iso: String) -> String {

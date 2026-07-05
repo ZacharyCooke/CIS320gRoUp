@@ -1,6 +1,12 @@
 import Foundation
 
 extension APIClient {
+    func listPets() async throws -> [PetDTO] {
+        struct PetsResponse: Decodable { let pets: [PetDTO] }
+        let (data, _) = try await request(path: "pets")
+        return try JSONDecoder().decode(PetsResponse.self, from: data).pets
+    }
+
     func createPet(
         name: String,
         species: String,

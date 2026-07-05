@@ -18,7 +18,7 @@ struct TwoFactorSetupView: View {
                 } else if isLoading {
                     ProgressView("Setting up…")
                 } else if let error = loadError {
-                    Text(error).foregroundStyle(.red).padding()
+                    Text(error).foregroundStyle(.red).padding().accessibilityLabel("Error: \(error)")
                 } else {
                     setupForm
                 }
@@ -33,6 +33,7 @@ struct TwoFactorSetupView: View {
             Image(systemName: "checkmark.shield.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.green)
+                .accessibilityHidden(true)
             Text("2FA Enabled")
                 .font(.title2).bold()
             Text("Future logins from new devices will require Microsoft Authenticator.")
@@ -59,6 +60,8 @@ struct TwoFactorSetupView: View {
                         .frame(width: 200, height: 200)
                         .frame(maxWidth: .infinity)
                         .padding()
+                        .accessibilityLabel("Two-factor authentication QR code")
+                        .accessibilityHint("If you can't scan this visually, use the \"Can't scan? Enter manually\" option below instead")
                 }
 
                 if let sec = secret {
@@ -69,12 +72,13 @@ struct TwoFactorSetupView: View {
                             .background(Color(.systemGroupedBackground))
                             .cornerRadius(8)
                             .textSelection(.enabled)
+                            .accessibilityLabel("Manual setup key: \(sec.map(String.init).joined(separator: " "))")
                     }
                     .padding(.horizontal)
                 }
 
                 if let error = verifyError {
-                    Text(error).foregroundStyle(.red).padding(.horizontal)
+                    Text(error).foregroundStyle(.red).padding(.horizontal).accessibilityLabel("Error: \(error)")
                 }
 
                 VStack(spacing: 12) {

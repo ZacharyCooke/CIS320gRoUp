@@ -22,7 +22,7 @@ struct ProximityVerificationView: View {
             }
 
             if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red) }
+                Section { Text(errorMessage).foregroundStyle(.red).accessibilityLabel("Error: \(errorMessage)") }
             }
             if let statusMessage {
                 Section { Text(statusMessage).foregroundStyle(.teal) }
@@ -51,6 +51,7 @@ struct ProximityVerificationView: View {
                     Section {
                         Button("Share my current location") { Task { await submitLocation(role: role) } }
                             .disabled(isBusy)
+                            .accessibilityHint("Submits your GPS location to check you're within 50 feet of the other party")
                     }
                 }
 
@@ -88,6 +89,7 @@ struct ProximityVerificationView: View {
                 .foregroundStyle(passed ? .green : .secondary)
                 .labelStyle(.titleAndIcon)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func refresh() async {

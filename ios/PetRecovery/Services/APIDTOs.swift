@@ -100,6 +100,8 @@ struct SearchResultDTO: Decodable {
     let breed: String?
     let color: String?
     let photo_url: String?
+    let lat: Double?
+    let lng: Double?
     let distance_miles: Double?
     let description: String?
     let contact_info: String?

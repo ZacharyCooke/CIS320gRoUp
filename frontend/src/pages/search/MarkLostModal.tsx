@@ -78,7 +78,7 @@ export function MarkLostModal({ petId, petName, onClose }: Props) {
           <label>
             Search radius: {radius} miles
             <input
-              type="range" min={1} max={100} value={radius}
+              type="range" min={1} max={500} value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
             />
           </label>

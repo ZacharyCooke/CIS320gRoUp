@@ -1,6 +1,6 @@
 ﻿# Data Model: Pet Recovery Application
 
-**Phase**: 1 â€” Design
+**Phase**: 1 — Design
 **Date**: 2026-06-30 | **Last Updated**: 2026-07-04
 
 ---
@@ -38,7 +38,7 @@ An animal profile registered by an owner. Includes medical, temperament, and vet
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| owner_id | UUID | FK â†’ User |
+| owner_id | UUID | FK → User |
 | name | string | Required |
 | species | enum | dog, cat, bird, other |
 | breed | string | Optional |
@@ -69,7 +69,7 @@ Primary veterinarian associated with a pet. Used for vet BOLO email sender-side 
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| pet_id | UUID | FK â†’ Pet (unique â€” one primary vet per pet) |
+| pet_id | UUID | FK → Pet (unique — one primary vet per pet) |
 | clinic_name | string | Required |
 | address | string | Full street address |
 | phone | string | E.164 format |
@@ -88,7 +88,7 @@ A hardware tracking tag linked to a specific pet.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| pet_id | UUID | FK â†’ Pet |
+| pet_id | UUID | FK → Pet |
 | device_type | enum | airtag, amazon_tag |
 | share_url | string | Owner-provided sharing URL from FindMy/Amazon app |
 | last_known_latitude | decimal | Optional; manually updated by owner |
@@ -107,7 +107,7 @@ A found-animal website or service linked to an owner account, queried during sea
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| owner_id | UUID | FK â†’ User |
+| owner_id | UUID | FK → User |
 | source_name | string | Display name (e.g., "PetFinder") |
 | source_url | string | Base URL |
 | source_type | enum | petfinder_api, petfbi_scrape, manual_link, facebook_groups |
@@ -126,7 +126,7 @@ A community-submitted record of a found animal.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| reporter_id | UUID | FK â†’ User; nullable (anonymous allowed) |
+| reporter_id | UUID | FK → User; nullable (anonymous allowed) |
 | species | enum | dog, cat, bird, other |
 | color | string | Required |
 | breed | string | Optional |
@@ -152,11 +152,11 @@ A search session initiated by an owner for a lost pet.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| pet_id | UUID | FK â†’ Pet |
-| owner_id | UUID | FK â†’ User |
+| pet_id | UUID | FK → Pet |
+| owner_id | UUID | FK → User |
 | center_lat | decimal | Required |
 | center_lng | decimal | Required |
-| radius_miles | decimal | Default 5; range 0.5â€“100 |
+| radius_miles | decimal | Default 10; range 1–500 |
 | status | enum | active, resolved, cancelled |
 | started_at | timestamp | |
 | resolved_at | timestamp | Null until closed |
@@ -172,7 +172,7 @@ An individual result record aggregated during a LostPetSearch.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| search_id | UUID | FK â†’ LostPetSearch |
+| search_id | UUID | FK → LostPetSearch |
 | source_type | enum | internal_report, petfinder_api, tracking_device, manual_link, facebook_groups |
 | source_name | string | Display label |
 | result_latitude | decimal | Optional |
@@ -195,8 +195,8 @@ A record of an automated BOLO email sent to a veterinary clinic when a pet is ma
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| search_id | UUID | FK â†’ LostPetSearch |
-| pet_id | UUID | FK â†’ Pet |
+| search_id | UUID | FK → LostPetSearch |
+| pet_id | UUID | FK → Pet |
 | clinic_name | string | From Google Places result |
 | clinic_address | string | |
 | clinic_email | string | From Google Places or owner's PetVet record |
@@ -217,8 +217,8 @@ In-app and push notification records for users. Color-coded by type.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| user_id | UUID | FK â†’ User |
-| type | enum | pet_update (red), bolo_alert (blue), nearby_lost (green), claim_alert (amber â€” finder claim or reward proximity alert, FR-022a), store_account (reserved for Phase 7G; not yet surfaced in UI) |
+| user_id | UUID | FK → User |
+| type | enum | pet_update (red), bolo_alert (blue), nearby_lost (green), claim_alert (amber — finder claim or reward proximity alert, FR-022a), store_account (reserved for Phase 7G; not yet surfaced in UI) |
 | title | string | |
 | body | text | |
 | related_entity_id | UUID | Optional; links to FoundReport, LostPetSearch, or Reward |
@@ -238,8 +238,8 @@ An escrowed monetary reward posted by an owner for a lost pet's safe return.
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| pet_id | UUID | FK â†’ Pet |
-| owner_id | UUID | FK â†’ User |
+| pet_id | UUID | FK → Pet |
+| owner_id | UUID | FK → User |
 | amount_cents | integer | Stored in cents to avoid floating-point issues |
 | currency | string | Default "USD" |
 | status | enum | pending_funding, funded, verification_in_progress, released, refunded, cancelled |
@@ -249,7 +249,7 @@ An escrowed monetary reward posted by an owner for a lost pet's safe return.
 | idempotency_key | string | Unique key for create/fund/release/refund operations |
 | audit_log_ref | string | Durable audit trail reference for escrow lifecycle |
 | stripe_reconciliation_status | enum | pending, matched, mismatch, not_applicable |
-| finder_user_id | UUID | FK â†’ User; set when a finder claims the reward |
+| finder_user_id | UUID | FK → User; set when a finder claims the reward |
 | finder_payment_handle | string | Finder's payment handle (e.g., $cashtag, PayPal email) |
 | created_at | timestamp | |
 | released_at | timestamp | Null until release |
@@ -265,13 +265,13 @@ Tracks the three-step verification process required before a reward can be relea
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| reward_id | UUID | FK â†’ Reward (unique) |
+| reward_id | UUID | FK → Reward (unique) |
 | owner_latitude | decimal | Owner device lat at verification time |
 | owner_longitude | decimal | Owner device lon at verification time |
 | finder_latitude | decimal | Finder device lat at verification time |
 | finder_longitude | decimal | Finder device lon at verification time |
 | distance_feet | decimal | Computed distance between devices |
-| proximity_passed | boolean | True if distance_feet â‰¤ 50 |
+| proximity_passed | boolean | True if distance_feet ≤ 50 |
 | proximity_verified_at | timestamp | |
 | pet_identity_method | enum | qr_scan, microchip_read |
 | pet_identity_passed | boolean | |
@@ -294,7 +294,7 @@ Tracks IP addresses associated with a user account to determine whether 2FA is r
 | Field | Type | Notes |
 |---|---|---|
 | id | UUID | Primary key |
-| user_id | UUID | FK â†’ User |
+| user_id | UUID | FK → User |
 | ip_hash | string | SHA-256 hash of IP; raw IP never stored |
 | is_trusted | boolean | Default true after first successful 2FA |
 | first_seen_at | timestamp | |
@@ -308,20 +308,20 @@ Tracks IP addresses associated with a user account to determine whether 2FA is r
 
 ```
 User
- â”œâ”€â”€ Pet (1:many)
- â”‚    â”œâ”€â”€ PetVet (1:1)
- â”‚    â”œâ”€â”€ TrackingDevice (1:many)
- â”‚    â”œâ”€â”€ LostPetSearch (1:many)
- â”‚    â”‚    â”œâ”€â”€ SearchResult (1:many)
- â”‚    â”‚    â””â”€â”€ VetBOLO (1:many)
- â”‚    â””â”€â”€ Reward (1:many)
- â”‚         â””â”€â”€ ProximityVerification (1:1)
- â”œâ”€â”€ ExternalSource (1:many)
- â”œâ”€â”€ IPRecord (1:many)
- â””â”€â”€ Notification (1:many)
+ ├── Pet (1:many)
+ │    ├── PetVet (1:1)
+ │    ├── TrackingDevice (1:many)
+ │    ├── LostPetSearch (1:many)
+ │    │    ├── SearchResult (1:many)
+ │    │    └── VetBOLO (1:many)
+ │    └── Reward (1:many)
+ │         └── ProximityVerification (1:1)
+ ├── ExternalSource (1:many)
+ ├── IPRecord (1:many)
+ └── Notification (1:many)
 
 FoundReport (submitted by User or anonymous)
- â””â”€â”€ linked to SearchResult when matched
+ └── linked to SearchResult when matched
 ```
 
 ---
@@ -330,31 +330,31 @@ FoundReport (submitted by User or anonymous)
 
 ### Pet.status
 ```
-safe â†’ lost       (owner marks pet as lost; triggers search + vet BOLO emails)
-lost â†’ safe       (owner marks pet as recovered)
+safe → lost       (owner marks pet as lost; triggers search + vet BOLO emails)
+lost → safe       (owner marks pet as recovered)
 ```
 
 ### LostPetSearch.status
 ```
-active â†’ resolved   (owner marks pet found)
-active â†’ cancelled  (owner cancels search)
+active → resolved   (owner marks pet found)
+active → cancelled  (owner cancels search)
 ```
 
 ### FoundReport.status
 ```
-open â†’ claimed    (owner identifies match)
-claimed â†’ closed  (parties confirm reunification)
-open â†’ closed     (reporter closes)
+open → claimed    (owner identifies match)
+claimed → closed  (parties confirm reunification)
+open → closed     (reporter closes)
 ```
 
 ### Reward.status
 ```
-pending_funding â†’ funded                  (owner deposits payment)
-funded â†’ verification_in_progress         (finder claims reward)
-verification_in_progress â†’ released       (all 3 verifications pass)
-verification_in_progress â†’ funded         (verification fails; back to waiting)
-funded â†’ refunded                         (pet recovered via other means)
-funded â†’ cancelled                        (owner cancels)
+pending_funding → funded                  (owner deposits payment)
+funded → verification_in_progress         (finder claims reward)
+verification_in_progress → released       (all 3 verifications pass)
+verification_in_progress → funded         (verification fails; back to waiting)
+funded → refunded                         (pet recovered via other means)
+funded → cancelled                        (owner cancels)
 ```
 
 ---
@@ -368,12 +368,12 @@ funded â†’ cancelled                        (owner cancels)
 - Pet.medical_conditions items must include a share_publicly boolean; default false
 - TrackingDevice.share_url must be a valid HTTPS URL
 - FoundReport.latitude must be between -90 and 90; longitude between -180 and 180
-- LostPetSearch.radius_miles must be between 0.5 and 100
+- LostPetSearch.radius_miles must be between 1 and 500
 - Reward.amount_cents must be a positive integer
 - Reward escrow state transitions must be idempotent and represented in the durable audit log before external Stripe calls are considered complete
 - ProximityVerification release requires independent corroboration; a single coordinate signal is insufficient for automatic release
-- ProximityVerification.distance_feet must be a positive decimal; proximity_passed = distance_feet â‰¤ 50 (per FR-025); on device-reported GPS accuracy > 15m, require manual confirmation instead of trusting the computed distance
-- ProximityVerification privacy (Constitution Principle III): owner_latitude/longitude and finder_latitude/longitude are collected only for the lifetime of one verification attempt and are never returned to either party in an API response â€” only the derived proximity_passed/distance_feet outcome is exposed. No independent purge job exists yet for this table specifically (tracked as a Phase 8 follow-up); the data volume is small and scoped to an explicit, user-initiated reward-release action rather than passive tracking
+- ProximityVerification.distance_feet must be a positive decimal; proximity_passed = distance_feet ≤ 50 (per FR-025); on device-reported GPS accuracy > 15m, require manual confirmation instead of trusting the computed distance
+- ProximityVerification privacy (Constitution Principle III): owner_latitude/longitude and finder_latitude/longitude are collected only for the lifetime of one verification attempt and are never returned to either party in an API response — only the derived proximity_passed/distance_feet outcome is exposed. No independent purge job exists yet for this table specifically (tracked as a Phase 8 follow-up); the data volume is small and scoped to an explicit, user-initiated reward-release action rather than passive tracking
 - IPRecord.ip_hash is stored as SHA-256; raw IP is never persisted
-- VetBOLO: distance_miles must be â‰¤ 2 (only clinics within 2-mile radius receive BOLO)
+- VetBOLO: distance_miles must be ≤ 2 (only clinics within 2-mile radius receive BOLO)
 - US2 location-data privacy (Constitution Principle III, retroactive per T178): Pet itself stores no coordinates (only a `lost_at` timestamp) — the location data this app collects during a lost-pet search lives on `LostPetSearch.center_lat/center_lng` and `TrackingDevice.last_known_latitude/longitude`, and both are purged on recovery, not retained indefinitely. `LostPetSearch.center_lat/lng` are zeroed out by `deleteActiveSearchLocationsByPetId()` once the search closes (T052b, already shipped). `TrackingDevice.last_known_latitude/longitude` were **not** previously covered by that same purge — found during this T178 pass and fixed alongside it: `clearLastKnownLocationByPetId()` now nulls a pet's tracking-device coordinates (keeping the device link/share_url itself) in the same `POST /pets/:id/mark-recovered` handler. `Notification.trigger_latitude/longitude` is a one-time snapshot of the *recipient's* location at the moment a BOLO/community alert fired (not a continuously tracked coordinate, and not data belonging to the search being recovered), so it isn't purged by the same recovery-triggered flow — it persists as part of that user's own notification history, the same way any other notification metadata does; a dedicated retention/TTL policy for notification records generally is not yet defined and would fall under T183's broader CCPA/CPRA deletion-flow work, not this US2-specific gate

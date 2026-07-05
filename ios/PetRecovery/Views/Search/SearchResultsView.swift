@@ -34,6 +34,7 @@ struct SearchResultsView: View {
                     MapMarker(coordinate: CLLocationCoordinate2D(latitude: result.lat, longitude: result.lng))
                 }
                 .frame(height: 240)
+                .accessibilityHidden(true)
             }
 
             Section {
@@ -41,6 +42,7 @@ struct SearchResultsView: View {
                     .foregroundStyle(isComplete ? .primary : .secondary)
 
                 Slider(value: $radiusMiles, in: 1...500, step: 1)
+                    .accessibilityValue("\(Int(radiusMiles)) miles")
                 Button("Update radius (\(Int(radiusMiles)) mi)") {
                     Task { await updateRadius() }
                 }
@@ -48,10 +50,11 @@ struct SearchResultsView: View {
                     Task { await markRecovered() }
                 }
                 .disabled(isMarkingRecovered)
+                .accessibilityHint("Ends this search and marks the pet as safe")
             }
 
             if let error = errorMessage {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
             }
 
             Section("Results") {
@@ -87,10 +90,8 @@ struct SearchResultsView: View {
 
     private var geoResults: [GeoResult] {
         results.compactMap { r in
-            guard let lat = r.distance_miles.map({ _ in r.distance_miles }), // just need non-nil check
-                  let _ = r.source_url else { return nil }
-            _ = lat
-            return nil
+            guard let lat = r.lat, let lng = r.lng else { return nil }
+            return GeoResult(id: r.id, lat: lat, lng: lng)
         }
     }
 
@@ -137,19 +138,22 @@ private struct ResultRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(result.name ?? "Unknown").bold()
-                Spacer()
-                if let dist = result.distance_miles {
-                    Text(String(format: "%.1f mi", dist)).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(result.name ?? "Unknown").bold()
+                    Spacer()
+                    if let dist = result.distance_miles {
+                        Text(String(format: "%.1f mi", dist)).foregroundStyle(.secondary)
+                    }
+                }
+                if let detail = [result.species, result.breed, result.color].compactMap({ $0 }).joined(separator: " · ").nilIfEmpty {
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
+                if let desc = result.description {
+                    Text(desc.prefix(100)).font(.caption2).foregroundStyle(.secondary)
                 }
             }
-            if let detail = [result.species, result.breed, result.color].compactMap({ $0 }).joined(separator: " · ").nilIfEmpty {
-                Text(detail).font(.caption).foregroundStyle(.secondary)
-            }
-            if let desc = result.description {
-                Text(desc.prefix(100)).font(.caption2).foregroundStyle(.secondary)
-            }
+            .accessibilityElement(children: .combine)
             if let url = result.source_url, let link = URL(string: url) {
                 Link("View on \(result.source)", destination: link).font(.caption)
             }
@@ -184,6 +188,7 @@ private struct VetBoloRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
     }
 }
 

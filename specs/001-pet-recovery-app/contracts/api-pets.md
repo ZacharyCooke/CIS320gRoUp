@@ -104,7 +104,7 @@ Update the pet's medical conditions array. Each item has a `condition` string an
   "medical_conditions": [
     { "condition": "Hypothyroidism", "share_publicly": true },
     { "condition": "Allergic to chicken", "share_publicly": true },
-    { "condition": "Anxiety â€” requires Trazodone", "share_publicly": false }
+    { "condition": "Anxiety — requires Trazodone", "share_publicly": false }
   ],
   "medical_emergency_notes": "Requires 0.3mg Levothyroxine daily with food. Spayed. Two prior ACL surgeries.",
   "share_emergency_notes": true
@@ -134,7 +134,7 @@ other pet field.
 
 ## PUT /pets/:id/vet
 
-Create or update the pet's primary veterinarian. Upserts â€” one primary vet per pet.
+Create or update the pet's primary veterinarian. Upserts — one primary vet per pet.
 
 **Request**:
 ```json
@@ -199,7 +199,7 @@ Rotate the pet's QR token. The old token becomes invalid. Use when a QR tag is l
 
 ## GET /p/:token
 
-**Public endpoint â€” no auth required.** Returns the pet's public-facing profile. Only medical conditions with `share_publicly: true` are included. Owner contact info is included so finders can reach the owner directly.
+**Public endpoint — no auth required.** Returns the pet's public-facing profile. Only medical conditions with `share_publicly: true` are included. Owner contact info is included so finders can reach the owner directly.
 
 **Response 200**:
 ```json

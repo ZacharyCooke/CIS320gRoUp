@@ -87,6 +87,8 @@ struct PetFormView: View {
                         ))
                         .labelsHidden()
                         .toggleStyle(.switch)
+                        .accessibilityLabel("Share \(conditions[i].condition) publicly")
+                        .accessibilityHint("Include this condition on the pet's public profile and vet BOLO emails")
                         Text("Share").font(.caption2).foregroundStyle(.secondary)
                     }
                 }
@@ -105,7 +107,7 @@ struct PetFormView: View {
             }
 
             if let error = errorMessage {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
             }
 
             Section {

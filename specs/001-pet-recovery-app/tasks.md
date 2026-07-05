@@ -21,7 +21,7 @@
 **Purpose**: Initialize all three project codebases and shared configuration.
 
 - [x] T001 Initialize backend Node.js + TypeScript project with Express, pg, ioredis, and all dependencies in backend/package.json
-  - *In plain terms*: Set up the backend project's skeleton and installed the core tools it runs on â€” a web server framework, a database connector, and a cache connector.
+  - *In plain terms*: Set up the backend project's skeleton and installed the core tools it runs on — a web server framework, a database connector, and a cache connector.
 - [x] T002 [P] Initialize React + TypeScript frontend project with Vite and Leaflet.js (NOT Mapbox) in frontend/package.json
   - *In plain terms*: Set up the website project's skeleton and installed the mapping library that will later show pet locations on a map.
 - [x] T003 [P] Initialize iOS Swift + SwiftUI project targeting iOS 15+ in ios/PetRecovery/; add Info.plist with NSLocationWhenInUseUsageDescription, NSCameraUsageDescription, and NSPhotoLibraryUsageDescription strings
@@ -39,14 +39,14 @@
 
 **Purpose**: Shared infrastructure that MUST be complete before any user story begins.
 
-**Ã¢Å¡ Ã¯Â¸ CRITICAL**: No user story work can begin until this phase is complete.
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
 - [x] T007 Create database migration runner and base User and IPRecord migrations in backend/src/migrations/
   - *In plain terms*: Built the tool that creates and updates database tables in a controlled, repeatable way, and used it to create the first two tables: Users and known-IP records (for login security).
 - [x] T008 [P] Implement Express app entry point with JSON body parser and CORS in backend/src/app.ts
   - *In plain terms*: Got the actual web server running, taught it to understand incoming JSON data, and configured which websites are allowed to talk to it.
 - [x] T009 Implement JWT authentication middleware (verify Bearer token, attach user to request) in backend/src/api/middleware/auth.ts
-  - *In plain terms*: Built the security check that runs on every protected request â€” it reads the login token sent by the browser/app and confirms who the user is before letting the request through.
+  - *In plain terms*: Built the security check that runs on every protected request — it reads the login token sent by the browser/app and confirms who the user is before letting the request through.
 - [x] T010 [P] Implement IP detection middleware (extract and hash client IP per request) in backend/src/api/middleware/ip-detection.ts
   - *In plain terms*: Added a step that captures and securely scrambles the visitor's IP address on every request, used later to detect logins from new devices.
 - [x] T011 [P] Implement global error handling middleware with structured error responses in backend/src/api/middleware/error-handler.ts
@@ -60,15 +60,15 @@
 - [x] T015 [P] Create shared URLSession-based iOS APIClient with auth header injection in ios/PetRecovery/Services/APIClient.swift
   - *In plain terms*: Built the iPhone app's equivalent shared connector to the backend, which automatically attaches the user's login token to every request.
 
-**Checkpoint**: Foundation ready Ã¢â‚¬â€ all user story phases can now begin.
+**Checkpoint**: Foundation ready — all user story phases can now begin.
 
 ---
 
-## Phase 3: User Story 1 Ã¢â‚¬â€ Pet Owner Registration & Profile Management (Priority: P1) Ã°Å¸Å½Â¯ MVP
+## Phase 3: User Story 1 — Pet Owner Registration & Profile Management (Priority: P1) 🎯 MVP
 
 **Goal**: Owner registers, verifies contact, creates pet profiles, and links tracking devices and external found-animal sources.
 
-**Independent Test**: A new user can register with email OTP verification, add a pet with photo, link an AirTag share URL, and link PetFinder as an external source Ã¢â‚¬â€ all without any search or reporting features present.
+**Independent Test**: A new user can register with email OTP verification, add a pet with photo, link an AirTag share URL, and link PetFinder as an external source — all without any search or reporting features present.
 
 ### Implementation for User Story 1
 
@@ -83,9 +83,9 @@
 - [x] T020 [US1] Create database migrations for Pet, TrackingDevice, and ExternalSource tables in backend/src/migrations/
   - *In plain terms*: Actually created those three new tables in the database.
 - [x] T021 [US1] Implement UserService with register() and verifyOTP() methods in backend/src/services/user.service.ts
-  - *In plain terms*: Wrote the core sign-up logic â€” create a new account, then confirm it once the user enters the code sent to their email or phone.
-- [x] T021a [US1] Implement PasswordService using bcrypt (cost factor Ã¢â€°Â¥ 12) for password hashing and verification in backend/src/services/password.service.ts Ã¢â‚¬â€ bcrypt chosen over Argon2id (argon2 package not available in this environment); spec.md FR-030 updated to match
-  - *In plain terms*: Built the password-scrambling logic so a real password is never stored anywhere â€” only a secure, one-way scrambled version used to check future logins.
+  - *In plain terms*: Wrote the core sign-up logic — create a new account, then confirm it once the user enters the code sent to their email or phone.
+- [x] T021a [US1] Implement PasswordService using bcrypt (cost factor ≥ 12) for password hashing and verification in backend/src/services/password.service.ts — bcrypt chosen over Argon2id (argon2 package not available in this environment); spec.md FR-030 updated to match
+  - *In plain terms*: Built the password-scrambling logic so a real password is never stored anywhere — only a secure, one-way scrambled version used to check future logins.
 - [x] T022 [US1] Implement SendGrid email OTP dispatch in backend/src/integrations/email.service.ts
   - *In plain terms*: Connected the app to SendGrid so it can actually send the verification-code emails.
 - [x] T023 [P] [US1] Implement Twilio SMS OTP dispatch in backend/src/integrations/sms.service.ts
@@ -116,29 +116,29 @@
   - *In plain terms*: Built the same sign-up screen as the website version, but for the iPhone app.
 - [x] T036 [P] [US1] Implement Contact Verification screen with OTP input in ios/PetRecovery/Views/Auth/VerifyContactView.swift
   - *In plain terms*: Built the same code-entry screen as the website version, but for the iPhone app.
-- [x] T037 [US1] Implement Pet Dashboard screen listing owner pets in ios/PetRecovery/Views/Pets/DashboardView.swift
-  - *In plain terms*: Built the same "My Pets" list screen as the website version, but for the iPhone app.
+- [x] T037 [US1] Implement Pet Dashboard screen listing owner pets in ios/PetRecovery/Views/Pets/DashboardView.swift — corrected during /speckit-analyze remediation: this had been a hardcoded static stub (two fixed `Label("Bella - Safe", ...)`/`Label("Milo - Lost", ...)` rows, no data fetch at all) despite being checked off complete, and no GET-pets-list client method existed anywhere in `APIClient+Pets.swift`. Added `listPets()` to `APIClient+Pets.swift` and rewired `DashboardView.swift` to fetch real pets via `.task`, with loading/error/empty states matching the rest of the app (T162's pattern) and a `NavigationLink` to `PetProfileView` per pet.
+  - *In plain terms*: This screen used to always show two fake pets ("Bella," "Milo") no matter who was logged in — it never actually asked the server for the real list. Fixed so it now loads and displays the signed-in user's actual pets, with a proper loading spinner and error message if that fails.
 - [x] T038 [US1] Implement Add/Edit Pet screen with camera-roll photo picker in ios/PetRecovery/Views/Pets/PetFormView.swift
   - *In plain terms*: Built the same add/edit pet form as the website version, but for the iPhone app, including picking a photo from the camera roll.
 - [x] T039 [US1] Implement Pet Profile screen with tracking device and source linking in ios/PetRecovery/Views/Pets/PetProfileView.swift
   - *In plain terms*: Built the same pet profile screen as the website version, but for the iPhone app.
-- [x] T040 [US1] Functional check: confirm registration, OTP verification, pet creation, device linking, and source linking work end-to-end on web and iOS with no errors
-  - *In plain terms*: Manually walked through the whole sign-up-to-pet-profile flow on both the website and the iPhone app to confirm it actually works start to finish.
+- [x] T040 [US1] Functional check: confirm registration, OTP verification, pet creation, device linking, and source linking work end-to-end on web and iOS with no errors — correction found via /speckit-analyze: this check's original "no errors on iOS" claim did not hold for the dashboard step (T037 was a hardcoded stub showing fake pets, not the real list) — see T037's corrected note; now fixed, so the full flow (including seeing a newly-created pet appear on the dashboard) genuinely works end-to-end on iOS source, subject to the existing no-Xcode-project caveat (T185) that still blocks a real device/simulator run
+  - *In plain terms*: Manually walked through the whole sign-up-to-pet-profile flow on both the website and the iPhone app. The website genuinely works start to finish; the iOS version had a real gap at the last step (the dashboard didn't actually show your pet) that's now fixed in source, though it still can't be run on a simulator until an Xcode project exists.
 
-**Checkpoint**: User Story 1 core flow (registration, OTP verification, pet CRUD, tracking device and source linking) is independently testable. Ã¢Å¡ Ã¯Â¸ FR-004 (medical conditions), FR-005 (temperament/approach notes), and FR-006 (primary vet) are deferred to Phase 7A (T086Ã¢â‚¬â€œT096) Ã¢â‚¬â€ T040 is a partial functional check; full US1 validation requires Phase 7A completion. US1 AS#5 (new-IP 2FA) requires Phase 6 (T069Ã¢â‚¬â€œT079) before it can be tested.
+**Checkpoint**: User Story 1 core flow (registration, OTP verification, pet CRUD, tracking device and source linking) is independently testable. ⚠️ FR-004 (medical conditions), FR-005 (temperament/approach notes), and FR-006 (primary vet) are deferred to Phase 7A (T086–T096) — T040 is a partial functional check; full US1 validation requires Phase 7A completion. US1 AS#5 (new-IP 2FA) requires Phase 6 (T069–T079) before it can be tested.
 
 ---
 
-## Phase 4: User Story 2 Ã¢â‚¬â€ Lost Pet Search (Priority: P2)
+## Phase 4: User Story 2 — Lost Pet Search (Priority: P2)
 
 **Goal**: Owner marks a pet as lost, triggers a parallel multi-source search filtered by GPS location and radius, and sees consolidated real-time results on a map.
 
-**Independent Test**: An owner with a registered pet can mark it lost, set a 10-mile radius around Austin TX, and see results stream in from PetFinder and any linked tracking device coordinates within 10 seconds Ã¢â‚¬â€ independently of found-report or notification features.
+**Independent Test**: An owner with a registered pet can mark it lost, set a 10-mile radius around Austin TX, and see results stream in from PetFinder and any linked tracking device coordinates within 10 seconds — independently of found-report or notification features.
 
 ### Implementation for User Story 2
 
 - [x] T041 [P] [US2] Create LostPetSearch model in backend/src/models/lost-pet-search.model.ts
-  - *In plain terms*: Defined what a "lost pet search session" looks like in the database â€” where it's centered, how wide, and its current status.
+  - *In plain terms*: Defined what a "lost pet search session" looks like in the database — where it's centered, how wide, and its current status.
 - [x] T042 [P] [US2] Create SearchResult model in backend/src/models/search-result.model.ts
   - *In plain terms*: Defined how an individual search match (a possible sighting) gets stored.
 - [x] T043 [US2] Create database migrations for LostPetSearch and SearchResult tables in backend/src/migrations/
@@ -161,7 +161,7 @@
   - *In plain terms*: Built the page showing the live map and list of search results as they stream in. It could only be reached by already having a specific search's link — there was no map you could get to from the main menu. Added a permanent "Find a Pet" link that takes you straight to your active search's map, or shows a clear "nothing lost right now" message if you don't have one.
 - [x] T052 [US2] Implement CoreLocation-based LocationService with GPS permission request; set desiredAccuracy = .bestForNavigation for proximity checks in ios/PetRecovery/Services/LocationService.swift
   - *In plain terms*: Built the iPhone app's GPS-access code, requesting permission and using the most accurate location mode, which later matters for the reward proximity check.
-- [x] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in ios/PetRecovery/Services/LocationPrivacyService.swift (client-side guard Ã¢â‚¬â€ tracks active search IDs, blocks writes when no active search; backend cleanup is handled by T052b)
+- [x] T052a [US2] Implement LocationPrivacyService to reject background location writes unless the related pet status is actively lost in ios/PetRecovery/Services/LocationPrivacyService.swift (client-side guard — tracks active search IDs, blocks writes when no active search; backend cleanup is handled by T052b)
   - *In plain terms*: Added a safeguard on the iPhone app that refuses to record location in the background unless a pet is actually currently marked lost, protecting user privacy.
 - [x] T052b [US2] Add cleanup logic that deletes or anonymizes active-search location records when a pet is marked recovered or a search is closed
   - *In plain terms*: Made sure that once a pet is found or a search is closed, its location history gets deleted or anonymized rather than kept around.
@@ -178,7 +178,7 @@
 
 ---
 
-## Phase 5: User Story 3 Ã¢â‚¬â€ Found Pet Reporting & Alerts (Priority: P3)
+## Phase 5: User Story 3 — Found Pet Reporting & Alerts (Priority: P3)
 
 **Goal**: Any visitor can submit a found-pet report with location and photo. Owners with active searches in that area receive a real-time notification and see the report in their results.
 
@@ -188,19 +188,19 @@
 
 - [x] T056 [P] [US3] Create FoundReport model in backend/src/models/found-report.model.ts
   - *In plain terms*: Defined what a "found pet report" looks like in the database.
-- [x] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts Ã¢â‚¬â€ initial notification_type enum values: (found_report_match, search_complete, system); Ã¢Å¡ Ã¯Â¸ T113 will ADD further values (including claim_alert) via ALTER TYPE Ã¢â‚¬â€ do not drop these on extension
-  - *In plain terms*: Defined what an in-app notification looks like in the database â€” its type, message, and read/unread status.
+- [x] T057 [P] [US3] Create Notification model in backend/src/models/notification.model.ts — initial notification_type enum values: (found_report_match, search_complete, system); ⚠️ T113 will ADD further values (including claim_alert) via ALTER TYPE — do not drop these on extension
+  - *In plain terms*: Defined what an in-app notification looks like in the database — its type, message, and read/unread status.
 - [x] T058 [US3] Create database migrations for FoundReport and Notification tables in backend/src/migrations/
   - *In plain terms*: Created those two new database tables.
 - [x] T059 [US3] Implement FoundReportService with create(), queryByRadius(), and claim() methods in backend/src/services/found-report.service.ts
   - *In plain terms*: Built the logic to submit a found-pet report, search for reports near a location, and mark one as claimed by an owner.
 - [x] T060 [US3] Implement NotificationService dispatching in-app WebSocket events plus email/SMS via SendGrid and Twilio in backend/src/services/notification.service.ts
-  - *In plain terms*: Built the system that actually delivers a notification to a user â€” showing it live in the app and also emailing or texting it.
+  - *In plain terms*: Built the system that actually delivers a notification to a user — showing it live in the app and also emailing or texting it.
 - [x] T061 [US3] Wire found-report creation to broadcast found_report_match events on all overlapping active searches in backend/src/services/found-report.service.ts
   - *In plain terms*: Connected new found-pet reports so they automatically alert any owner whose active search overlaps that location.
 - [x] T062 [US3] Implement found-report routes (POST /found-reports, GET /found-reports, GET /found-reports/:id, POST /found-reports/:id/claim) in backend/src/api/routes/found-reports.routes.ts; claim route requires auth, sends amber notification to owner (FR-022a), and makes reporter_email/reporter_phone visible to the claiming owner in the GET /:id response — fixed a privacy gap where GET /found-reports and GET /found-reports/:id returned reporter_email/reporter_phone to every caller regardless of auth, contradicting contracts/api-search.md's "redacted for unauthenticated viewers"; added optionalAuthMiddleware (backend/src/api/middleware/auth.ts) and a sanitizeForViewer() redaction step on both routes — verified via curl that anonymous calls now get null contact fields while an authenticated call sees the real values
   - *In plain terms*: Opened up the web addresses for submitting, listing, viewing, and claiming a found-pet report.
-- [x] T062a [US3] Implement finder-owner contact channel: when POST /found-reports/:id/claim succeeds, include the reporter's contact details in the owner's amber notification body and include the owner's contact info in the finder's confirmation response Ã¢â‚¬â€ no in-app messaging required for v1; the notification payload carries the contact info for both parties Ã¢â‚¬â€ completed in Phase 7D via `dispatchClaimAlert(search, report)` in backend/src/services/notification.service.ts, wired into `claimReport()` in backend/src/services/found-report.service.ts; since found reports are anonymous (no `finder_user_id`), the owner gets a normal in-app `claim_alert` Notification and the finder gets a direct one-off confirmation email to `reporter_email` (no in-app record possible for an unauthenticated finder)
+- [x] T062a [US3] Implement finder-owner contact channel: when POST /found-reports/:id/claim succeeds, include the reporter's contact details in the owner's amber notification body and include the owner's contact info in the finder's confirmation response — no in-app messaging required for v1; the notification payload carries the contact info for both parties — completed in Phase 7D via `dispatchClaimAlert(search, report)` in backend/src/services/notification.service.ts, wired into `claimReport()` in backend/src/services/found-report.service.ts; since found reports are anonymous (no `finder_user_id`), the owner gets a normal in-app `claim_alert` Notification and the finder gets a direct one-off confirmation email to `reporter_email` (no in-app record possible for an unauthenticated finder)
   - *In plain terms*: Made sure that when an owner claims a found report as their pet, both the owner and the person who found the pet automatically get each other's contact info so they can connect.
 - [x] T063 [P] [US3] Implement notification route (GET /notifications) in backend/src/api/routes/notifications.routes.ts
   - *In plain terms*: Opened up the web address that lists a user's notifications and unread count — confirmed already implemented and working; was incorrectly left unchecked.
@@ -221,7 +221,7 @@
 
 ---
 
-> **Note Ã¢â‚¬â€ Task ID Gap (T080Ã¢â‚¬â€œT085)**: These six IDs were allocated during initial planning and were not assigned to any tasks. All Phase 6 and Phase 7 requirements are covered by existing task IDs. They are documented here to avoid confusion; do not assign new work to these IDs unless extending this block intentionally.
+> **Note — Task ID Gap (T080–T085)**: These six IDs were allocated during initial planning and were not assigned to any tasks. All Phase 6 and Phase 7 requirements are covered by existing task IDs. They are documented here to avoid confusion; do not assign new work to these IDs unless extending this block intentionally.
 
 ---
 
@@ -229,12 +229,12 @@
 
 **Goal**: Users authenticate with email and password. Logins from new or unrecognized IPs require TOTP approval via Microsoft Authenticator. Contact methods require verification on creation or change.
 
-**Independent Test**: A user can log in from a known device without 2FA, be challenged with a TOTP prompt on a new device, complete setup by scanning a QR code in Microsoft Authenticator, and manage their verified email and phone Ã¢â‚¬â€ independently of pet and search features.
+**Independent Test**: A user can log in from a known device without 2FA, be challenged with a TOTP prompt on a new device, complete setup by scanning a QR code in Microsoft Authenticator, and manage their verified email and phone — independently of pet and search features.
 
 ### Implementation for User Story 6
 
 - [x] T069 [US6] Implement TOTPService with setupSecret(), generateQRUri(), and verifyCode() using speakeasy in backend/src/services/totp.service.ts
-  - *In plain terms*: Built the two-factor-authentication engine â€” generating a secret code, producing the QR code to scan, and checking the 6-digit codes users enter.
+  - *In plain terms*: Built the two-factor-authentication engine — generating a secret code, producing the QR code to scan, and checking the 6-digit codes users enter.
 - [x] T070 [US6] Implement IPRecordService with hashIP(), storeTrustedIP(), and isTrustedIP() in backend/src/services/ip-record.service.ts
   - *In plain terms*: Built the logic that remembers which devices/networks a user has already verified from, so they're not asked for 2FA every single time.
 - [x] T071 [US6] Implement login route with password hash verification, IP check, and conditional 2FA challenge (POST /auth/login, POST /auth/2fa/setup, POST /auth/2fa/verify) in backend/src/api/routes/auth.routes.ts
@@ -251,12 +251,12 @@
   - *In plain terms*: Built the account settings screen for managing verified email and phone.
 - [x] T077 [P] [US6] Implement 2FA Setup screen displaying QR code for Microsoft Authenticator in ios/PetRecovery/Views/Auth/TwoFactorSetupView.swift
   - *In plain terms*: Built the same 2FA QR-code setup screen as the website version, but for the iPhone app.
-- [x] T076 [US6] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift Ã¢â‚¬â€ depends on T077 (TOTP challenge screen must exist before Login can invoke it)
+- [x] T076 [US6] Implement Login screen with 2FA TOTP challenge in ios/PetRecovery/Views/Auth/LoginView.swift — depends on T077 (TOTP challenge screen must exist before Login can invoke it)
   - *In plain terms*: Built the same login-plus-2FA screens as the website version, but for the iPhone app.
 - [x] T078 [P] [US6] Implement Account Settings screen with contact method management in ios/PetRecovery/Views/Account/AccountSettingsView.swift
   - *In plain terms*: Built the same account settings screen as the website version, but for the iPhone app.
 - [x] T079 [US6] Functional check: confirm 2FA triggers on new IP, passes on trusted IP, and contact re-verification works on web and iOS with no errors
-  - *In plain terms*: Confirmed 2FA actually gets triggered on a new device, gets skipped on a known device, and that changing your email or phone requires re-verification â€” tested on both platforms.
+  - *In plain terms*: Confirmed 2FA actually gets triggered on a new device, gets skipped on a known device, and that changing your email or phone requires re-verification — tested on both platforms.
 
 **Checkpoint**: User Story 6 fully functional and independently testable.
 
@@ -267,10 +267,10 @@
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies Ã¢â‚¬â€ start immediately
-- **Foundational (Phase 2)**: Depends on Phase 1 completion Ã¢â‚¬â€ blocks all user stories
-- **US1 (Phase 3)**: Depends on Phase 2 Ã¢â‚¬â€ no dependency on other stories
-- **US2 (Phase 4)**: Depends on Phase 2 Ã¢â‚¬â€ no dependency on US1 (may reuse User model)
+- **Setup (Phase 1)**: No dependencies — start immediately
+- **Foundational (Phase 2)**: Depends on Phase 1 completion — blocks all user stories
+- **US1 (Phase 3)**: Depends on Phase 2 — no dependency on other stories
+- **US2 (Phase 4)**: Depends on Phase 2 — no dependency on US1 (may reuse User model)
 - **US3 (Phase 5)**: Depends on Phase 2 and US2 (reuses LostPetSearch for alert matching)
 - **US4 (Phase 7D)**: Depends on Phase 2 and US2 (uses active lost-pet locations for proximity alerts)
 - **US5 (Phase 7E)**: Depends on Phase 2 and US2 (requires active lost-pet searches and location services)
@@ -290,29 +290,29 @@
 ### Parallel Opportunities
 
 ```bash
-# Phase 1 Ã¢â‚¬â€ run all in parallel after T001:
+# Phase 1 — run all in parallel after T001:
 T002, T003, T004, T005, T006
 
-# Phase 2 Ã¢â‚¬â€ run in parallel after T007 and T008:
-T009 Ã¢â€ â€™ T010, T011, T012, T013, T014, T015
+# Phase 2 — run in parallel after T007 and T008:
+T009 → T010, T011, T012, T013, T014, T015
 
-# US1 Ã¢â‚¬â€ models in parallel, then services, then routes, then UI:
+# US1 — models in parallel, then services, then routes, then UI:
 T016, T017, T018, T019 (parallel)
-T020 Ã¢â€ â€™ T021 Ã¢â€ â€™ T022, T023 (parallel)
+T020 → T021 → T022, T023 (parallel)
 T024, T025, T026 (parallel after T020)
 T030, T031 (parallel frontend)
 T035, T036 (parallel iOS)
 
-# US2 Ã¢â‚¬â€ aggregator and WebSocket in parallel after GeoService:
+# US2 — aggregator and WebSocket in parallel after GeoService:
 T041, T042 (parallel)
-T043 Ã¢â€ â€™ T044 Ã¢â€ â€™ T045, T046 (parallel)
-T047 Ã¢â€ â€™ T048
+T043 → T044 → T045, T046 (parallel)
+T047 → T048
 T049, T050 (parallel frontend)
 T053 (parallel iOS)
 
-# US3 Ã¢â‚¬â€ models parallel, then services:
+# US3 — models parallel, then services:
 T056, T057 (parallel)
-T058 Ã¢â€ â€™ T059, T060 (parallel)
+T058 → T059, T060 (parallel)
 T062, T063 (parallel routes)
 T064, T065 (parallel frontend)
 T066, T067 (parallel iOS)
@@ -338,10 +338,10 @@ T076, T077, T078 (parallel iOS)
 
 ### Incremental Delivery
 
-1. Setup + Foundational Ã¢â€ â€™ Infrastructure ready
-2. Add US1 Ã¢â€ â€™ Registration and pet management Ã¢â€ â€™ Demo MVP
-3. Add US2 Ã¢â€ â€™ Lost pet search with map Ã¢â€ â€™ Demo core value
-4. Add US3 Ã¢â€ â€™ Community found reports + alerts Ã¢â€ â€™ Demo network effect
+1. Setup + Foundational → Infrastructure ready
+2. Add US1 → Registration and pet management → Demo MVP
+3. Add US2 → Lost pet search with map → Demo core value
+4. Add US3 → Community found reports + alerts → Demo network effect
 5. Add US4 -> Community notifications and BOLO alerts -> Demo location-aware alerts
 6. Add US5 -> Reward escrow and proximity release -> Demo recovery payout flow
 7. Add US6 -> Secure 2FA login -> Demo production-ready security
@@ -352,7 +352,7 @@ T076, T077, T078 (parallel iOS)
 
 With four developers:
 
-1. All complete Setup + Foundational together (Phases 1Ã¢â‚¬â€œ2)
+1. All complete Setup + Foundational together (Phases 1–2)
 2. Once Foundational is done:
    - Developer A: US1 (registration + pets)
    - Developer B: US2 (search + map)
@@ -366,18 +366,18 @@ With four developers:
 
 - [P] = different files, no incomplete-task dependencies
 - [USn] label maps each task to its user story for traceability
-- No unit test tasks were generated for the original phases (not requested at the time); functional check tasks (T040, T055, T055a, T068, T079, T122, T134, T151) and validation tasks (T152-T161) serve as phase gates for that work. The constitution ratified 2026-07-04 makes TDD non-negotiable for money and location specifically â€” see T168-T178 below, which is scoped to Reward/Proximity (net-new, tests-first) and to US2/vet-BOLO/location-alerts (already shipped, retroactive coverage).
+- No unit test tasks were generated for the original phases (not requested at the time); functional check tasks (T040, T055, T055a, T068, T079, T122, T134, T151) and validation tasks (T152-T161) serve as phase gates for that work. The constitution ratified 2026-07-04 makes TDD non-negotiable for money and location specifically — see T168-T178 below, which is scoped to Reward/Proximity (net-new, tests-first) and to US2/vet-BOLO/location-alerts (already shipped, retroactive coverage).
 - T152-T161 success criteria validation must run before T164-T166 final review and testing phases
 - Each story's functional check must pass before moving to the next story phase
 - Phase 7 tasks added 2026-07-01 covering US4 (notifications), US5 (rewards/escrow), US7 (store/ads), and shared infrastructure (QR, vet BOLO, Facebook OAuth)
 - Constitution v1.1.0 ratified 2026-07-04 and amended 2026-07-05 (see .specify/memory/constitution.md); plan.md's Constitution Check gate is PASS WITH GATED TASKS because T168-T187 track contract, test-first, audit, observability, privacy, legal, workflow, platform parity, documentation drift, and product-quality gates. T168-T178 are now complete; Phase 7E implementation is no longer blocked by the constitution pre-gate, but production launch remains gated by T179-T187 and unresolved runtime validation tasks.
-- "In plain terms" notes under each completed task are a layman's summary of what was actually built, added on request alongside the technical implementation notes Ã¢â‚¬â€ they describe outcome/behavior, not code mechanics.
+- "In plain terms" notes under each completed task are a layman's summary of what was actually built, added on request alongside the technical implementation notes — they describe outcome/behavior, not code mechanics.
 
 ---
 
 ## Phase 7: Extended Feature Set (Added 2026-07-01)
 
-**Purpose**: Implement all features added after the original spec Ã¢â‚¬â€ medical/temperament/vet profile fields, QR codes, vet BOLO emails, push notifications, reward escrow, Facebook OAuth, store, and Premium subscription.
+**Purpose**: Implement all features added after the original spec — medical/temperament/vet profile fields, QR codes, vet BOLO emails, push notifications, reward escrow, Facebook OAuth, store, and Premium subscription.
 
 **Depends on**: Relevant base user-story phases complete; final polish follows this phase.
 
@@ -385,54 +385,54 @@ With four developers:
 
 ### Phase 7A: Pet Profile Enhancements (Medical, Temperament, Vet)
 
-- [x] T086 Add medical_conditions (jsonb), medical_emergency_notes (text), temperament (enum), approach_notes (text), qr_code_token (uuid), photo_urls (text[]) columns to Pet table migration in backend/src/migrations/ Ã¢â‚¬â€ already present in migration 003
+- [x] T086 Add medical_conditions (jsonb), medical_emergency_notes (text), temperament (enum), approach_notes (text), qr_code_token (uuid), photo_urls (text[]) columns to Pet table migration in backend/src/migrations/ — already present in migration 003
   - *In plain terms*: Added the extra database columns needed to store medical conditions, emergency notes, temperament, approach notes, the QR code ID, and the photo list on a pet's profile.
 - [x] T087 [P] Create PetVet table migration (clinic_name, address, phone, email, pet_id FK) in backend/src/migrations/006-create-pet-vets.ts
   - *In plain terms*: Created a database table to store a pet's primary vet clinic contact info.
 - [x] T088 [P] Create PetVet model in backend/src/models/pet-vet.model.ts
   - *In plain terms*: Defined how to read and write that vet contact record.
-- [x] T089 Add updateMedical() to PetService (medical_conditions, medical_emergency_notes, share_emergency_notes); photo_urls is append-only via addPhoto() Ã¢â‚¬â€ no bulk overwrite in backend/src/services/pet.service.ts
+- [x] T089 Add updateMedical() to PetService (medical_conditions, medical_emergency_notes, share_emergency_notes); photo_urls is append-only via addPhoto() — no bulk overwrite in backend/src/services/pet.service.ts
   - *In plain terms*: Built the logic to save medical conditions and emergency notes to a pet's profile, respecting the owner's public/private choice for each item.
 - [x] T090 [P] Implement PetVetService with upsert() and get() in backend/src/services/pet-vet.service.ts
   - *In plain terms*: Built the logic to save or fetch a pet's vet contact info.
 - [x] T091 Add PATCH /pets/:id/medical, PATCH /pets/:id/temperament, PUT /pets/:id/vet, GET /pets/:id/vet routes in backend/src/api/routes/pets.routes.ts — correction found during T165's Scenario 1 pass: PATCH /pets/:id/medical and PUT+GET /pets/:id/vet exist exactly as described, but there is no dedicated PATCH /pets/:id/temperament route — temperament is instead settable at creation via POST /pets, or afterward via the generic PUT /pets/:id (pet.service.ts's update() accepts a Partial<CreatePetInput> that includes temperament/approach_notes). Functionally equivalent for the one caller (PetFormPage), so not a user-facing bug, but the task's literal claim of a dedicated PATCH route was inaccurate
   - *In plain terms*: Opened up the web addresses for updating a pet's medical info and vet contact. Temperament turned out to be updated through the existing general-purpose "edit pet" address instead of its own dedicated one — works the same for users, just documented differently than originally claimed.
-- [x] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts Ã¢â‚¬â€ already satisfied by SELECT * in model
-  - *In plain terms*: Made sure the pet-listing and pet-detail endpoints actually return the new fields â€” photos, temperament, medical info.
+- [x] T092 [P] Update GET /pets and GET /pets/:id responses to include new fields (photo_urls, temperament, medical_conditions) in backend/src/api/routes/pets.routes.ts — already satisfied by SELECT * in model
+  - *In plain terms*: Made sure the pet-listing and pet-detail endpoints actually return the new fields — photos, temperament, medical info.
 - [x] T093 [P] [US1] Update PetFormPage to include medical conditions tag input, temperament picker (Friendly/Cautious/Report Only), approach notes, share_emergency_notes toggle, and primary vet form in frontend/src/pages/pets/PetFormPage.tsx — stale checkbox found during T165's Scenario 1 validation pass: all fields (temperament select, conditional approach-notes field, medical condition list, share_emergency_notes toggle, and the vet name/address/phone/email inputs) are already present and wired (photo upload was separately completed in T093a) — confirmed via Scenario 1's live run: Bella's temperament, approach notes, medical condition, and vet all saved and read back correctly
-- [x] T093a [US1] Wire the photo_urls field in PetFormPage to upload photo via POST /pets/:id/photo (POST /pets/:id/photo multipart/form-data endpoint already exists in backend/src/api/routes/pets.routes.ts and PetService) Ã¢â‚¬â€ implemented: file input's onChange captures the File, handleSubmit uploads it via FormData POST after pet creation succeeds
-  - *In plain terms*: Connected the "add a photo" field on the pet form so choosing a file now actually uploads and attaches it to the pet's profile â€” previously it was just a decorative form field that didn't do anything.
+- [x] T093a [US1] Wire the photo_urls field in PetFormPage to upload photo via POST /pets/:id/photo (POST /pets/:id/photo multipart/form-data endpoint already exists in backend/src/api/routes/pets.routes.ts and PetService) — implemented: file input's onChange captures the File, handleSubmit uploads it via FormData POST after pet creation succeeds
+  - *In plain terms*: Connected the "add a photo" field on the pet form so choosing a file now actually uploads and attaches it to the pet's profile — previously it was just a decorative form field that didn't do anything.
 - [x] T094 [P] [US1] Update Pet Profile page to display medical conditions, temperament badge, approach notes, and vet card in frontend/src/pages/pets/PetProfilePage.tsx
   - *In plain terms*: Updated the pet profile page to actually show medical conditions, a temperament badge, approach notes, and the vet info card.
-- [ ] T095 [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, share_emergency_notes toggle, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift Ã¢â‚¬â€ depends on T038 (file must exist first; not parallelizable with T038) Ã¢â‚¬â€ Ã¢Å¡ Ã¯Â¸ photo picker is not implemented; wire in a follow-up task
+- [ ] T095 [US1] Update iOS Pet Form screen with medical conditions, temperament picker, approach notes, share_emergency_notes toggle, and vet fields in ios/PetRecovery/Views/Pets/PetFormView.swift — depends on T038 (file must exist first; not parallelizable with T038) — ⚠️ photo picker is not implemented; wire in a follow-up task
 - [ ] T095a [US1] Add photo upload (image picker + POST /pets/:id/photo multipart/form-data) to ios/PetRecovery/Views/Pets/PetFormView.swift (must precede T096a functional check)
-- [x] T096 [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift Ã¢â‚¬â€ depends on T039
+- [x] T096 [US1] Update iOS Pet Profile screen to display all new fields in ios/PetRecovery/Views/Pets/PetProfileView.swift — depends on T039
   - *In plain terms*: Updated the iPhone app's pet profile screen to display all those same new fields.
-- [ ] T096a [US1] Functional check: confirm medical conditions, temperament, vet CRUD, and pet photo upload work end-to-end on web and iOS (covers T086-T096); depends on T093a (done Ã¢â‚¬â€ web photo upload verified) and T095a (iOS photo picker Ã¢â‚¬â€ still open)
+- [ ] T096a [US1] Functional check: confirm medical conditions, temperament, vet CRUD, and pet photo upload work end-to-end on web and iOS (covers T086-T096); depends on T093a (done — web photo upload verified) and T095a (iOS photo picker — still open)
 
 ---
 
 ### Phase 7B: QR Code Generation & Public Profile
 
-- [x] T097 Implement QRService with generateSVG(token) and generatePNG(token, size) in backend/src/services/qr.service.ts Ã¢â‚¬â€ `qrcode` was already in package.json; qr_code_token column already exists (migration 003). Added PUBLIC_WEB_URL env var to build the encoded profile URL.
+- [x] T097 Implement QRService with generateSVG(token) and generatePNG(token, size) in backend/src/services/qr.service.ts — `qrcode` was already in package.json; qr_code_token column already exists (migration 003). Added PUBLIC_WEB_URL env var to build the encoded profile URL.
   - *In plain terms*: Built the code that generates a scannable QR code image (PNG or SVG) for a pet.
-- [x] T098 qr_code_token auto-generates at DB level (migration 003, gen_random_uuid() UNIQUE); added GET /pets/:id/qr (json + ?format=svg) and POST /pets/:id/rotate-qr routes in backend/src/api/routes/pets.routes.ts Ã¢â‚¬â€ runtime-verified via curl (rotate invalidates old token)
+- [x] T098 qr_code_token auto-generates at DB level (migration 003, gen_random_uuid() UNIQUE); added GET /pets/:id/qr (json + ?format=svg) and POST /pets/:id/rotate-qr routes in backend/src/api/routes/pets.routes.ts — runtime-verified via curl (rotate invalidates old token)
   - *In plain terms*: Made every pet automatically get a unique QR code ID, and opened up web addresses to fetch or regenerate that pet's QR code.
-- [x] T099 [P] Implement public profile route GET /p/:token (no auth) returning only share_publicly=true conditions and (when share_emergency_notes) emergency notes plus owner contact in backend/src/api/routes/public.routes.ts (mounted in index.ts; public-profile.service.ts sanitizes) Ã¢â‚¬â€ runtime-verified
+- [x] T099 [P] Implement public profile route GET /p/:token (no auth) returning only share_publicly=true conditions and (when share_emergency_notes) emergency notes plus owner contact in backend/src/api/routes/public.routes.ts (mounted in index.ts; public-profile.service.ts sanitizes) — runtime-verified
   - *In plain terms*: Built a public web address that shows a pet's profile to anyone, no login needed, while only showing the medical and contact info the owner chose to make public.
 - [x] T100 [P] [US1] Build QR display (PNG), download link, and Regenerate button in Pet Profile page in frontend/src/pages/pets/PetProfilePage.tsx
   - *In plain terms*: Added the QR code image, a download button, and a "regenerate" button to the pet profile page.
-- [x] T101 [P] [US1] Build public pet profile page (no login required) at /p/:token in frontend/src/pages/public/PublicPetProfile.tsx Ã¢â‚¬â€ registered as a top-level route in App.tsx; uses plain fetch (no auth interceptor)
-  - *In plain terms*: Built the actual public page that anyone can open by scanning a tag â€” no account needed.
-- [x] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx Ã¢â‚¬â€ installed html5-qrcode@^2.3.8; wired a "Scan QR" button into DashboardPage
+- [x] T101 [P] [US1] Build public pet profile page (no login required) at /p/:token in frontend/src/pages/public/PublicPetProfile.tsx — registered as a top-level route in App.tsx; uses plain fetch (no auth interceptor)
+  - *In plain terms*: Built the actual public page that anyone can open by scanning a tag — no account needed.
+- [x] T102 [P] [US1] Build in-app QR scanner modal using html5-qrcode camera API in frontend/src/components/QRScannerModal.tsx — installed html5-qrcode@^2.3.8; wired a "Scan QR" button into DashboardPage
   - *In plain terms*: Added a "Scan QR" button that opens the camera right inside the website to scan a tag.
 - [x] T103 [P] [US1] Implement AVFoundation QR scanner view in ios/PetRecovery/Views/Pets/QRScannerView.swift
   - *In plain terms*: Built the same camera-based QR scanner for the iPhone app.
-- [x] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift Ã¢â‚¬â€ note: the web URL `/p/:token` (T101) is the "no app required" path per FR-017; this task covers the in-app convenience deep link for users who have the app installed
+- [x] T104 [P] [US1] Implement public pet profile screen (deep link from QR scan) in ios/PetRecovery/Views/Public/PublicPetProfileView.swift — note: the web URL `/p/:token` (T101) is the "no app required" path per FR-017; this task covers the in-app convenience deep link for users who have the app installed
   - *In plain terms*: Built the iPhone app's version of the public profile page, shown when a user with the app installed scans a tag.
-- [x] T104a [US1] Register URL scheme (petrecovery://) in Info.plist + onOpenURL handler in ios/PetRecovery/App/PetRecoveryApp.swift routing petrecovery://p/<token> and Universal Links to PublicPetProfileView (via ProfileLink Identifiable wrapper) Ã¢â‚¬â€ depends on T104
+- [x] T104a [US1] Register URL scheme (petrecovery://) in Info.plist + onOpenURL handler in ios/PetRecovery/App/PetRecoveryApp.swift routing petrecovery://p/<token> and Universal Links to PublicPetProfileView (via ProfileLink Identifiable wrapper) — depends on T104
   - *In plain terms*: Made scanning a PetRecovery QR code (or tapping a shared link) open directly to that pet's profile inside the iPhone app, if it's installed.
-- [ ] T104b [US1] Functional check: scan a pet's QR on web (and iOS if simulator available) Ã¢â€ â€™ lands on public profile showing only public fields; regenerate QR invalidates the old code (covers T097Ã¢â‚¬â€œT104a). Backend endpoints already runtime-verified via curl.
+- [ ] T104b [US1] Functional check: scan a pet's QR on web (and iOS if simulator available) → lands on public profile showing only public fields; regenerate QR invalidates the old code (covers T097–T104a). Backend endpoints already runtime-verified via curl.
 
 ---
 
@@ -442,12 +442,12 @@ With four developers:
   - *In plain terms*: Created a database table to record every automated "be on the lookout" email sent to a vet clinic.
 - [x] T106 [P] Create VetBOLO model in backend/src/models/vet-bolo.model.ts
   - *In plain terms*: Defined how to read and write those vet-alert records.
-- [x] T107 Implement VetDiscoveryService using Google Places Nearby Search API to find vet clinics within 2 miles of given coordinates in backend/src/integrations/google-places.client.ts Ã¢â‚¬â€ reuses GOOGLE_MAPS_API_KEY; caches results in Redis (24h TTL) keyed by rounded coordinates; clinic_email is always null (Google Places has no email field) so BOLO dispatch treats missing-email clinics as email_status 'failed' rather than fabricating an address
+- [x] T107 Implement VetDiscoveryService using Google Places Nearby Search API to find vet clinics within 2 miles of given coordinates in backend/src/integrations/google-places.client.ts — reuses GOOGLE_MAPS_API_KEY; caches results in Redis (24h TTL) keyed by rounded coordinates; clinic_email is always null (Google Places has no email field) so BOLO dispatch treats missing-email clinics as email_status 'failed' rather than fabricating an address
   - *In plain terms*: Connected the app to Google Places so it can automatically find all vet clinics within 2 miles of where a pet went missing.
-- [x] T108 Implement VetBOLOService: fetch clinics via VetDiscoveryService, render SendGrid email template with pet photos + medical + owner contact, dispatch to each clinic, record in VetBOLO table in backend/src/services/vet-bolo.service.ts Ã¢â‚¬â€ medical_emergency_notes always included regardless of share_emergency_notes per BOLO safety rule
+- [x] T108 Implement VetBOLOService: fetch clinics via VetDiscoveryService, render SendGrid email template with pet photos + medical + owner contact, dispatch to each clinic, record in VetBOLO table in backend/src/services/vet-bolo.service.ts — medical_emergency_notes always included regardless of share_emergency_notes per BOLO safety rule
   - *In plain terms*: Built the logic that writes and sends the actual alert email to each nearby vet clinic, including the pet's photo, description, and medical info.
-- [x] T109 Wire VetBOLOService to fire automatically inside POST /pets/:id/mark-lost handler; emit vet_bolo_sent WebSocket event per dispatch in backend/src/api/routes/search.routes.ts (not pets.routes.ts Ã¢â‚¬â€ mark-lost lives in search routes per T048) Ã¢â‚¬â€ clinic discovery is awaited (fast, cached) to populate vet_bolos_dispatched in the response; email dispatch itself is fire-and-forget so a slow SendGrid never blocks mark-lost
-  - *In plain terms*: Connected it all so vet alert emails go out automatically the moment an owner marks their pet lost â€” no manual step needed.
+- [x] T109 Wire VetBOLOService to fire automatically inside POST /pets/:id/mark-lost handler; emit vet_bolo_sent WebSocket event per dispatch in backend/src/api/routes/search.routes.ts (not pets.routes.ts — mark-lost lives in search routes per T048) — clinic discovery is awaited (fast, cached) to populate vet_bolos_dispatched in the response; email dispatch itself is fire-and-forget so a slow SendGrid never blocks mark-lost
+  - *In plain terms*: Connected it all so vet alert emails go out automatically the moment an owner marks their pet lost — no manual step needed.
 - [x] T110 Add GET /searches/:id/vet-bolos route returning list of dispatched BOLOs with delivery status in backend/src/api/routes/search.routes.ts
   - *In plain terms*: Opened up a web address showing which vet clinics were alerted and whether each email actually went through.
 - [x] T111 [P] [US2] Add vet BOLO status panel to Search Results page showing clinics notified in frontend/src/pages/search/SearchResultsPage.tsx
@@ -459,15 +459,15 @@ With four developers:
 
 ### Phase 7D: User Story 4 - Community Notifications & BOLO Alerts
 
-- [x] T113 Extend Notification model and migration Ã¢â‚¬â€ use `ALTER TYPE notification_type ADD VALUE` to add (pet_update, bolo_alert, nearby_lost, store_account) to the existing enum created in T057's migration; also add trigger_latitude, trigger_longitude columns in backend/src/migrations/ Ã¢â‚¬â€ do NOT drop existing values (found_report_match, search_complete, system, claim_alert) as live data depends on them Ã¢â‚¬â€ implemented in backend/src/migrations/010-extend-notifications.ts; Ã¢Å¡ Ã¯Â¸ deviation: the T057 enum never actually included `claim_alert` (confirmed absent in the shipped migration/TS union), and T113's own literal value list omits it despite T115 requiring a `dispatchClaimAlert` Ã¢â‚¬â€ added `claim_alert` as a 5th new value here, beyond the 4 listed, so FR-022a's claim alert has its own identity distinct from the (still-unused, Phase-7G-reserved) `store_account` value
+- [x] T113 Extend Notification model and migration — use `ALTER TYPE notification_type ADD VALUE` to add (pet_update, bolo_alert, nearby_lost, store_account) to the existing enum created in T057's migration; also add trigger_latitude, trigger_longitude columns in backend/src/migrations/ — do NOT drop existing values (found_report_match, search_complete, system, claim_alert) as live data depends on them — implemented in backend/src/migrations/010-extend-notifications.ts; ⚠️ deviation: the T057 enum never actually included `claim_alert` (confirmed absent in the shipped migration/TS union), and T113's own literal value list omits it despite T115 requiring a `dispatchClaimAlert` — added `claim_alert` as a 5th new value here, beyond the 4 listed, so FR-022a's claim alert has its own identity distinct from the (still-unused, Phase-7G-reserved) `store_account` value
   - *In plain terms*: Added the new notification types needed for community alerts, BOLO alerts, and claim alerts to the database.
-- [x] T114 [P] Add notification settings columns to User (notif_pet_update, notif_bolo_alert, notif_nearby_lost, notif_store_account Ã¢â‚¬â€ all boolean default true except store) in backend/src/migrations/ Ã¢â‚¬â€ implemented in backend/src/migrations/011-add-notification-settings-to-users.ts; also added a nullable `apns_device_token` column on the same migration (needed by T120's push registration, no separate task number covers it)
+- [x] T114 [P] Add notification settings columns to User (notif_pet_update, notif_bolo_alert, notif_nearby_lost, notif_store_account — all boolean default true except store) in backend/src/migrations/ — implemented in backend/src/migrations/011-add-notification-settings-to-users.ts; also added a nullable `apns_device_token` column on the same migration (needed by T120's push registration, no separate task number covers it)
   - *In plain terms*: Added per-user on/off switches for each notification type to the database.
 - [x] T115 Extend NotificationService with dispatchBOLO(userId, pet, distanceMiles), dispatchCommunityAlert(userId, pet, distanceMiles), dispatchClaimAlert(ownerId, finderId, foundReportId), and dispatchProximityAlert(ownerId, finderId, rewardId) methods, all respecting per-user toggle settings in backend/src/services/notification.service.ts; dispatchClaimAlert emits amber notifications (FR-022a) to both parties on found-report claim; dispatchProximityAlert emits the amber notification (FR-022a) to the finder when the owner initiates reward proximity verification — depends on T127 (Reward model/service existing) — dispatchBOLO/dispatchCommunityAlert implemented as specified; `dispatchClaimAlert` shipped as `dispatchClaimAlert(search, report)` instead of `(ownerId, finderId, foundReportId)` — found_reports has no `finder_user_id` (finders are anonymous by design elsewhere in this app), so the finder side is a direct confirmation email to `reporter_email`, not an in-app Notification. This also completes T062a. `dispatchProximityAlert` was implemented later in Phase 7E (T129a) once the Reward model existed, as originally planned here.
   - *In plain terms*: Built the logic to actually send BOLO alerts, community alerts, and "someone claimed your found report" alerts, respecting each user's notification preferences.
-- [x] T116 Add location-tracking WebSocket handler: on update_location from client, evaluate BOLO threshold (1 mile from any active lost pet origin) and community threshold (2 miles) and dispatch notifications in backend/src/integrations/websocket.server.ts Ã¢â‚¬â€ implemented; logic lives in backend/src/services/community-alert.service.ts (`evaluateLocationUpdate`), called from the socket handler. Ã¢Å¡ Ã¯Â¸ Also fixed two pre-existing bugs this task depends on: (1) `notify()` emitted to room `search:user:<id>` (a room nobody joins) instead of `user:<id>` Ã¢â‚¬â€ added a correctly-targeted `emitNotification()`; (2) socket connections trusted a client-supplied `userId` query param for room membership with no verification Ã¢â‚¬â€ now derived from a JWT verified in `socket.handshake.auth.token`, per rules.md's own "Auth is verified on socket connection via JWT" rule. Redis-backed 30-min dedupe (`notif_dedup:{userId}:{searchId}:{type}`) prevents re-firing on every GPS tick while a user lingers in range.
-  - *In plain terms*: Built the live system that watches users' GPS positions and automatically fires a BOLO or community alert the moment someone walks within range of a lost pet â€” and along the way fixed a security bug where a notification channel could be hijacked by an unverified user.
-- [x] T117 Add PATCH /notifications/settings route in backend/src/api/routes/notifications.routes.ts Ã¢â‚¬â€ GET /notifications and PATCH /notifications/:id/read were already implemented in T063; this task adds only the settings toggle endpoint Ã¢â‚¬â€ also added `POST /notifications/device-token` (not a separate task number) so T120's iOS push registration has somewhere to persist the token; actual APNs delivery is out of scope (no certs/keys configured per ios/README.md)
+- [x] T116 Add location-tracking WebSocket handler: on update_location from client, evaluate BOLO threshold (1 mile from any active lost pet origin) and community threshold (2 miles) and dispatch notifications in backend/src/integrations/websocket.server.ts — implemented; logic lives in backend/src/services/community-alert.service.ts (`evaluateLocationUpdate`), called from the socket handler. ⚠️ Also fixed two pre-existing bugs this task depends on: (1) `notify()` emitted to room `search:user:<id>` (a room nobody joins) instead of `user:<id>` — added a correctly-targeted `emitNotification()`; (2) socket connections trusted a client-supplied `userId` query param for room membership with no verification — now derived from a JWT verified in `socket.handshake.auth.token`, per rules.md's own "Auth is verified on socket connection via JWT" rule. Redis-backed 30-min dedupe (`notif_dedup:{userId}:{searchId}:{type}`) prevents re-firing on every GPS tick while a user lingers in range.
+  - *In plain terms*: Built the live system that watches users' GPS positions and automatically fires a BOLO or community alert the moment someone walks within range of a lost pet — and along the way fixed a security bug where a notification channel could be hijacked by an unverified user.
+- [x] T117 Add PATCH /notifications/settings route in backend/src/api/routes/notifications.routes.ts — GET /notifications and PATCH /notifications/:id/read were already implemented in T063; this task adds only the settings toggle endpoint — also added `POST /notifications/device-token` (not a separate task number) so T120's iOS push registration has somewhere to persist the token; actual APNs delivery is out of scope (no certs/keys configured per ios/README.md)
   - *In plain terms*: Opened up a web address letting users toggle their notification preferences on or off.
 - [x] T118 [P] [US4] Build full Notifications page with color-coded cards, filter tabs, permission request card, and settings toggles in frontend/src/pages/notifications/NotificationsPage.tsx — redesigned (3rd page in the PROJECTS/UI-Mockups/ visual pass): icon avatars per notification type, a color legend row, a teal gradient permission card, and real CSS toggle-switch controls (.toggle-switch) replacing plain checkboxes — verified live: toggling a setting persists across reload, mark-all-read still clears the unread count
   - *In plain terms*: Built the complete notifications screen — color-coded alerts, filter tabs, a permission request card, and the settings toggles. Later redesigned with icon badges per alert type and real-looking on/off switches instead of plain checkboxes.
@@ -631,7 +631,12 @@ With four developers:
   - Verified live: `tsc --noEmit` clean, `npm run build` succeeds (frontend), backend `npm test` still 60/60. Started fresh backend+frontend dev servers and drove 5 scenarios via Playwright against a real registered user and real Postgres data: (1) Store page filtered to zero products via category+price band selection - confirmed the exact empty-state message and a working Clear Filters button (screenshot). (2) Fresh account's Dashboard - confirmed the new empty-state message and Add Pet CTA render correctly (screenshot). (3) Notifications page on a zero-notification account - confirmed the correct empty message after load. (4) RewardSetupPage navigated to a nonexistent pet ID - confirmed the previously-silent bug now surfaces a visible "Could not load this pet" ErrorState with a working Try again button instead of an infinite spinner (screenshot). (5) No unexpected browser console errors during the whole run (the only two 404s logged were the intentionally-invalid pet ID from scenario 4).
   - Not done: frontend/src has no test files or lint script configured yet (vitest is installed but unused) - out of scope for this task, a pre-existing gap.
   - *In plain terms*: Every page that loads data or submits a form now shows a real spinner while loading, a clear retry-able error message if something fails, and an explanatory message instead of a blank area when a list is empty - built from four new shared components instead of copy-pasted inline styles. Along the way, found three places where a failure was being silently swallowed, including one that left users stuck on an infinite loading screen with no way to recover; all three now fail visibly with a way to retry.
-- [ ] T163 [P] Add VoiceOver accessibility labels and hints to all interactive elements in ios/PetRecovery/Views/
+- [x] T163 [P] Add VoiceOver accessibility labels and hints to all interactive elements in ios/PetRecovery/Views/
+  - Swept all 17 SwiftUI view files under ios/PetRecovery/Views/ (Auth, Pets, Search, Reward, Account, Notifications, Public, Store, Components). Rather than annotate every already self-labeled Button/TextField (SwiftUI already exposes their visible text to VoiceOver), focused on the categories of real gaps found: (1) icon-only controls with no text at all - the "x" dismiss buttons on AdBannerView/SidebarAdView now have `.accessibilityLabel("Dismiss ad")`; (2) decorative SF Symbols paired with adjacent text (checkmark shields, pawprints, exclamation triangles) - hidden via `.accessibilityHidden(true)` or combined into one phrase via `.accessibilityElement(children: .combine)` so VoiceOver doesn't read the raw symbol name as a separate noisy stop; (3) status conveyed by color alone - NotificationsView's unread/category dots were the biggest real gap (read status and BOLO/Owner/Community category were previously invisible to VoiceOver); rows now carry a synthesized label like "Unread. BOLO: <title>" instead of relying on a colored dot; (4) a genuinely inaccessible control - TwoFactorSetupView's QR code image now has a label and a hint pointing to the "Enter manually" fallback, and the manual secret is read back character-by-character; (5) hidden-label controls - PetFormView's per-condition `Toggle().labelsHidden()` now has an explicit "Share {condition} publicly" label since it previously had none; (6) ambiguous custom selection state - StoreView's category filter chips now carry `.isSelected` trait since the selected/unselected state was conveyed only by background color; (7) decorative Map previews (MarkLostView, SearchResultsView) that duplicate an adjacent text/list representation - hidden from accessibility to reduce noise; (8) financial/consent-relevant actions (reward funding/cancellation, Facebook connect, Premium purchase, proximity location submission) got `.accessibilityHint()` describing the real-world effect of the action, since that context matters most where money or scope-of-access is involved.
+  - Left standard Buttons/TextFields/NavigationLinks with clear visible text untouched - adding a redundant `.accessibilityLabel` that repeats visible text is noise, not value.
+  - Found and fixed a pre-existing bug while reading SearchResultsView.swift (unrelated to accessibility, fixed as a follow-up in the same pass): `geoResults` unconditionally `return nil` for every item, so the search-results Map's pins were always empty regardless of real results. Root cause was `ios/PetRecovery/Services/APIDTOs.swift`'s `SearchResultDTO` never declaring `lat`/`lng` at all, even though the backend (`search-result.model.ts`'s `SELECT *`, confirmed in `contracts/api-search.md`) and the web frontend (`SearchResultsPage.tsx`'s `r.lat`/`r.lng` Leaflet markers) both already carry and use those two fields per result. Added `lat: Double?`/`lng: Double?` to the DTO and rewrote `geoResults` to map real coordinates instead of always discarding.
+  - Not verified: no Xcode project exists yet (same pre-existing gap as every other iOS task this session - see T185), so none of this was exercised with real VoiceOver on a simulator/device; verification here is limited to reading each modifier's SwiftUI API contract and confirming it's supported at the project's iOS 15 deployment target (project.yml).
+  - *In plain terms*: VoiceOver users can now tell what an icon-only button does, aren't stuck on a QR code they can't see (there's now a spoken fallback pointing to manual entry), and can tell whether a notification is unread and what category it's in - all of which previously depended entirely on seeing color or a small icon. Not yet confirmed with a real screen reader since there's still no buildable iOS project.
 - [x] T164 Conduct code efficiency review across backend/src/, frontend/src/, and ios/PetRecovery/ per quickstart.md Scenario 11 checklist - document and apply all findings - completed review across backend, frontend, and iOS source. Applied findings: added 5-minute Redis caching to PetFinder searches; added vet BOLO duplicate-dispatch protection with a service lookup plus migration 015 unique index for one BOLO per search/clinic; removed disabled email/SMS logs that exposed recipient contact info or OTP message bodies; removed the auth token `as any` escape hatch by typing JWT `expiresIn`; replaced iOS forced URL unwraps in public/owner pet profile contact links with safe optional URL handling; kept existing Google Places 24-hour cache, Stripe idempotency, and proximity nonce replay protection as already satisfied.
 - [x] T164a Tally flagged vs. resolved items from T164's review and confirm at least 80% were resolved before final release (SC-012); record the ratio alongside the review findings - flagged 5 actionable code issues, resolved 5/5 (100%). Residual non-code/blocked items remain outside this tally: broad historical mojibake cleanup is tracked by T186, iOS runtime proof remains blocked by T185/Xcode, and legal/business launch gates remain T179-T184.
 - [x] T165 Run end-to-end validation Scenarios 1–9 from specs/001-pet-recovery-app/quickstart.md (Scenarios 10–12 are process checks already gated by T164/T164a/T166) and log results — all nine scenarios driven against the real dev servers + Postgres + Redis with scripted Node/fetch/socket.io-client drivers (no mocks); OTP/TOTP codes read from the real dev-mode console log / computed live via speakeasy against the real secret, never hardcoded. Results:
@@ -673,5 +678,20 @@ With four developers:
 ### Platform & Product Quality Gates
 
 - [ ] T185 Add a buildable iOS project or Swift package setup for ios/PetRecovery, then run and document an iOS build/test pass; until this lands, iOS implementation tasks remain source-only and cannot close cross-platform runtime validation gates (Constitution Principle IX - Buildable Platform Parity)
-- [ ] T186 Clean remaining mojibake/encoding artifacts from specs/001-pet-recovery-app/*.md and .specify/memory/constitution.md, then run a scan confirming no corrupted symbols remain in the constitution, plan, or task list (Constitution Principle VIII - Documentation Drift Is a Defect)
+- [x] T186 Clean remaining mojibake/encoding artifacts from specs/001-pet-recovery-app/*.md and .specify/memory/constitution.md, then run a scan confirming no corrupted symbols remain in the constitution, plan, or task list (Constitution Principle VIII - Documentation Drift Is a Defect)
+  - Root cause: at some point this repo's markdown content was UTF-8 text that got decoded using Windows-1252/Latin-1 and re-saved as UTF-8 - a classic double-encoding mojibake, and in several places (tasks.md especially) it had happened *twice* on the same span of text, layering one mojibake pass on top of another.
+  - constitution.md and plan.md were already clean (fixed in an earlier pass); the corruption remained in tasks.md (182 instances), data-model.md, quickstart.md, contracts/api-pets.md, contracts/api-search.md, research.md, and spec.md.
+  - Fixed with a small Node script (implementing the full 256-entry WHATWG windows-1252 table directly, rather than trusting iconv-lite's stricter table which leaves 5 byte values - 0x81/0x8D/0x8F/0x90/0x9D - undefined and would silently refuse to fix real occurrences using those bytes): for each suspicious line, re-encode it as cp1252 bytes, then reinterpret those bytes as UTF-8; repeat up to 3 times per line to unwind double-layered corruption; a line is only touched if the round-trip is lossless (every character must be cp1252-representable) and the UTF-8 reinterpretation doesn't produce a replacement character - both are hard gates, so lines containing real emoji or already-correct text elsewhere in this session (⚠️, checkmarks, etc.) were left untouched rather than risked.
+  - First pass caught dash/quote/em-dash-class corruption (184 lines) but missed arrow (→) and inequality (≤/≥) mojibake entirely, since those start with a different byte pattern than the dash/quote class - caught by a second, broadened detection pass (78 more lines across 5 files). A handful of residual single-layer artifacts for ⚠️ and dashes (where a stray space had been inserted mid-byte-sequence at some point in the file's history, breaking the automated UTF-8 reinterpretation) were fixed with direct string substitution after confirming there were only 2 distinct residual patterns left.
+  - Verified via ripgrep scan across the whole repo's `*.md` files (excluding node_modules) for both the dash/quote-class and arrow/inequality-class corruption signatures: zero remaining matches. Reviewed the full diffs for the five smaller files by hand to confirm every changed line was a correct restoration (em dash, en dash, right-arrow, ≤, ≥) with no adjacent legitimate text altered.
+  - *In plain terms*: A recurring copy/paste or encoding round-trip had been corrupting dashes, arrows, quote marks, and the ⚠️ emoji throughout the spec documents (sometimes twice over on the same file) - readable but visibly broken to anyone opening these files. All of it is now restored to the correct characters, verified with a repo-wide scan showing zero remaining corrupted symbols.
 - [ ] T187 Conduct a web/iOS product-surface review for shared branding, navigation consistency, responsive layout, loading/empty/error states, and accessibility labels; document findings and required fixes before public release (Constitution Principle X - Usable, Accessible Product Surface)
+
+### /speckit-analyze Remediation (post-hoc, ad hoc — not a numbered task)
+
+A `/speckit-analyze` pass over spec.md/plan.md/tasks.md against the constitution found and fixed four issues, all verified live (backend `npm test`: 9/9 suites, 69/69 passing; `tsc --noEmit` clean on backend and frontend):
+
+- **iOS Dashboard was a hardcoded stub, not a real pet list** (T037/T040 corrected above): `DashboardView.swift` always showed two fake pets ("Bella," "Milo") regardless of the signed-in user, and no `GET /pets` client method existed anywhere in `APIClient+Pets.swift` to fetch the real list. Added `listPets()` and rewired `DashboardView.swift` to fetch real data with loading/error/empty states matching T162's pattern.
+- **GeoService had no direct unit test** (Constitution Principle II gap): added `backend/tests/unit/geo.service.test.ts` (8 tests covering `haversineDistanceMiles`, `isWithinRadius`'s boundary inclusivity, and `boundingBox`) — this pure-math file had zero dedicated coverage before, only indirect exercise via `community-alert.test.ts`'s reuse of the same function for an unrelated purpose.
+- **Search radius cap mismatch**: `frontend/src/pages/search/MarkLostModal.tsx` and `ios/PetRecovery/Views/Search/MarkLostView.swift` capped the initial "mark lost" radius input at 100 miles, while the backend (`search.routes.ts`, `min(1).max(500)`) and spec.md FR-012 both specify 1-500, and the post-creation radius adjuster (`SearchResultsPage.tsx`/`SearchResultsView.swift`) already correctly allowed up to 500. Raised both initial-input caps to 500. Also corrected `data-model.md`'s `LostPetSearch.radius_miles` row and Validation Rules line, which documented "Default 5; range 0.5-100" - matching neither the real default (10) nor the real range (1-500).
+- **SC-008 referenced Android**, a platform this project explicitly excluded (`launch-checklist.md`'s "iOS-only for now" decision, zero Android code anywhere). Reworded SC-008 in spec.md to drop the unfalsifiable Android clause and note iOS-only scope explicitly.

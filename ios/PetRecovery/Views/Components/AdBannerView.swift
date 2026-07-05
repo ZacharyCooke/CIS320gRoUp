@@ -27,15 +27,19 @@ struct AdBannerView: View {
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Color.yellow.opacity(0.6))
                     .cornerRadius(4)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(ad.headline).font(.subheadline).bold()
                     Text(ad.body).font(.caption).foregroundStyle(.secondary)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Advertisement: \(ad.headline). \(ad.body)")
                 Spacer()
                 Button(action: { dismissed = true }) {
                     Image(systemName: "xmark").foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss ad")
             }
             .padding(12)
             .background(Color.yellow.opacity(0.08))
@@ -59,14 +63,20 @@ struct SidebarAdView: View {
                         .padding(.horizontal, 6).padding(.vertical, 2)
                         .background(Color.yellow.opacity(0.6))
                         .cornerRadius(4)
+                        .accessibilityHidden(true)
                     Spacer()
                     Button(action: { dismissed = true }) {
                         Image(systemName: "xmark").foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Dismiss ad")
                 }
-                Text(ad.headline).font(.subheadline).bold()
-                Text(ad.body).font(.caption).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(ad.headline).font(.subheadline).bold()
+                    Text(ad.body).font(.caption).foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Advertisement: \(ad.headline). \(ad.body)")
             }
             .padding(14)
             .background(Color.yellow.opacity(0.08))

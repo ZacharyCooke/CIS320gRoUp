@@ -16,7 +16,7 @@ A pet owner creates an account on PetRecovery, verifies their identity via email
 
 **Why this priority**: Without a registered pet profile, no other feature can function. This is the foundational entry point.
 
-**Independent Test**: A new user can register, verify their account, add a full pet profile including medical info and vet contact, generate a QR code, and link a tracking device â€” all without any other features being present.
+**Independent Test**: A new user can register, verify their account, add a full pet profile including medical info and vet contact, generate a QR code, and link a tracking device — all without any other features being present.
 
 **Acceptance Scenarios**:
 
@@ -26,7 +26,7 @@ A pet owner creates an account on PetRecovery, verifies their identity via email
 4. **Given** a verified owner, **When** they link an external found-animal website, **Then** that site is included in future searches for that owner's pets.
 5. **Given** an owner logging in from a new or different IP address, **When** they attempt to log in, **Then** they are prompted to verify via a TOTP authenticator app (e.g., Microsoft Authenticator) before access is granted.
 6. **Given** a verified owner viewing a pet profile, **When** they click "Generate QR", **Then** a scannable QR code is produced linking to that pet's public profile page.
-7. **Given** any person with a camera, **When** they scan a PetRecovery QR tag, **Then** they see the pet's profile, owner contact info, temperament, and any medical conditions the owner has chosen to share â€” with no app required.
+7. **Given** any person with a camera, **When** they scan a PetRecovery QR tag, **Then** they see the pet's profile, owner contact info, temperament, and any medical conditions the owner has chosen to share — with no app required.
 
 ---
 
@@ -60,7 +60,7 @@ A member of the public finds a stray animal and submits a found-pet report. The 
 1. **Given** a finder (registered or not), **When** they submit a found-pet report with photo, description, species, and location, **Then** the report is saved and visible to owners searching in that area.
 2. **Given** a new found-pet report is submitted, **When** a registered owner's active search overlaps the location, **Then** the owner receives an in-app and email/SMS notification.
 3. **Given** a finder with any camera-equipped device, **When** they scan a pet's PetRecovery QR tag, **Then** they see the pet's profile and can immediately contact the owner without needing an account.
-4. **Given** a found-pet report, **When** an owner claims it matches their pet, **Then** the finder is notified and both parties receive each other's contact information via amber notification â€” no in-app messaging is required for v1.
+4. **Given** a found-pet report, **When** an owner claims it matches their pet, **Then** the finder is notified and both parties receive each other's contact information via amber notification — no in-app messaging is required for v1.
 
 ---
 
@@ -160,7 +160,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 **Search & Lost Pet Flow**
 - **FR-010**: System MUST allow owners to mark a pet as lost and initiate a multi-source search.
 - **FR-011**: System MUST query all linked tracking devices and external found-animal sources simultaneously when a search is initiated.
-- **FR-012**: System MUST filter search results by a user-specified location (GPS or manual address) and a configurable radius (1â€“500 miles).
+- **FR-012**: System MUST filter search results by a user-specified location (GPS or manual address) and a configurable radius (1–500 miles).
 - **FR-013**: System MUST display consolidated search results from all sources in a unified map and list view, showing the source of each result.
 - **FR-014**: When a pet is marked lost, system MUST automatically query Google Places API to find all veterinary clinics within 2 miles of the last known GPS location and send each a BOLO email via SendGrid including the pet's photos, description, microchip number, shared medical conditions, and owner contact information.
 
@@ -186,7 +186,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 **Security & Authentication**
 - **FR-028**: System MUST enforce TOTP-based 2FA via any TOTP-compatible authenticator app (e.g., Microsoft Authenticator) when a login is detected from a new or unrecognized IP address.
-- **FR-029**: System MUST allow optional Facebook Login (OAuth) so users can read posts from their joined Facebook groups, filtered by pet-relevant keywords (species, color, breed â€” case-insensitive substring match against post title and body), for additional found-pet leads. PetRecovery MUST NOT store Facebook credentials.
+- **FR-029**: System MUST allow optional Facebook Login (OAuth) so users can read posts from their joined Facebook groups, filtered by pet-relevant keywords (species, color, breed — case-insensitive substring match against post title and body), for additional found-pet leads. PetRecovery MUST NOT store Facebook credentials.
 - **FR-030**: System MUST store all passwords as bcrypt hashes (cost factor >= 12); passwords are transmitted only over HTTPS/TLS and are never stored, logged, or returned by the server in plaintext.
 - **FR-031**: System MUST collect GPS location data only when a pet is actively marked as lost; location data is not tracked otherwise.
 
@@ -229,7 +229,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **SC-005**: System supports 500 concurrent users without degraded response times.
 - **SC-006**: 90% of first-time users complete registration, pet add, and search without external help (validated via structured usability sessions in T166; not an automated check).
 - **SC-007**: BOLO emails to nearby vet clinics are dispatched within 60 seconds of a pet being marked lost.
-- **SC-008**: GPS proximity check confirms 50-foot reunion with â‰¥95% accuracy on supported devices (iPhone XS or later running iOS 15+; Android with GPS hardware accuracy â‰¤ 5 m).
+- **SC-008**: GPS proximity check confirms 50-foot reunion with ≥95% accuracy on supported devices (iPhone XS or later running iOS 15+). Android is out of scope for this project (this app is web + native iOS only, per launch-checklist.md's explicit iOS-only stack decision) and is not a validation target for this criterion.
 - **SC-009**: Escrowed reward funds release to finder within 10 seconds of all three verifications passing.
 - **SC-010**: Scanning a PetRecovery QR tag displays the pet's public profile in under 3 seconds on any camera-equipped device.
 - **SC-011**: All critical user flows function on both website and iOS app with no feature gaps.
@@ -245,7 +245,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - PetFinder API v2 is the primary automated external source for found-animal data.
 - HIPAA does not apply to animal medical records; medical conditions on pet profiles are shared entirely at the owner's discretion.
 - Vet clinic contact data is sourced via Google Places API; accuracy depends on Places data quality.
-- GPS accuracy on consumer devices typically ranges from 3â€“5 meters (10â€“16 feet); the 50-foot proximity threshold is reliably achievable on supported devices under normal signal conditions.
+- GPS accuracy on consumer devices typically ranges from 3–5 meters (10–16 feet); the 50-foot proximity threshold is reliably achievable on supported devices under normal signal conditions.
 - Stripe Connect is the backend payment processor; individual payment apps (PayPal, Venmo, etc.) are deposit channels.
 - Facebook Login is used only to read group posts the user is already a member of; no Facebook data is stored by PetRecovery.
 - Location data is collected only while a pet is actively marked as lost; no background tracking occurs otherwise.

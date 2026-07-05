@@ -38,7 +38,7 @@ struct LoginView: View {
             }
 
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
             }
 
             Section {
@@ -63,10 +63,11 @@ struct LoginView: View {
                     .keyboardType(.numberPad)
                     .textContentType(.oneTimeCode)
                     .font(.system(.body, design: .monospaced))
+                    .accessibilityHint("Enter the 6-digit code from Microsoft Authenticator")
             }
 
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
             }
 
             Section {

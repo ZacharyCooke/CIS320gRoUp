@@ -161,11 +161,13 @@ struct StoreView: View {
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func productCard(_ product: StoreProduct) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(product.emoji).font(.system(size: 40)).frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityHidden(true)
             if let badge = product.badge {
                 Text(badge)
                     .font(.caption2).bold()
@@ -186,6 +188,7 @@ struct StoreView: View {
         .padding(12)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
     }
 
     private var premiumCard: some View {
@@ -196,7 +199,7 @@ struct StoreView: View {
                 .font(.caption).foregroundStyle(.secondary)
 
             if let errorMessage = premiumStore.errorMessage {
-                Text(errorMessage).font(.caption).foregroundStyle(.red)
+                Text(errorMessage).font(.caption).foregroundStyle(.red).accessibilityLabel("Error: \(errorMessage)")
             }
 
             if isPremium {
@@ -221,6 +224,7 @@ struct StoreView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.purple)
                 .disabled(premiumStore.isBusy || premiumStore.product == nil)
+                .accessibilityHint("Starts an in-app purchase for a monthly Premium subscription")
             }
         }
         .padding(16)

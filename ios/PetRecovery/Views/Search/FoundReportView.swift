@@ -28,6 +28,7 @@ struct FoundReportView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 64))
                         .foregroundStyle(.green)
+                        .accessibilityHidden(true)
                     Text("Report Submitted!")
                         .font(.title2).bold()
                     Text("Thank you - your report has been sent to nearby active searches.")
@@ -70,6 +71,7 @@ struct FoundReportView: View {
                         Button(photoData == nil ? "Choose Photo" : "Replace Photo") {
                             isPhotoPickerPresented = true
                         }
+                        .accessibilityHint("A photo helps the owner identify their pet")
                         if photoData != nil {
                             LabeledContent("Selected", value: photoFileName)
                             Button("Remove Photo", role: .destructive) {
@@ -88,13 +90,14 @@ struct FoundReportView: View {
                             }
                         }
                         .disabled(isLocating)
+                        .accessibilityHint("Fills in the latitude and longitude below using your device's GPS")
 
                         LabeledContent("Latitude", value: lat.isEmpty ? "-" : lat)
                         LabeledContent("Longitude", value: lng.isEmpty ? "-" : lng)
                     }
 
                     if let error = errorMessage {
-                        Section { Text(error).foregroundStyle(.red) }
+                        Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
                     }
 
                     Section {

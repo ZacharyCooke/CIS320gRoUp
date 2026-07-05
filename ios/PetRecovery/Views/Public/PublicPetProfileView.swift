@@ -21,7 +21,7 @@ struct PublicPetProfileView: View {
             if isLoading {
                 ProgressView("Loading…")
             } else if let error = errorMessage {
-                Text(error).foregroundStyle(.red).padding()
+                Text(error).foregroundStyle(.red).padding().accessibilityLabel("Error: \(error)")
             } else if let p = profile {
                 content(p)
             }
@@ -56,6 +56,7 @@ struct PublicPetProfileView: View {
                     Image(systemName: "pawprint.fill").foregroundStyle(color)
                     Text(label).foregroundStyle(color).fontWeight(.semibold)
                 }
+                .accessibilityElement(children: .combine)
                 if let notes = p.approach_notes, !notes.isEmpty {
                     Text(notes).font(.callout).foregroundStyle(.secondary)
                 }
@@ -71,6 +72,8 @@ struct PublicPetProfileView: View {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
                             Text(notes).font(.callout)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Emergency notes: \(notes)")
                     }
                 }
             }
@@ -81,6 +84,7 @@ struct PublicPetProfileView: View {
                     Link(destination: emailURL) {
                         Label(p.owner.email, systemImage: "envelope")
                     }
+                    .accessibilityHint("Opens Mail to email the owner")
                 } else {
                     Label(p.owner.email, systemImage: "envelope")
                 }
@@ -90,6 +94,7 @@ struct PublicPetProfileView: View {
                         Link(destination: phoneURL) {
                             Label(phone, systemImage: "phone")
                         }
+                        .accessibilityHint("Opens Phone to call the owner")
                     } else {
                         Label(phone, systemImage: "phone")
                     }

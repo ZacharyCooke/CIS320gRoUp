@@ -22,6 +22,7 @@ struct MarkLostView: View {
                 Section("Search Center") {
                     Map(coordinateRegion: $region)
                         .frame(height: 220)
+                        .accessibilityHidden(true)
 
                     Button("Use my current location") {
                         isLocating = true
@@ -31,18 +32,20 @@ struct MarkLostView: View {
                         }
                     }
                     .disabled(isLocating)
+                    .accessibilityHint("Sets the search center to your device's current GPS location")
 
                     LabeledContent("Latitude", value: String(format: "%.5f", region.center.latitude))
                     LabeledContent("Longitude", value: String(format: "%.5f", region.center.longitude))
                 }
 
                 Section("Search Radius") {
-                    Slider(value: $radiusMiles, in: 1...100, step: 1)
+                    Slider(value: $radiusMiles, in: 1...500, step: 1)
+                        .accessibilityValue("\(Int(radiusMiles)) miles")
                     Text("\(Int(radiusMiles)) miles")
                 }
 
                 if let error = errorMessage {
-                    Section { Text(error).foregroundStyle(.red) }
+                    Section { Text(error).foregroundStyle(.red).accessibilityLabel("Error: \(error)") }
                 }
 
                 Section {

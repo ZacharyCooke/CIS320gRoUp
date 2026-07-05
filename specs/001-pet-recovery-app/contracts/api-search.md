@@ -14,7 +14,7 @@ Retrieve aggregated results for an active or past search.
 **Query params**:
 - `page` (default: 1)
 - `per_page` (default: 20, max: 100)
-- `source_type` â€” optional filter: `internal_report`, `petfinder_api`, `tracking_device`, `manual_link`, `facebook_groups`
+- `source_type` — optional filter: `internal_report`, `petfinder_api`, `tracking_device`, `manual_link`, `facebook_groups`
 
 **Response 200**:
 ```json
@@ -249,7 +249,7 @@ Update the user's per-type notification toggle settings.
 }
 ```
 
-All fields optional â€” only provided fields are updated.
+All fields optional — only provided fields are updated.
 
 **Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_store_account": false } }`
 

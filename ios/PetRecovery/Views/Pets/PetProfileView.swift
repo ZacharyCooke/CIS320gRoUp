@@ -48,6 +48,7 @@ struct PetProfileView: View {
                         .foregroundStyle(.white)
                         .clipShape(Capsule())
                 }
+                .accessibilityElement(children: .combine)
                 if pet.status != "lost" {
                     Button("Mark as Lost", role: .destructive) { showMarkLost = true }
                 } else {
@@ -62,6 +63,7 @@ struct PetProfileView: View {
                     Image(systemName: "pawprint.fill").foregroundStyle(color)
                     Text(label).foregroundStyle(color).fontWeight(.semibold)
                 }
+                .accessibilityElement(children: .combine)
                 if let notes = pet.approach_notes, !notes.isEmpty {
                     Text(notes).font(.callout).foregroundStyle(.secondary)
                 }
@@ -78,6 +80,8 @@ struct PetProfileView: View {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
                             Text(notes).font(.callout)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Emergency notes: \(notes)")
                     }
                 }
             }
@@ -92,6 +96,7 @@ struct PetProfileView: View {
                             Link(destination: phoneURL) {
                                 Label(ph, systemImage: "phone")
                             }
+                            .accessibilityHint("Opens Phone to call the clinic")
                         } else {
                             Label(ph, systemImage: "phone")
                         }
@@ -101,6 +106,7 @@ struct PetProfileView: View {
                             Link(destination: emailURL) {
                                 Label(em, systemImage: "envelope")
                             }
+                            .accessibilityHint("Opens Mail to email the clinic")
                         } else {
                             Label(em, systemImage: "envelope")
                         }
@@ -112,7 +118,7 @@ struct PetProfileView: View {
                 Section { Text(msg).foregroundStyle(.green) }
             }
             if let err = errorMessage {
-                Section { Text(err).foregroundStyle(.red) }
+                Section { Text(err).foregroundStyle(.red).accessibilityLabel("Error: \(err)") }
             }
 
             Section("Link Tracking Device") {

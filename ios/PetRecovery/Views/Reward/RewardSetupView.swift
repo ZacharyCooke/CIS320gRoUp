@@ -17,7 +17,7 @@ struct RewardSetupView: View {
     var body: some View {
         List {
             if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red) }
+                Section { Text(errorMessage).foregroundStyle(.red).accessibilityLabel("Error: \(errorMessage)") }
             }
 
             if isLoading {
@@ -37,6 +37,7 @@ struct RewardSetupView: View {
                             .font(.caption).foregroundStyle(.secondary)
                         Button("I've sent the funds") { Task { await fund() } }
                             .disabled(isBusy)
+                            .accessibilityHint("Confirms you've sent the reward funds via the selected payment method")
                     }
                 }
 
@@ -61,6 +62,7 @@ struct RewardSetupView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     Button("Create reward") { Task { await create() } }
                         .disabled(isBusy || Double(amountDollars) == nil)
+                        .accessibilityHint("Funds are held in escrow until proximity, pet identity, and owner identity are all verified")
                 }
             }
         }

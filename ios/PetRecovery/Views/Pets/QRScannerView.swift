@@ -25,13 +25,14 @@ struct QRScannerView: View {
         NavigationStack {
             ZStack {
                 if let error = cameraError {
-                    Text(error).foregroundStyle(.red).padding()
+                    Text(error).foregroundStyle(.red).padding().accessibilityLabel("Error: \(error)")
                 } else {
                     QRScannerRepresentable(
                         onScanned: handleScan,
                         onError: { cameraError = $0 }
                     )
                     .ignoresSafeArea()
+                    .accessibilityHidden(true)
                     VStack {
                         Spacer()
                         Text("Point your camera at a pet's QR code")
@@ -39,6 +40,7 @@ struct QRScannerView: View {
                             .background(.ultraThinMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .padding(.bottom, 40)
+                            .accessibilityLabel("Point your camera at a pet's QR code. If you can't see the code to aim the camera, ask someone nearby for help, or look up the pet's profile URL directly.")
                     }
                 }
             }
