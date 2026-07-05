@@ -1,13 +1,17 @@
 # API Contract: Authentication & Account Security
 
-**Base path**: `/api/auth`
-**Last Updated**: 2026-07-04
+**Base path**: `/api/auth`  
+**Last Updated**: 2026-07-05
+
+All endpoint paths below are relative to `/api/auth`. Passwords are accepted only over HTTPS/TLS in production. Plaintext passwords, password hashes, TOTP secrets, and encrypted Facebook tokens are never returned by the API.
+
+The global API rate limiter can return `429` for repeated requests from the same IP hash.
 
 ---
 
-## POST /auth/register
+## POST /register
 
-Register a new user account. Password is transmitted only over HTTPS/TLS; plaintext password is never stored, logged, or returned by the server.
+Register a new user account and send one-time verification codes to email and, when provided, phone.
 
 **Request**:
 ```json
@@ -20,6 +24,8 @@ Register a new user account. Password is transmitted only over HTTPS/TLS; plaint
 }
 ```
 
+`password` must be at least 12 characters.
+
 **Response 201**:
 ```json
 {
@@ -28,13 +34,16 @@ Register a new user account. Password is transmitted only over HTTPS/TLS; plaint
 }
 ```
 
-**Response 400**: Invalid email format, weak password, or duplicate email.
+In non-production environments, the response may also include `_dev_otp` for local testing.
+
+**Response 400**: Validation error.  
+**Response 409**: `email_already_registered`.
 
 ---
 
-## POST /auth/verify-contact
+## POST /verify-contact
 
-Verify email address or phone number with OTP. Max 3 attempts per issued OTP.
+Verify an email address or phone number with a six-digit OTP. A valid verification issues the first token pair.
 
 **Request**:
 ```json
@@ -45,6 +54,8 @@ Verify email address or phone number with OTP. Max 3 attempts per issued OTP.
 }
 ```
 
+`channel` is either `email` or `phone`.
+
 **Response 200**:
 ```json
 {
@@ -54,14 +65,13 @@ Verify email address or phone number with OTP. Max 3 attempts per issued OTP.
 }
 ```
 
-**Response 400**: Invalid or expired code.
-**Response 429**: Too many OTP/register attempts from the same IP hash.
+**Response 400**: Validation error or `invalid_or_expired_code`.
 
 ---
 
-## POST /auth/login
+## POST /login
 
-Authenticate and start a session. IP hash is checked to determine if 2FA is required.
+Authenticate with email and password. The server checks the request IP hash to decide whether a TOTP challenge is required.
 
 **Request**:
 ```json
@@ -80,7 +90,7 @@ Authenticate and start a session. IP hash is checked to determine if 2FA is requ
 }
 ```
 
-**Response 200 (new/unknown IP and 2FA enabled)**:
+**Response 200 (new IP and 2FA enabled)**:
 ```json
 {
   "requires_2fa": true,
@@ -88,33 +98,45 @@ Authenticate and start a session. IP hash is checked to determine if 2FA is requ
 }
 ```
 
-**Response 401**: Invalid credentials.
-**Response 403**: Email not verified.
+**Response 400**: Validation error.  
+**Response 401**: `invalid_credentials`.  
+**Response 403**: `email_not_verified`.
 
 ---
 
-## POST /auth/2fa/setup
+## POST /2fa/setup
 
-Initiate TOTP setup for Microsoft Authenticator or any TOTP-compatible app.
+Create or replace the authenticated user's TOTP secret. The secret is stored encrypted.
 
-**Auth**: Required (Bearer token)
+**Auth**: Required.
 
 **Response 200**:
 ```json
 {
   "secret": "BASE32SECRET",
-  "otpauth_url": "otpauth://totp/PetRecovery:owner@example.com?secret=BASE32SECRET&issuer=PetRecovery",
-  "qr_code_data_url": "data:image/png;base64,..."
+  "qr_uri": "otpauth://totp/PetRecovery%20(owner@example.com)?secret=BASE32SECRET&issuer=PetRecovery",
+  "qr_image_url": "data:image/png;base64,..."
 }
 ```
 
 ---
 
-## POST /auth/2fa/verify
+## POST /2fa/verify
 
-Dual mode endpoint:
-- Setup confirmation: send `Authorization: Bearer ...` and `{ "code": "482910" }`.
-- Login challenge: send `{ "user_id": "uuid", "code": "482910" }`.
+Dual-mode endpoint for setup confirmation and login challenge completion.
+
+**Setup confirmation request**: send `Authorization: Bearer ...`.
+```json
+{ "code": "482910" }
+```
+
+**Login challenge request**:
+```json
+{
+  "user_id": "uuid",
+  "code": "482910"
+}
+```
 
 **Response 200 (setup confirmation)**:
 ```json
@@ -130,13 +152,14 @@ Dual mode endpoint:
 }
 ```
 
-**Response 400/401**: Invalid token, missing user ID, or invalid TOTP code.
+**Response 400**: Validation error, missing `user_id`, or `invalid_totp_code`.  
+**Response 401**: `invalid_token`.
 
 ---
 
-## POST /auth/refresh
+## POST /refresh
 
-Exchange a refresh token for a new access token. The current web and iOS clients submit the refresh token in JSON; HttpOnly-cookie storage is a future hardening task.
+Rotate a refresh token and issue a new token pair. Current web and iOS clients submit the refresh token in JSON; HttpOnly-cookie storage is a future hardening task.
 
 **Request**:
 ```json
@@ -151,40 +174,14 @@ Exchange a refresh token for a new access token. The current web and iOS clients
 }
 ```
 
-**Response 401**: Expired or invalid refresh token.
+**Response 400**: Validation error.  
+**Response 401**: `invalid_or_expired_refresh_token`.
 
 ---
 
-## GET /auth/me
+## POST /logout
 
-Return the authenticated user's safe profile. Sensitive fields such as password hash, TOTP secret, and encrypted Facebook token are never returned.
-
-**Auth**: Required
-
-**Response 200**:
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "owner@example.com",
-    "phone": "+15551234567",
-    "is_email_verified": true,
-    "is_phone_verified": false,
-    "is_2fa_enabled": true,
-    "facebook_connected": true,
-    "notif_pet_update": true,
-    "notif_bolo_alert": true,
-    "notif_nearby_lost": true,
-    "notif_store_account": false
-  }
-}
-```
-
----
-
-## POST /auth/logout
-
-Revoke refresh token and end session.
+Best-effort refresh-token revocation. The endpoint returns success even if the body is missing or invalid.
 
 **Request**:
 ```json
@@ -198,54 +195,92 @@ Revoke refresh token and end session.
 
 ---
 
-## POST /auth/facebook
+## GET /me
 
-Initiate Facebook OAuth flow to allow reading of the user's local Facebook group posts for found-pet leads.
+Return the authenticated user's safe account profile. Sensitive fields are removed before response.
 
-**Auth**: Required (Bearer token; user must already have a PetRecovery account)
+**Auth**: Required.
+
+**Response 200**:
+```json
+{
+  "user": {
+    "id": "uuid",
+    "first_name": "Zachary",
+    "last_name": "Cooke",
+    "email": "owner@example.com",
+    "phone": "+15551234567",
+    "is_email_verified": true,
+    "is_phone_verified": false,
+    "is_2fa_enabled": true,
+    "facebook_connected": true,
+    "is_premium": false,
+    "stripe_customer_id": null,
+    "notif_pet_update": true,
+    "notif_bolo_alert": true,
+    "notif_nearby_lost": true,
+    "notif_store_account": false,
+    "apns_device_token": null,
+    "created_at": "2026-07-05T00:00:00.000Z",
+    "updated_at": "2026-07-05T00:00:00.000Z"
+  }
+}
+```
+
+**Response 401**: Missing or invalid bearer token.  
+**Response 404**: `user_not_found`.
+
+---
+
+## POST /facebook
+
+Initiate Facebook OAuth account linking for read-only local group scanning. This is not a login method; the user must already be authenticated with PetRecovery.
+
+**Auth**: Required.
 
 **Request**:
 ```json
 { "platform": "web" }
 ```
 
-`platform` is `"web"` or `"ios"` (default `"web"`) and is threaded through the signed `state` token so the callback knows whether to redirect back to the web dashboard or an iOS custom URL scheme.
+`platform` is `web` or `ios` and defaults to `web`.
 
 **Response 200**:
 ```json
 { "redirect_url": "https://www.facebook.com/v19.0/dialog/oauth?..." }
 ```
 
-**Response 503**:
-```json
-{ "error": "facebook_not_configured" }
-```
+**Response 400**: Validation error.  
+**Response 503**: `facebook_not_configured`.
 
-**Scope requested**: `user_groups`, `groups_access_member_info` (read-only; no posting).
+**Scopes requested**: `user_groups`, `groups_access_member_info`.
 
-**Note**: PetRecovery does not store Facebook credentials. Only the encrypted OAuth access token is stored and used to read joined-group posts.
+PetRecovery stores only the encrypted OAuth access token and uses it to read joined-group posts. It never posts to Facebook.
 
 ---
 
-## GET /auth/facebook/callback
+## GET /facebook/callback
 
-OAuth callback endpoint. Facebook redirects here after the user authorizes the app. Stores the encrypted access token and links it to the user's account.
+Facebook OAuth callback endpoint. Facebook redirects here after user authorization. On success, the encrypted access token is linked to the user identified by the signed `state` token.
 
-**Auth**: Not required (called by Facebook redirect).
+**Auth**: Not required; called by Facebook redirect.
 
 **Query params**:
 - `code`: authorization code from Facebook
-- `state`: CSRF state token issued by the server
+- `state`: signed CSRF/account-linking token issued by the server
 
-**Response 302**: On success, redirects to `/dashboard` (web) or `petrecovery://facebook-callback?success=true` (iOS). On failure, redirects to `/account/settings?error=facebook_auth_failed`.
+**Response 302**:
+- Web success redirects to `${PUBLIC_WEB_URL}/dashboard`
+- iOS success redirects to `petrecovery://facebook-callback?success=true`
+- Failure redirects to `${PUBLIC_WEB_URL}/account/settings?error=facebook_auth_failed`
 
 ---
 
-## POST /auth/facebook/disconnect
+## POST /facebook/disconnect
 
-Revoke Facebook access and remove the stored token from the user's account.
+Remove the stored encrypted Facebook access token from the authenticated user's account.
 
-**Auth**: Required
+**Auth**: Required.
 
 **Response 200**:
 ```json
