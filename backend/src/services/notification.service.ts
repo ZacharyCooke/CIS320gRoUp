@@ -1,6 +1,7 @@
 import { createNotification, type NotificationType } from "../models/notification.model.js";
 import { sendEmail } from "../integrations/email.service.js";
 import { sendSms } from "../integrations/sms.service.js";
+import { sendApns } from "../integrations/apns.service.js";
 import { emitNotification } from "../integrations/websocket.server.js";
 import { findUserById } from "../models/user.model.js";
 import { findPetById, type Pet } from "../models/pet.model.js";
@@ -43,15 +44,36 @@ async function notifyOutOfBand(input: NotifyInput): Promise<void> {
   if (!user) return;
 
   if (user.email) {
-    await sendEmail({
-      to: user.email,
-      subject: input.title,
-      text: input.body
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: input.title,
+        text: input.body
+      });
+    } catch (err) {
+      console.error("[notification] email dispatch error:", err);
+    }
   }
 
   if (user.phone) {
-    await sendSms({ to: user.phone, body: `${input.title}: ${input.body}` });
+    try {
+      await sendSms({ to: user.phone, body: `${input.title}: ${input.body}` });
+    } catch (err) {
+      console.error("[notification] sms dispatch error:", err);
+    }
+  }
+
+  if (user.apns_device_token) {
+    try {
+      await sendApns({
+        deviceToken: user.apns_device_token,
+        title: input.title,
+        body: input.body,
+        data: input.data
+      });
+    } catch (err) {
+      console.error("[notification] apns dispatch error:", err);
+    }
   }
 }
 

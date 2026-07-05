@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 interface MedicalCondition {
   condition: string;
@@ -115,14 +116,11 @@ export function PetFormPage() {
     <section className="form-page">
       <h1>Add pet profile</h1>
       {error && (
-        <div className="error-state" role="alert">
-          <p>{error}</p>
-          {error.includes("Upgrade to Premium") && (
-            <button type="button" className="btn-outline" onClick={() => navigate("/store")}>
-              View Premium
-            </button>
-          )}
-        </div>
+        <ErrorState
+          message={error}
+          onRetry={error.includes("Upgrade to Premium") ? () => navigate("/store") : undefined}
+          retryLabel="View Premium"
+        />
       )}
       <form onSubmit={handleSubmit}>
 

@@ -87,12 +87,21 @@ struct PetProfileView: View {
                     Text(v.clinic_name).fontWeight(.semibold)
                     if let addr = v.address { Label(addr, systemImage: "mappin") }
                     if let ph = v.phone {
-                        Link(destination: URL(string: "tel:\(ph.replacingOccurrences(of: " ", with: ""))")!) {
+                        let normalizedPhone = ph.replacingOccurrences(of: " ", with: "")
+                        if let phoneURL = URL(string: "tel:\(normalizedPhone)") {
+                            Link(destination: phoneURL) {
+                                Label(ph, systemImage: "phone")
+                            }
+                        } else {
                             Label(ph, systemImage: "phone")
                         }
                     }
                     if let em = v.email {
-                        Link(destination: URL(string: "mailto:\(em)")!) {
+                        if let emailURL = URL(string: "mailto:\(em)") {
+                            Link(destination: emailURL) {
+                                Label(em, systemImage: "envelope")
+                            }
+                        } else {
                             Label(em, systemImage: "envelope")
                         }
                     }

@@ -51,6 +51,22 @@ export async function createVetBolo(input: CreateVetBoloInput): Promise<VetBolo>
   return result.rows[0];
 }
 
+export async function findVetBoloForClinic(
+  searchId: string,
+  clinicName: string,
+  clinicAddress?: string | null
+): Promise<VetBolo | null> {
+  const result = await pool.query<VetBolo>(
+    `SELECT * FROM vet_bolos
+     WHERE search_id = $1
+       AND clinic_name = $2
+       AND COALESCE(clinic_address, '') = COALESCE($3, '')
+     LIMIT 1`,
+    [searchId, clinicName, clinicAddress ?? null]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function findVetBolosBySearchId(searchId: string): Promise<VetBolo[]> {
   const result = await pool.query<VetBolo>(
     "SELECT * FROM vet_bolos WHERE search_id = $1 ORDER BY sent_at ASC",

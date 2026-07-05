@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { env } from "../../../config/env.js";
 import { redis } from "../../../config/redis.js";
 
@@ -9,9 +9,9 @@ export const RT_PREFIX = "rt:";
 export async function issueTokenPair(
   userId: string
 ): Promise<{ access_token: string; refresh_token: string }> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const accessTokenTtl = env.JWT_ACCESS_TOKEN_TTL as SignOptions["expiresIn"];
   const access_token = jwt.sign({ id: userId }, env.JWT_SECRET, {
-    expiresIn: env.JWT_ACCESS_TOKEN_TTL as any
+    expiresIn: accessTokenTtl
   });
   const refresh_token = crypto.randomBytes(32).toString("hex");
   await redis.setex(`${RT_PREFIX}${refresh_token}`, REFRESH_TTL_SEC, userId);

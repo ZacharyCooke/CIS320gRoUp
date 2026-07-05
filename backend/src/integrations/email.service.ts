@@ -25,7 +25,7 @@ export interface SendEmailInput {
 
 export async function sendEmail(input: SendEmailInput): Promise<void> {
   if (!ensureConfigured()) {
-    console.log(`[email disabled] ${input.subject} -> ${input.to}`);
+    console.log(`[email disabled] subject="${input.subject}" recipient_present=${Boolean(input.to)}`);
     return;
   }
 

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { findNearbyVetClinics, type NearbyVetClinic } from "../integrations/google-places.client.js";
 import { sendEmail } from "../integrations/email.service.js";
-import { createVetBolo, type VetBolo } from "../models/vet-bolo.model.js";
+import { createVetBolo, findVetBoloForClinic, type VetBolo } from "../models/vet-bolo.model.js";
 import { emitVetBoloSent } from "../integrations/websocket.server.js";
 import { findUserById } from "../models/user.model.js";
 import type { Pet } from "../models/pet.model.js";
@@ -23,6 +23,13 @@ export async function dispatchVetBolos(
   const dispatched: VetBolo[] = [];
 
   for (const clinic of clinics) {
+    const existing = await findVetBoloForClinic(search.id, clinic.clinic_name, clinic.clinic_address);
+    if (existing) {
+      console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" skipped (already dispatched)`);
+      dispatched.push(existing);
+      continue;
+    }
+
     const emailStatus = clinic.clinic_email
       ? await sendBoloEmail(clinic.clinic_email, pet, owner).then(
           () => {

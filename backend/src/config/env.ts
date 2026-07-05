@@ -27,7 +27,12 @@ const envSchema = z.object({
   FACEBOOK_APP_ID: z.string().optional(),
   FACEBOOK_APP_SECRET: z.string().optional(),
   PETFINDER_API_KEY: z.string().optional(),
-  PETFINDER_SECRET: z.string().optional()
+  PETFINDER_SECRET: z.string().optional(),
+  APNS_KEY_ID: z.string().optional(),
+  APNS_TEAM_ID: z.string().optional(),
+  APNS_BUNDLE_ID: z.string().optional(),
+  APNS_PRIVATE_KEY: z.string().optional(),
+  APNS_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox")
 });
 
 export const env = envSchema.parse(process.env);

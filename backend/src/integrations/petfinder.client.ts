@@ -1,4 +1,5 @@
 import { env } from "../config/env.js";
+import { redis } from "../config/redis.js";
 
 interface PetFinderTokenResponse {
   token_type: string;
@@ -42,6 +43,24 @@ export interface PetFinderResult {
 
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
+const PETFINDER_SEARCH_CACHE_TTL_SECONDS = 60 * 5;
+
+function searchCacheKey(
+  lat: number,
+  lng: number,
+  radiusMiles: number,
+  species: string | undefined,
+  limit: number
+): string {
+  return [
+    "petfinder_search",
+    lat.toFixed(3),
+    lng.toFixed(3),
+    Math.min(Math.ceil(radiusMiles), 500),
+    species ?? "any",
+    Math.min(Math.max(limit, 1), 100)
+  ].join(":");
+}
 
 async function getAccessToken(): Promise<string> {
   if (cachedToken && Date.now() < tokenExpiresAt - 60_000) {
@@ -86,6 +105,19 @@ export async function searchPetFinder(
     return [];
   }
 
+  const key = searchCacheKey(lat, lng, radiusMiles, species, limit);
+  try {
+    const cached = await redis.get(key);
+    if (cached) {
+      return (JSON.parse(cached) as Array<Omit<PetFinderResult, "found_at"> & { found_at: string }>).map((result) => ({
+        ...result,
+        found_at: new Date(result.found_at)
+      }));
+    }
+  } catch (err) {
+    console.error("[petfinder] cache read error:", err);
+  }
+
   const token = await getAccessToken();
   const params = new URLSearchParams({
     location: `${lat},${lng}`,
@@ -105,7 +137,7 @@ export async function searchPetFinder(
 
   const data = (await resp.json()) as PetFinderSearchResponse;
 
-  return data.animals.map((a) => ({
+  const results = data.animals.map((a) => ({
     external_id: String(a.id),
     name: a.name,
     species: a.species,
@@ -117,4 +149,12 @@ export async function searchPetFinder(
     source_url: a.url,
     found_at: new Date(a.published_at)
   }));
+
+  try {
+    await redis.set(key, JSON.stringify(results), "EX", PETFINDER_SEARCH_CACHE_TTL_SECONDS);
+  } catch (err) {
+    console.error("[petfinder] cache write error:", err);
+  }
+
+  return results;
 }

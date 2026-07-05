@@ -8,7 +8,7 @@ export interface SendSmsInput {
 
 export async function sendSms(input: SendSmsInput): Promise<void> {
   if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER) {
-    console.log(`[sms disabled] ${input.body} -> ${input.to}`);
+    console.log(`[sms disabled] body_length=${input.body.length} recipient_present=${Boolean(input.to)}`);
     return;
   }
 

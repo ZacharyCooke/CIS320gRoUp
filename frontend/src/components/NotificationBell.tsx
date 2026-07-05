@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../services/api-client";
 import { connectToUser, disconnectUser } from "../services/websocket.client";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
+import { Spinner } from "./Spinner";
 
 interface Notification {
   id: string;
@@ -16,6 +19,8 @@ export function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,17 +47,27 @@ export function NotificationBell({ userId }: { userId: string }) {
   }, []);
 
   async function loadNotifications() {
+    setLoading(true);
+    setLoadError(null);
     try {
       const { data } = await apiClient.get("/notifications");
       setNotifications(data.notifications);
       setUnread(data.unread);
-    } catch { /* not logged in */ }
+    } catch {
+      setLoadError("Could not load notifications.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function markAllRead() {
-    await apiClient.post("/notifications/read-all");
-    setUnread(0);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await apiClient.post("/notifications/read-all");
+      setUnread(0);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch {
+      setLoadError("Could not mark notifications read.");
+    }
   }
 
   return (
@@ -107,8 +122,16 @@ export function NotificationBell({ userId }: { userId: string }) {
             </div>
           </div>
 
-          {notifications.length === 0 ? (
-            <p style={{ padding: "1.5rem", color: "#6b7280", textAlign: "center", margin: 0 }}>No notifications yet</p>
+          {loading ? (
+            <Spinner label="Loading notifications..." />
+          ) : loadError ? (
+            <div style={{ padding: 12 }}>
+              <ErrorState message={loadError} onRetry={loadNotifications} />
+            </div>
+          ) : notifications.length === 0 ? (
+            <div style={{ padding: "16px 12px" }}>
+              <EmptyState compact message="No notifications yet." />
+            </div>
           ) : (
             notifications.map((n) => (
               <div key={n.id} style={{

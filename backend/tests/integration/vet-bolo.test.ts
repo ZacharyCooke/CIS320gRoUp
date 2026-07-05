@@ -42,9 +42,11 @@ jest.unstable_mockModule("../../src/integrations/email.service.js", () => ({
 }));
 
 const mockCreateVetBolo = jest.fn();
+const mockFindVetBoloForClinic = jest.fn();
 
 jest.unstable_mockModule("../../src/models/vet-bolo.model.js", () => ({
-  createVetBolo: mockCreateVetBolo
+  createVetBolo: mockCreateVetBolo,
+  findVetBoloForClinic: mockFindVetBoloForClinic
 }));
 
 const mockEmitVetBoloSent = jest.fn();
@@ -80,6 +82,7 @@ const PET = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockFindUserById.mockResolvedValue({ first_name: "Owner", last_name: "One", email: "owner@example.com", phone: "512-555-0100" });
+  mockFindVetBoloForClinic.mockResolvedValue(null);
   mockCreateVetBolo.mockImplementation(async (input: any) => ({ ...input, id: "bolo-1", sent_at: new Date() }));
 });
 
@@ -197,5 +200,38 @@ describe("dispatchVetBolos (SendGrid send + missing-clinic-email path)", () => {
     expect(dispatched[0].email_status).toBe("sent");
     expect(dispatched[1].email_status).toBe("failed");
     expect(mockEmitVetBoloSent).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips a clinic already dispatched for the same search", async () => {
+    const existing = {
+      id: "existing-bolo",
+      search_id: "search-1",
+      pet_id: "pet-1",
+      clinic_name: "Duplicate Vet",
+      clinic_address: "4 Main St",
+      clinic_email: "duplicate@example.com",
+      latitude: 30.27,
+      longitude: -97.74,
+      distance_miles: 0.2,
+      email_status: "sent",
+      sent_at: new Date()
+    };
+    mockFindVetBoloForClinic.mockResolvedValue(existing);
+
+    const dispatched = await dispatchVetBolos(SEARCH, PET, [
+      {
+        clinic_name: "Duplicate Vet",
+        clinic_address: "4 Main St",
+        clinic_email: "duplicate@example.com",
+        latitude: 30.27,
+        longitude: -97.74,
+        distance_miles: 0.2
+      }
+    ]);
+
+    expect(dispatched).toEqual([existing]);
+    expect(mockSendEmail).not.toHaveBeenCalled();
+    expect(mockCreateVetBolo).not.toHaveBeenCalled();
+    expect(mockEmitVetBoloSent).not.toHaveBeenCalled();
   });
 });

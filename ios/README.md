@@ -14,8 +14,8 @@ machine, etc.). This doc covers the one-time setup and the ongoing workflow.
    git clone <repo-url>
    ```
 
-2. **Install Xcode** from the Mac App Store, if not already installed.
-   Large download (10+ GB) — do this ahead of time if possible.
+2. **Install Xcode** from the Mac App Store, if not already installed. Large
+   download (10+ GB), so do this ahead of time if possible.
 
 3. **Install XcodeGen** via Homebrew:
    ```
@@ -41,8 +41,8 @@ machine, etc.). This doc covers the one-time setup and the ongoing workflow.
    ```
 
 6. **Fix the bundle identifier.** `project.yml` currently uses a placeholder
-   (`com.petrecovery.app`). In Xcode: select the target → **Signing &
-   Capabilities** → replace with the actual registered bundle ID before
+   (`com.petrecovery.app`). In Xcode: select the target, open **Signing &
+   Capabilities**, and replace it with the actual registered bundle ID before
    signing or running on a physical device. A placeholder is fine for
    simulator-only testing.
 
@@ -50,17 +50,17 @@ machine, etc.). This doc covers the one-time setup and the ongoing workflow.
 
 ## Ongoing workflow
 
-- **Day-to-day Swift editing happens on Windows** (VS Code, Claude Code,
-  etc.) — `.swift` files are plain text, no Mac required to write them.
+- **Day-to-day Swift editing happens on Windows** (VS Code, Claude Code, etc.).
+  `.swift` files are plain text, no Mac required to write them.
 - **Push to git from Windows** as normal.
 - **Periodically, on the Mac:** pull the latest changes, re-run
-  `xcodegen generate` if `project.yml` changed or new source files were
-  added, then build/run to confirm things actually compile.
-- `PetRecovery.xcodeproj` is **not committed to git** (it's in
-  `.gitignore`). Every machine regenerates its own copy from `project.yml`,
-  which avoids Xcode project merge conflicts entirely. `project.yml` is the
-  source of truth — edit that, not the generated `.xcodeproj`, when adding
-  new source folders or dependencies.
+  `xcodegen generate` if `project.yml` changed or new source files were added,
+  then build/run to confirm things actually compile.
+- `PetRecovery.xcodeproj` is **not committed to git** (it's in `.gitignore`).
+  Every machine regenerates its own copy from `project.yml`, which avoids Xcode
+  project merge conflicts entirely. `project.yml` is the source of truth; edit
+  that, not the generated `.xcodeproj`, when adding new source folders or
+  dependencies.
 
 ---
 
@@ -74,18 +74,19 @@ Re-run `xcodegen generate` after:
 - Changing capabilities, entitlements, or bundle settings in `project.yml`
 
 You do **not** need to regenerate for routine changes to existing `.swift`
-files — only when the project *structure* changes.
+files, only when the project structure changes.
 
 ---
 
 ## Known gaps as of this writing
 
-- Bundle ID in `project.yml` is a placeholder — needs to be swapped for the
+- Bundle ID in `project.yml` is a placeholder and needs to be swapped for the
   real registered identifier.
-- Stripe SPM package product name (`StripePaymentSheet` in `project.yml`) is
-  a best guess — confirm it matches whichever Stripe module the reward/escrow
-  flow actually uses, and adjust if needed.
-- No push notification certificates/keys are configured yet — the
-  entitlement (`aps-environment`) is in place, but APNs setup (certificates
-  or auth keys in Apple Developer + your backend's push service) is a
-  separate step not covered here.
+- Stripe SPM package product name (`StripePaymentSheet` in `project.yml`) is a
+  best guess. Confirm it matches whichever Stripe module the reward/escrow flow
+  actually uses, and adjust if needed.
+- APNs backend support exists, and the app has the `aps-environment`
+  entitlement plus device-token registration. Live delivery still requires
+  Apple Developer APNs credentials configured on the backend through
+  `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_BUNDLE_ID`, `APNS_PRIVATE_KEY`, and
+  `APNS_ENVIRONMENT`.

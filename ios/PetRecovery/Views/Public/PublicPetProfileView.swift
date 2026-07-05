@@ -77,11 +77,20 @@ struct PublicPetProfileView: View {
 
             Section("Contact the Owner") {
                 if let name = p.owner.name { Text(name).fontWeight(.semibold) }
-                Link(destination: URL(string: "mailto:\(p.owner.email)")!) {
+                if let emailURL = URL(string: "mailto:\(p.owner.email)") {
+                    Link(destination: emailURL) {
+                        Label(p.owner.email, systemImage: "envelope")
+                    }
+                } else {
                     Label(p.owner.email, systemImage: "envelope")
                 }
                 if let phone = p.owner.phone {
-                    Link(destination: URL(string: "tel:\(phone.replacingOccurrences(of: " ", with: ""))")!) {
+                    let normalizedPhone = phone.replacingOccurrences(of: " ", with: "")
+                    if let phoneURL = URL(string: "tel:\(normalizedPhone)") {
+                        Link(destination: phoneURL) {
+                            Label(phone, systemImage: "phone")
+                        }
+                    } else {
                         Label(phone, systemImage: "phone")
                     }
                 }

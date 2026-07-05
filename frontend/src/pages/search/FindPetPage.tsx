@@ -42,15 +42,15 @@ export function FindPetPage() {
       </section>
     );
   }
+
   if (!searches) {
     return (
       <section className="app-shell">
-        <Spinner label="Loading your active searches…" />
+        <Spinner label="Loading your active searches..." />
       </section>
     );
   }
 
-  // Exactly one active search — skip the chooser and go straight to its map.
   if (searches.length === 1) {
     return <Navigate to={`/searches/${searches[0].id}`} replace />;
   }
@@ -75,19 +75,23 @@ export function FindPetPage() {
         </div>
       ) : (
         <div className="pet-grid">
-          {searches.map((s) => (
-            <Link to={`/searches/${s.id}`} key={s.id} style={{ textDecoration: "none", color: "inherit" }}>
+          {searches.map((search) => (
+            <Link
+              to={`/searches/${search.id}`}
+              key={search.id}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
               <div className="pet-card">
                 <div className="pet-card-photo">
-                  {s.pet_photo_urls?.[0] ? (
-                    <img src={s.pet_photo_urls[0]} alt={s.pet_name} />
+                  {search.pet_photo_urls?.[0] ? (
+                    <img src={search.pet_photo_urls[0]} alt={search.pet_name} />
                   ) : (
-                    SPECIES_EMOJI[s.pet_species] ?? "🐾"
+                    SPECIES_EMOJI[search.pet_species] ?? "🐾"
                   )}
                   <span className="badge badge-lost pet-card-badge-overlay">⚠ Lost</span>
                 </div>
                 <div className="pet-card-body">
-                  <div className="pet-card-name">{s.pet_name}</div>
+                  <div className="pet-card-name">{search.pet_name}</div>
                   <div className="pet-card-desc">View live search &amp; map →</div>
                 </div>
               </div>
