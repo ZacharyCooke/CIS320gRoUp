@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 interface Reward {
   id: string;
@@ -46,12 +48,21 @@ export function RewardSetupPage() {
   const [amountDollars, setAmountDollars] = useState("50");
   const [channel, setChannel] = useState("paypal");
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
+  function loadPetAndReward() {
     if (!petId) return;
-    apiClient.get(`/pets/${petId}`).then(({ data }) => setPet(data.pet)).catch(() => {});
+    setLoadError(null);
+    apiClient
+      .get(`/pets/${petId}`)
+      .then(({ data }) => setPet(data.pet))
+      .catch(() => setLoadError("Could not load this pet"));
     apiClient.get(`/pets/${petId}/reward`).then(({ data }) => setReward(data.reward)).catch(() => setReward(null));
+  }
+
+  useEffect(() => {
+    loadPetAndReward();
   }, [petId]);
 
   async function createReward(event: React.FormEvent) {
@@ -117,7 +128,21 @@ export function RewardSetupPage() {
     }
   }
 
-  if (!pet || reward === undefined) return <p className="app-shell">Loading…</p>;
+  if (loadError) {
+    return (
+      <section className="app-shell">
+        <ErrorState message={loadError} onRetry={loadPetAndReward} />
+      </section>
+    );
+  }
+
+  if (!pet || reward === undefined) {
+    return (
+      <section className="app-shell">
+        <Spinner label="Loading reward details…" />
+      </section>
+    );
+  }
 
   const statusInfo = reward ? STATUS_LABELS[reward.status] ?? { label: reward.status, color: "#64748b" } : null;
 
@@ -128,7 +153,7 @@ export function RewardSetupPage() {
       <div className="section-card">
         <div className="section-title">💰 Reward for {pet.name}</div>
 
-        {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+        {error && <ErrorState message={error} />}
 
         {!reward && (
           <form onSubmit={createReward}>

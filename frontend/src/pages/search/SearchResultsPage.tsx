@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToSearch, disconnectSearch } from "../../services/websocket.client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
+import { EmptyState } from "../../components/EmptyState";
 import "leaflet/dist/leaflet.css";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
 import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
@@ -56,22 +59,34 @@ export function SearchResultsPage() {
   const [complete, setComplete] = useState(false);
   const [radius, setRadius] = useState(10);
   const [error, setError] = useState<string | null>(null);
+  const [vetBolosError, setVetBolosError] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markers = useRef<any[]>([]);
 
-  useEffect(() => {
+  function loadResults() {
     if (!id) return;
-
+    setError(null);
     apiClient.get(`/searches/${id}/results`).then(({ data }) => {
       setSearch(data.search);
       setRadius(data.search.radius_miles);
       setResults(data.results ?? []);
     }).catch(() => setError("Search not found."));
+  }
 
+  function loadVetBolos() {
+    if (!id) return;
+    setVetBolosError(null);
     apiClient.get(`/searches/${id}/vet-bolos`).then(({ data }) => {
       setVetBolos(data.vet_bolos ?? []);
-    }).catch(() => {});
+    }).catch(() => setVetBolosError("Could not load vet clinics notified for this search."));
+  }
+
+  useEffect(() => {
+    if (!id) return;
+
+    loadResults();
+    loadVetBolos();
 
     const socket = connectToSearch(id);
     socket.on("new_result", (result: SearchResult) => {
@@ -158,8 +173,20 @@ export function SearchResultsPage() {
     navigate("/dashboard");
   }
 
-  if (error) return <p className="app-shell" style={{ color: "red" }}>{error}</p>;
-  if (!search) return <p className="app-shell">Loading…</p>;
+  if (error) {
+    return (
+      <section className="app-shell">
+        <ErrorState message={error} onRetry={loadResults} />
+      </section>
+    );
+  }
+  if (!search) {
+    return (
+      <section className="app-shell">
+        <Spinner label="Loading search results…" />
+      </section>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -214,7 +241,7 @@ export function SearchResultsPage() {
           <span className="badge badge-lost">{results.length} match{results.length !== 1 ? "es" : ""}</span>
         </div>
 
-        {results.length === 0 && <p className="form-hint">No results yet — check back shortly.</p>}
+        {results.length === 0 && <EmptyState compact message="No results yet — check back shortly." />}
 
         {results.map((r) => {
           const meta = SOURCE_META[r.source] ?? { label: r.source, icon: "❔", color: "#6b7280" };
@@ -265,8 +292,9 @@ export function SearchResultsPage() {
           </div>
           <span className="tag tag-teal">{vetBolos.length}</span>
         </div>
-        {vetBolos.length === 0 ? (
-          <p className="form-hint">No nearby vet clinics notified yet.</p>
+        {vetBolosError && <ErrorState message={vetBolosError} onRetry={loadVetBolos} />}
+        {!vetBolosError && vetBolos.length === 0 ? (
+          <EmptyState compact message="No nearby vet clinics notified yet." />
         ) : (
           vetBolos.map((v) => (
             <div className="list-row" key={v.id}>

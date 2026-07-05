@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToUser, disconnectUser } from "../../services/websocket.client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
+import { EmptyState } from "../../components/EmptyState";
 
 interface NotificationItem {
   id: string;
@@ -65,6 +68,7 @@ export function NotificationsPage() {
   const [unread, setUnread] = useState(0);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
     "Notification" in window ? Notification.permission : "unsupported"
@@ -83,6 +87,8 @@ export function NotificationsPage() {
   }, []);
 
   async function load() {
+    setLoading(true);
+    setLoadError(null);
     try {
       const [notifRes, meRes] = await Promise.all([
         apiClient.get("/notifications"),
@@ -98,6 +104,8 @@ export function NotificationsPage() {
       });
     } catch {
       setLoadError("Could not load notifications — please log in again.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -126,11 +134,19 @@ export function NotificationsPage() {
 
   const filtered = notifications.filter((n) => filter === "all" || notificationMeta(n.type).bucket === filter);
 
+  if (loading) {
+    return (
+      <section className="app-shell" style={{ maxWidth: 720 }}>
+        <Spinner label="Loading notifications…" />
+      </section>
+    );
+  }
+
   if (loadError) {
     return (
       <section className="app-shell" style={{ maxWidth: 720 }}>
-        <p role="alert" style={{ color: "#dc2626" }}>{loadError}</p>
-        <Link to="/login">Sign in</Link>
+        <ErrorState message={loadError} onRetry={load} />
+        <p style={{ marginTop: 12 }}><Link to="/login">Sign in</Link></p>
       </section>
     );
   }
@@ -201,7 +217,10 @@ export function NotificationsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <p style={{ color: "#6b7280" }}>No notifications{filter !== "all" ? " of this type" : ""} yet.</p>
+        <EmptyState
+          icon="🔔"
+          message={`No notifications${filter !== "all" ? " of this type" : ""} yet.`}
+        />
       ) : (
         <div style={{ marginBottom: 24 }}>
           {filtered.map((n) => {

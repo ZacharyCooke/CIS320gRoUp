@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
+import { EmptyState } from "../../components/EmptyState";
 
 interface ActiveSearch {
   id: string;
@@ -20,15 +23,32 @@ export function FindPetPage() {
   const [searches, setSearches] = useState<ActiveSearch[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function loadSearches() {
+    setError(null);
     apiClient
       .get("/searches/mine")
       .then(({ data }) => setSearches(data.searches ?? []))
       .catch(() => setError("Could not load your active searches."));
+  }
+
+  useEffect(() => {
+    loadSearches();
   }, []);
 
-  if (error) return <p role="alert" className="app-shell" style={{ color: "red" }}>{error}</p>;
-  if (!searches) return <p className="app-shell">Loading…</p>;
+  if (error) {
+    return (
+      <section className="app-shell">
+        <ErrorState message={error} onRetry={loadSearches} />
+      </section>
+    );
+  }
+  if (!searches) {
+    return (
+      <section className="app-shell">
+        <Spinner label="Loading your active searches…" />
+      </section>
+    );
+  }
 
   // Exactly one active search — skip the chooser and go straight to its map.
   if (searches.length === 1) {
@@ -45,12 +65,13 @@ export function FindPetPage() {
       </div>
 
       {searches.length === 0 ? (
-        <div className="section-card" style={{ textAlign: "center", padding: "40px 24px" }}>
-          <p style={{ fontSize: "2rem", marginBottom: 8 }}>🐾</p>
-          <p style={{ color: "#64748b", marginBottom: 16 }}>
-            No active searches right now. Mark a pet lost from your dashboard to start one.
-          </p>
-          <Link to="/dashboard"><button type="button">Go to Dashboard</button></Link>
+        <div className="section-card">
+          <EmptyState
+            icon="🐾"
+            message="No active searches right now. Mark a pet lost from your dashboard to start one."
+            actionLabel="Go to Dashboard"
+            actionTo="/dashboard"
+          />
         </div>
       ) : (
         <div className="pet-grid">

@@ -12,6 +12,7 @@ export function usePetProfile() {
   const [devices, setDevices] = useState<TrackingDevice[]>([]);
   const [sources, setSources] = useState<ExternalSource[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [sectionsError, setSectionsError] = useState<string | null>(null);
   const [deviceUrl, setDeviceUrl] = useState("");
   const [deviceType, setDeviceType] = useState("airtag");
   const [sourceType, setSourceType] = useState("petfinder_api");
@@ -20,25 +21,20 @@ export function usePetProfile() {
   const [showMarkLost, setShowMarkLost] = useState(false);
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
 
-  useEffect(() => {
+  function loadSecondary() {
     if (!id) return;
-    setPet(null);
-    setVet(null);
-    setQr(null);
-    setLoadError(null);
+    const onSectionError = () => setSectionsError(
+      "Some profile details (vet, QR code, tracking devices, or external sources) failed to load — try refreshing."
+    );
 
-    apiClient
-      .get(`/pets/${id}`)
-      .then(({ data }) => setPet(data.pet))
-      .catch(() => setLoadError("Could not load pet profile"));
     apiClient
       .get(`/pets/${id}/vet`)
       .then(({ data }) => setVet(data.vet))
-      .catch(() => {});
+      .catch(onSectionError);
     apiClient
       .get(`/pets/${id}/qr`)
       .then(({ data }) => setQr({ png_data_url: data.png_data_url, profile_url: data.profile_url }))
-      .catch(() => {});
+      .catch(onSectionError);
     apiClient
       .get(`/pets/${id}/active-search`)
       .then(({ data }) => setActiveSearchId(data.search?.id ?? null))
@@ -46,11 +42,26 @@ export function usePetProfile() {
     apiClient
       .get(`/pets/${id}/tracking-devices`)
       .then(({ data }) => setDevices(data.tracking_devices ?? []))
-      .catch(() => {});
+      .catch(onSectionError);
     apiClient
       .get(`/pets/${id}/external-sources`)
       .then(({ data }) => setSources(data.external_sources ?? []))
-      .catch(() => {});
+      .catch(onSectionError);
+  }
+
+  useEffect(() => {
+    if (!id) return;
+    setPet(null);
+    setVet(null);
+    setQr(null);
+    setLoadError(null);
+    setSectionsError(null);
+
+    apiClient
+      .get(`/pets/${id}`)
+      .then(({ data }) => setPet(data.pet))
+      .catch(() => setLoadError("Could not load pet profile"));
+    loadSecondary();
   }, [id]);
 
   async function rotateQr() {
@@ -110,6 +121,7 @@ export function usePetProfile() {
     devices,
     sources,
     loadError,
+    sectionsError,
     deviceUrl,
     deviceType,
     sourceType,
@@ -123,7 +135,11 @@ export function usePetProfile() {
     setShowMarkLost,
     rotateQr,
     linkDevice,
-    linkSource
+    linkSource,
+    retrySections: () => {
+      setSectionsError(null);
+      loadSecondary();
+    }
   };
 }
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 function useMathCaptcha() {
   const a = useMemo(() => Math.floor(Math.random() * 9) + 1, []);
@@ -82,7 +83,7 @@ export function RegisterPage() {
           Register in a few minutes — protect your pets before anything happens.
         </p>
 
-        {error && <p role="alert" style={{ color: "#dc2626", marginBottom: 8 }}>{error}</p>}
+        {error && <div style={{ marginBottom: 8 }}><ErrorState message={error} /></div>}
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: "flex", gap: "12px" }}>

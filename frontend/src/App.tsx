@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { NavBar } from "./components/NavBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Spinner } from "./components/Spinner";
 import { setAccessToken } from "./services/api-client";
 
 function lazyPage<T extends Record<string, React.ComponentType<object>>>(
@@ -55,29 +57,37 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 export function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<p className="app-shell">Loading...</p>}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/p/:token" element={<PublicPetProfile />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/verify" element={<VerifyContactPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/found-report" element={<FoundReportPage />} />
-          <Route path="/store" element={<StorePage />} />
-          <Route path="/store/premium" element={<RequireAuth><PremiumCheckoutPage /></RequireAuth>} />
-          <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
-          <Route path="/pets/new" element={<RequireAuth><PetFormPage /></RequireAuth>} />
-          <Route path="/pets/:id" element={<RequireAuth><PetProfilePage /></RequireAuth>} />
-          <Route path="/search" element={<RequireAuth><FindPetPage /></RequireAuth>} />
-          <Route path="/searches/:id" element={<RequireAuth><SearchResultsPage /></RequireAuth>} />
-          <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
-          <Route path="/pets/:id/reward" element={<RequireAuth><RewardSetupPage /></RequireAuth>} />
-          <Route path="/rewards/:id/verify" element={<RequireAuth><ProximityVerificationPage /></RequireAuth>} />
-          <Route path="/account/settings" element={<RequireAuth><AccountSettingsPage /></RequireAuth>} />
-          <Route path="/account/2fa-setup" element={<RequireAuth><TwoFactorSetupPage /></RequireAuth>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense
+          fallback={
+            <section className="app-shell">
+              <Spinner />
+            </section>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/p/:token" element={<PublicPetProfile />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/verify" element={<VerifyContactPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/found-report" element={<FoundReportPage />} />
+            <Route path="/store" element={<StorePage />} />
+            <Route path="/store/premium" element={<RequireAuth><PremiumCheckoutPage /></RequireAuth>} />
+            <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+            <Route path="/pets/new" element={<RequireAuth><PetFormPage /></RequireAuth>} />
+            <Route path="/pets/:id" element={<RequireAuth><PetProfilePage /></RequireAuth>} />
+            <Route path="/search" element={<RequireAuth><FindPetPage /></RequireAuth>} />
+            <Route path="/searches/:id" element={<RequireAuth><SearchResultsPage /></RequireAuth>} />
+            <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+            <Route path="/pets/:id/reward" element={<RequireAuth><RewardSetupPage /></RequireAuth>} />
+            <Route path="/rewards/:id/verify" element={<RequireAuth><ProximityVerificationPage /></RequireAuth>} />
+            <Route path="/account/settings" element={<RequireAuth><AccountSettingsPage /></RequireAuth>} />
+            <Route path="/account/2fa-setup" element={<RequireAuth><TwoFactorSetupPage /></RequireAuth>} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

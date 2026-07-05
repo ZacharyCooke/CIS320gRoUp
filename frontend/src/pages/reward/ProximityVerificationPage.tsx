@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 interface Reward {
   reward_id: string;
@@ -41,6 +43,7 @@ export function ProximityVerificationPage() {
   const [role, setRole] = useState<Role>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [identityMethod, setIdentityMethod] = useState<"qr_scan" | "microchip_read">("microchip_read");
   const [identityValue, setIdentityValue] = useState("");
@@ -51,9 +54,14 @@ export function ProximityVerificationPage() {
     return data as Reward;
   }
 
+  function loadReward() {
+    setLoadError(null);
+    refreshReward().catch(() => setLoadError("Could not load this reward"));
+  }
+
   useEffect(() => {
     if (!rewardId) return;
-    refreshReward().catch(() => setError("Could not load this reward"));
+    loadReward();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rewardId]);
 
@@ -139,7 +147,21 @@ export function ProximityVerificationPage() {
     }
   }
 
-  if (!reward) return <p className="app-shell">{error ?? "Loading…"}</p>;
+  if (loadError) {
+    return (
+      <section className="app-shell">
+        <ErrorState message={loadError} onRetry={loadReward} />
+      </section>
+    );
+  }
+
+  if (!reward) {
+    return (
+      <section className="app-shell">
+        <Spinner label="Loading reward…" />
+      </section>
+    );
+  }
 
   const v = reward.proximity_verification;
   const effectiveRole = role;
@@ -155,7 +177,7 @@ export function ProximityVerificationPage() {
           ${(reward.amount_cents / 100).toFixed(2)} reward is released. A partial match never releases funds.
         </p>
 
-        {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+        {error && <ErrorState message={error} />}
         {message && <p style={{ color: "#0f766e" }}>{message}</p>}
 
         {v?.all_passed ? (

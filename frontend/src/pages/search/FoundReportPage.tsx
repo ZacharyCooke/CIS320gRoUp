@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 export function FoundReportPage() {
   const [name, setName] = useState("");
@@ -68,8 +69,9 @@ export function FoundReportPage() {
 
       await apiClient.post("/found-reports", formData);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err?.response?.data?.error ?? "Submission failed. Please try again.");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      setError(e.response?.data?.error ?? "Submission failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +101,7 @@ export function FoundReportPage() {
           ✅ <div>Reports are matched against active searches in real time. If yours matches a lost pet nearby, the owner is notified immediately.</div>
         </div>
 
-        {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+        {error && <ErrorState message={error} />}
 
         <form onSubmit={handleSubmit}>
           <div className="form-section-title">Pet Description</div>

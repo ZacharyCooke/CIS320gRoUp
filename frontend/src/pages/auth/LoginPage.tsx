@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 type Screen = "credentials" | "totp";
 
@@ -80,7 +81,7 @@ export function LoginPage() {
           <p style={{ color: "#5f6f89" }}>
             Open your authenticator app and enter the 6-digit code for PetRecovery.
           </p>
-          {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+          {error && <ErrorState message={error} />}
           <form onSubmit={handleTotp}>
             <label>
               Authenticator code

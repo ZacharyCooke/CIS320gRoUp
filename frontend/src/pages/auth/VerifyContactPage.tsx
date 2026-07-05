@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 // Mirrors the real server-side OTP_TTL_MS (10 minutes) in user.service.ts —
 // informational only, the server is still the actual source of truth for
@@ -75,7 +76,7 @@ export function VerifyContactPage() {
           Dev mode (no email provider configured): your code is <strong>{devOtp}</strong>
         </p>
       )}
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+      {error && <ErrorState message={error} />}
       <form onSubmit={handleSubmit}>
         <label>
           6-digit code

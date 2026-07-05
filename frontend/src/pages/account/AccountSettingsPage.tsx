@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 interface UserProfile {
   id: string;
@@ -25,11 +27,16 @@ export function AccountSettingsPage() {
   );
   const [facebookBusy, setFacebookBusy] = useState(false);
 
-  useEffect(() => {
+  function loadProfile() {
+    setLoadError(null);
     apiClient
       .get("/auth/me")
       .then(({ data }) => setProfile(data.user))
       .catch(() => setLoadError("Could not load account — please log in again."));
+  }
+
+  useEffect(() => {
+    loadProfile();
   }, []);
 
   async function connectFacebook() {
@@ -77,13 +84,19 @@ export function AccountSettingsPage() {
   if (loadError) {
     return (
       <section className="app-shell" style={{ maxWidth: 520 }}>
-        <p role="alert" style={{ color: "#dc2626" }}>{loadError}</p>
-        <Link to="/login">Sign in</Link>
+        <ErrorState message={loadError} onRetry={loadProfile} />
+        <p style={{ marginTop: 12 }}><Link to="/login">Sign in</Link></p>
       </section>
     );
   }
 
-  if (!profile) return <p className="app-shell">Loading…</p>;
+  if (!profile) {
+    return (
+      <section className="app-shell" style={{ maxWidth: 520 }}>
+        <Spinner label="Loading account…" />
+      </section>
+    );
+  }
 
   return (
     <section className="app-shell" style={{ maxWidth: 520 }}>
@@ -91,7 +104,7 @@ export function AccountSettingsPage() {
       <h1>Account Settings</h1>
 
       {actionMsg && <p style={{ color: "#0f766e" }}>{actionMsg}</p>}
-      {actionError && <p role="alert" style={{ color: "#dc2626" }}>{actionError}</p>}
+      {actionError && <ErrorState message={actionError} />}
 
       <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "20px 24px", marginBottom: 20 }}>
         <h2 style={{ fontSize: "1rem", marginBottom: 16 }}>Contact Methods</h2>
@@ -175,7 +188,7 @@ export function AccountSettingsPage() {
               disabled={facebookBusy}
               style={{ fontSize: "0.875rem", padding: "8px 16px" }}
             >
-              Disconnect
+              {facebookBusy ? "Disconnecting…" : "Disconnect"}
             </button>
           ) : (
             <button
@@ -184,7 +197,7 @@ export function AccountSettingsPage() {
               disabled={facebookBusy}
               style={{ fontSize: "0.875rem", padding: "8px 16px" }}
             >
-              Connect Facebook
+              {facebookBusy ? "Connecting…" : "Connect Facebook"}
             </button>
           )}
         </div>

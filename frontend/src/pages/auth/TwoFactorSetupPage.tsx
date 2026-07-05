@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 export function TwoFactorSetupPage() {
   const navigate = useNavigate();
@@ -13,7 +15,9 @@ export function TwoFactorSetupPage() {
   const [verifying, setVerifying] = useState(false);
   const [enabled, setEnabled] = useState(false);
 
-  useEffect(() => {
+  function startSetup() {
+    setLoading(true);
+    setLoadError(null);
     apiClient
       .post("/auth/2fa/setup")
       .then(({ data }) => {
@@ -22,6 +26,10 @@ export function TwoFactorSetupPage() {
       })
       .catch(() => setLoadError("Could not start 2FA setup — are you logged in?"))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    startSetup();
   }, []);
 
   async function handleVerify(event: React.FormEvent) {
@@ -57,7 +65,7 @@ export function TwoFactorSetupPage() {
   if (loading) {
     return (
       <div className="form-page-wrapper">
-        <section className="form-page"><p>Loading…</p></section>
+        <section className="form-page"><Spinner label="Setting up 2FA…" /></section>
       </div>
     );
   }
@@ -66,7 +74,7 @@ export function TwoFactorSetupPage() {
     return (
       <div className="form-page-wrapper">
         <section className="form-page">
-          <p role="alert" style={{ color: "#dc2626" }}>{loadError}</p>
+          <ErrorState message={loadError} onRetry={startSetup} />
         </section>
       </div>
     );
@@ -109,7 +117,7 @@ export function TwoFactorSetupPage() {
           </details>
         )}
 
-        {verifyError && <p role="alert" style={{ color: "#dc2626" }}>{verifyError}</p>}
+        {verifyError && <ErrorState message={verifyError} />}
 
         <form onSubmit={handleVerify}>
           <label>

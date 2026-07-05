@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { NotificationBell } from "../../components/NotificationBell";
 import { AdBanner, SidebarAd } from "../../components/AdBanner";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
+import { EmptyState } from "../../components/EmptyState";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 const QRScannerModal = lazy(async () => {
@@ -36,7 +39,9 @@ export function DashboardPage() {
   const [showScanner, setShowScanner] = useState(false);
   const { user } = useCurrentUser();
 
-  useEffect(() => {
+  function loadPets() {
+    setLoading(true);
+    setError(null);
     apiClient
       .get("/pets")
       .then(({ data }) => setPets(data.pets))
@@ -44,6 +49,10 @@ export function DashboardPage() {
         setError(err.response?.data?.error ?? "Failed to load pets");
       })
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadPets();
   }, []);
 
   return (
@@ -71,10 +80,19 @@ export function DashboardPage() {
 
       <AdBanner isPremium={user?.is_premium ?? false} adIndex={0} />
 
-      {loading && <p>Loading…</p>}
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+      {loading && <Spinner label="Loading your pets…" />}
+      {error && <ErrorState message={error} onRetry={loadPets} />}
 
-      {!loading && !error && (
+      {!loading && !error && pets.length === 0 && (
+        <EmptyState
+          icon="🐾"
+          message="You haven't registered any pets yet. Add your first pet to get started."
+          actionLabel="+ Add Pet"
+          actionTo="/pets/new"
+        />
+      )}
+
+      {!loading && !error && pets.length > 0 && (
         <div className="pet-grid">
           {pets.map((pet) => (
             <div key={pet.id} className="pet-card" onClick={() => navigate(`/pets/${pet.id}`)}>

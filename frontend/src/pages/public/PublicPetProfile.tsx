@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
 
@@ -30,7 +32,7 @@ export function PublicPetProfile() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  function loadProfile() {
     if (!token) return;
     setLoading(true);
     setError(null);
@@ -42,11 +44,22 @@ export function PublicPetProfile() {
       .then((data) => setProfile(data.profile))
       .catch(() => setError("This pet profile could not be found. The code may be inactive."))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  if (loading) return <p style={{ padding: 24 }}>Loading…</p>;
-  if (error) return <p role="alert" style={{ padding: 24, color: "#dc2626" }}>{error}</p>;
-  if (!profile) return null;
+  if (loading) return <div style={{ padding: 24 }}><Spinner label="Loading pet profile…" /></div>;
+  if (error) return <div style={{ padding: 24 }}><ErrorState message={error} onRetry={loadProfile} /></div>;
+  if (!profile) {
+    return (
+      <div style={{ padding: 24 }}>
+        <ErrorState message="This pet profile could not be found." onRetry={loadProfile} />
+      </div>
+    );
+  }
 
   const temperament = TEMPERAMENT_LABELS[profile.temperament] ?? {
     label: profile.temperament,

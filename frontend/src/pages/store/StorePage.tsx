@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { AdBanner } from "../../components/AdBanner";
+import { EmptyState } from "../../components/EmptyState";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 type Category = "id_tags" | "gps_trackers" | "safety_gear";
@@ -101,7 +102,7 @@ function formatPrice(cents: number): string {
 
 export function StorePage() {
   const navigate = useNavigate();
-  const { user, loading: userLoading } = useCurrentUser();
+  const { user, loading: userLoading, error: userError, refetch: refetchUser } = useCurrentUser();
   const [activeCategory, setActiveCategory] = useState<Category | "all">("all");
   const [priceBands, setPriceBands] = useState<Set<string>>(new Set());
   const [petTypes, setPetTypes] = useState<Set<PetType>>(new Set());
@@ -171,6 +172,14 @@ export function StorePage() {
       </div>
 
       {!userLoading && <AdBanner isPremium={isPremium} adIndex={0} />}
+      {userError && (
+        <p className="form-hint" role="alert">
+          Could not confirm your Premium status right now — ads may show even if you're subscribed.{" "}
+          <button type="button" className="btn-outline" onClick={refetchUser} style={{ marginLeft: 8 }}>
+            Retry
+          </button>
+        </p>
+      )}
 
       <div className="store-hero">
         <h1>🛍 PetRecovery Store</h1>
@@ -237,6 +246,19 @@ export function StorePage() {
           <div className="products-header">
             <h2>{filteredProducts.length} Products</h2>
           </div>
+
+          {filteredProducts.length === 0 && (
+            <EmptyState
+              icon="🔍"
+              message="No products match your filters. Try clearing some filters to see more."
+              actionLabel="Clear Filters"
+              onAction={() => {
+                setActiveCategory("all");
+                setPriceBands(new Set());
+                setPetTypes(new Set());
+              }}
+            />
+          )}
 
           <div className="product-grid">
             {filteredProducts.map((product) => (

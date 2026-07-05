@@ -115,7 +115,7 @@ export function PetFormPage() {
     <section className="form-page">
       <h1>Add pet profile</h1>
       {error && (
-        <div role="alert" style={{ color: "red" }}>
+        <div className="error-state" role="alert">
           <p>{error}</p>
           {error.includes("Upgrade to Premium") && (
             <button type="button" className="btn-outline" onClick={() => navigate("/store")}>

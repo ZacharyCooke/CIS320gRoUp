@@ -1,0 +1,57 @@
+.spinner-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 24px;
+  color: #64748b;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0f766e;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.spinner-label {
+  font-size: 0.9rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-state {
+  padding: 20px 24px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: 10px;
+  color: #b91c1c;
+}
+
+.error-state p {
+  margin: 0 0 10px;
+}
+
+.error-state button {
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.empty-state-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.empty-state-message {
+  color: #64748b;
+  margin-bottom: 16px;
+}

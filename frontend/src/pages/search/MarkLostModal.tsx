@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { ErrorState } from "../../components/ErrorState";
 
 interface Props {
   petId: string;
@@ -49,8 +50,9 @@ export function MarkLostModal({ petId, petName, onClose }: Props) {
         radius_miles: radius
       });
       navigate(`/searches/${data.search.id}`);
-    } catch (err: any) {
-      setError(err?.response?.data?.error ?? "Failed to start search.");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string } } };
+      setError(e.response?.data?.error ?? "Failed to start search.");
       setSubmitting(false);
     }
   }
@@ -81,7 +83,7 @@ export function MarkLostModal({ petId, petName, onClose }: Props) {
             />
           </label>
 
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <ErrorState message={error} />}
 
           <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
             <button type="submit" disabled={submitting}>

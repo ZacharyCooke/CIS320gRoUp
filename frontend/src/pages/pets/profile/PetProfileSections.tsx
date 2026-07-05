@@ -1,5 +1,6 @@
 import { DEVICE_LABELS, TEMPERAMENT_LABELS } from "./constants";
 import type { PetProfileState } from "./usePetProfile";
+import { EmptyState } from "../../../components/EmptyState";
 
 interface Props {
   profile: PetProfileState;
@@ -89,7 +90,7 @@ function TrackingDevicesSection({ profile }: Props) {
         );
       })}
 
-      {profile.devices.length === 0 && <p className="form-hint">No tracking devices linked yet.</p>}
+      {profile.devices.length === 0 && <EmptyState compact message="No tracking devices linked yet." />}
 
       <form onSubmit={profile.linkDevice}>
         <label>
@@ -132,7 +133,7 @@ function ExternalSourcesSection({
         </div>
       ))}
 
-      {activeSources.length === 0 && <p className="form-hint">No external sources linked yet.</p>}
+      {activeSources.length === 0 && <EmptyState compact message="No external sources linked yet." />}
 
       <form onSubmit={profile.linkSource}>
         <label>

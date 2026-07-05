@@ -1,11 +1,13 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { Spinner } from "../../components/Spinner";
+import { ErrorState } from "../../components/ErrorState";
 
 export function PremiumCheckoutPage() {
   const [searchParams] = useSearchParams();
   const success = searchParams.get("success") === "true";
   const cancelled = searchParams.get("cancelled") === "true";
-  const { user, loading, refetch } = useCurrentUser();
+  const { user, loading, error, refetch } = useCurrentUser();
 
   return (
     <section className="app-shell" style={{ maxWidth: 480 }}>
@@ -33,7 +35,13 @@ export function PremiumCheckoutPage() {
           </>
         )}
 
-        {!loading && (
+        {loading && <Spinner label="Checking your Premium status…" />}
+        {!loading && error && (
+          <div style={{ margin: "16px 0" }}>
+            <ErrorState message={error} onRetry={refetch} />
+          </div>
+        )}
+        {!loading && !error && (
           <p style={{ margin: "16px 0" }}>
             Current status:{" "}
             <span className={`badge ${user?.is_premium ? "badge-safe" : ""}`}>
