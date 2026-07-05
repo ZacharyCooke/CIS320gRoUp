@@ -6,6 +6,7 @@ import {
   type User
 } from "../models/user.model.js";
 import { hashPassword, looksLikePasswordHash } from "./password.service.js";
+import { HttpError } from "../errors.js";
 
 type VerificationChannel = "email" | "phone";
 
@@ -57,7 +58,7 @@ function setPendingOtp(userId: string, channel: VerificationChannel): string {
 export async function register(input: RegisterUserInput): Promise<RegisterUserResult> {
   const existing = await findUserByEmail(input.email);
   if (existing) {
-    throw new Error("email already registered");
+    throw new HttpError(409, "email_already_registered", "An account with this email already exists.");
   }
 
   const password_hash =

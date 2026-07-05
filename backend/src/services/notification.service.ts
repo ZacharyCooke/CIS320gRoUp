@@ -97,9 +97,39 @@ export async function dispatchCommunityAlert(
   });
 }
 
-// dispatchProximityAlert is intentionally NOT implemented in Phase 7D — it fires
-// when an owner initiates reward proximity verification (FR-022a), which depends
-// on the Reward model that doesn't exist until Phase 7E (T127). Add it there.
+export async function dispatchProximityAlert(
+  ownerId: string,
+  finderUserId: string,
+  rewardId: string
+): Promise<void> {
+  // No per-user toggle gates this — like claim_alert, it's a direct result of an
+  // action the recipient just took part in, not a passive area-based alert.
+  try {
+    await notify({
+      userId: ownerId,
+      type: "claim_alert",
+      socketEvent: "reward_released",
+      title: "Reward released",
+      body: "Proximity, pet identity, and owner identity all verified — the reward has been released to the finder.",
+      data: { reward_id: rewardId }
+    });
+  } catch (err) {
+    console.error("[notification] proximity alert (owner) error:", err);
+  }
+
+  try {
+    await notify({
+      userId: finderUserId,
+      type: "claim_alert",
+      socketEvent: "reward_released",
+      title: "Reward released to you",
+      body: "All verification steps passed — the reward has been released.",
+      data: { reward_id: rewardId }
+    });
+  } catch (err) {
+    console.error("[notification] proximity alert (finder) error:", err);
+  }
+}
 
 export async function dispatchClaimAlert(search: LostPetSearch, report: FoundReport): Promise<void> {
   const pet = await findPetById(search.pet_id);

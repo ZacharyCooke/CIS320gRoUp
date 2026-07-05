@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
 
 interface UserProfile {
@@ -9,14 +9,21 @@ interface UserProfile {
   is_email_verified: boolean;
   is_phone_verified: boolean;
   is_2fa_enabled: boolean;
+  facebook_connected: boolean;
 }
 
 export function AccountSettingsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(
+    searchParams.get("error") === "facebook_auth_failed"
+      ? "Facebook connection failed — please try again."
+      : null
+  );
+  const [facebookBusy, setFacebookBusy] = useState(false);
 
   useEffect(() => {
     apiClient
@@ -24,6 +31,37 @@ export function AccountSettingsPage() {
       .then(({ data }) => setProfile(data.user))
       .catch(() => setLoadError("Could not load account — please log in again."));
   }, []);
+
+  async function connectFacebook() {
+    setActionError(null);
+    setFacebookBusy(true);
+    try {
+      const { data } = await apiClient.post("/auth/facebook", { platform: "web" });
+      window.location.assign(data.redirect_url);
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number } };
+      setActionError(
+        e.response?.status === 503
+          ? "Facebook isn't configured on this server yet."
+          : "Failed to start Facebook connection."
+      );
+      setFacebookBusy(false);
+    }
+  }
+
+  async function disconnectFacebook() {
+    setActionError(null);
+    setFacebookBusy(true);
+    try {
+      await apiClient.post("/auth/facebook/disconnect");
+      setProfile((prev) => (prev ? { ...prev, facebook_connected: false } : prev));
+      setActionMsg("Facebook disconnected.");
+    } catch {
+      setActionError("Failed to disconnect Facebook.");
+    } finally {
+      setFacebookBusy(false);
+    }
+  }
 
   async function handleLogout() {
     const refresh_token = localStorage.getItem("refresh_token");
@@ -38,17 +76,17 @@ export function AccountSettingsPage() {
 
   if (loadError) {
     return (
-      <section style={{ padding: "1.5rem" }}>
+      <section className="app-shell" style={{ maxWidth: 520 }}>
         <p role="alert" style={{ color: "#dc2626" }}>{loadError}</p>
         <Link to="/login">Sign in</Link>
       </section>
     );
   }
 
-  if (!profile) return <p style={{ padding: "1.5rem" }}>Loading…</p>;
+  if (!profile) return <p className="app-shell">Loading…</p>;
 
   return (
-    <section style={{ padding: "1.5rem", maxWidth: 520 }}>
+    <section className="app-shell" style={{ maxWidth: 520 }}>
       <Link to="/dashboard" style={{ display: "inline-block", marginBottom: 20 }}>← Dashboard</Link>
       <h1>Account Settings</h1>
 
@@ -101,8 +139,8 @@ export function AccountSettingsPage() {
             <h2 style={{ fontSize: "1rem", margin: "0 0 4px" }}>Two-Factor Authentication</h2>
             <p style={{ margin: 0, fontSize: "0.875rem", color: "#5f6f89" }}>
               {profile.is_2fa_enabled
-                ? "2FA is active — new device logins require Microsoft Authenticator."
-                : "Protect your account by enabling 2FA via Microsoft Authenticator."}
+                ? "2FA is active — new device logins require a code from your authenticator app."
+                : "Protect your account by enabling 2FA with an authenticator app (e.g., Microsoft Authenticator)."}
             </p>
           </div>
           {profile.is_2fa_enabled ? (
@@ -115,6 +153,39 @@ export function AccountSettingsPage() {
                 Enable
               </button>
             </Link>
+          )}
+        </div>
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "20px 24px", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h2 style={{ fontSize: "1rem", margin: "0 0 4px" }}>Facebook</h2>
+            <p style={{ margin: 0, fontSize: "0.875rem", color: "#5f6f89" }}>
+              {profile.facebook_connected
+                ? "Connected — your joined groups are scanned for lost-pet leads. Never used to log in or post."
+                : "Optionally connect Facebook so your lost-pet searches also scan groups you've joined. Read-only — never used to log in or post."}
+            </p>
+          </div>
+          {profile.facebook_connected ? (
+            <button
+              type="button"
+              className="btn-outline"
+              onClick={disconnectFacebook}
+              disabled={facebookBusy}
+              style={{ fontSize: "0.875rem", padding: "8px 16px" }}
+            >
+              Disconnect
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={connectFacebook}
+              disabled={facebookBusy}
+              style={{ fontSize: "0.875rem", padding: "8px 16px" }}
+            >
+              Connect Facebook
+            </button>
           )}
         </div>
       </div>

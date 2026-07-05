@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { evaluateLocationUpdate } from "../services/community-alert.service.js";
+import { findSearchById } from "../models/lost-pet-search.model.js";
 
 let io: SocketServer | null = null;
 
@@ -29,14 +30,35 @@ export function initSocketServer(httpServer: HttpServer): SocketServer {
   });
 
   io.on("connection", (socket) => {
-    const { searchId } = socket.handshake.query;
-    if (typeof searchId === "string") socket.join(`search:${searchId}`);
-
     // userId room membership is derived from a verified JWT, never the raw
     // handshake query — a client can no longer join another user's room by
     // guessing their id.
     const userId = verifySocketUserId(socket);
     if (userId) socket.join(`user:${userId}`);
+
+    const { searchId } = socket.handshake.query;
+    if (typeof searchId === "string") {
+      // Search rooms stream live results/vet-BOLO events. Without an owner
+      // check, anyone who merely learns a search's UUID (shared link,
+      // browser history, screenshot) could connect and silently listen in —
+      // join only if the connecting user actually owns this search.
+      if (!userId) {
+        socket.disconnect(true);
+        return;
+      }
+      findSearchById(searchId)
+        .then((search) => {
+          if (search && search.owner_id === userId) {
+            socket.join(`search:${searchId}`);
+          } else {
+            socket.disconnect(true);
+          }
+        })
+        .catch((err) => {
+          console.error("[websocket] search ownership check error:", err);
+          socket.disconnect(true);
+        });
+    }
 
     socket.on("update_location", (payload: unknown) => {
       if (!userId) return;

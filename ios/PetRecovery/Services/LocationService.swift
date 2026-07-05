@@ -11,6 +11,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
     @Published var error: Error?
 
     private var onceHandler: ((CLLocationCoordinate2D) -> Void)?
+    private var onceWithAccuracyHandler: ((CLLocationCoordinate2D, CLLocationAccuracy) -> Void)?
 
     override init() {
         super.init()
@@ -32,12 +33,26 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         }
     }
 
+    // Proximity verification needs the reported GPS accuracy alongside the
+    // coordinate — poor accuracy (> 15m) must prompt manual confirmation
+    // rather than silently pass/fail (see ProximityVerificationView).
+    func requestOnceWithAccuracy(completion: @escaping (CLLocationCoordinate2D, CLLocationAccuracy) -> Void) {
+        onceWithAccuracyHandler = completion
+        if manager.authorizationStatus == .notDetermined {
+            manager.requestWhenInUseAuthorization()
+        } else {
+            manager.requestLocation()
+        }
+    }
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let coordinate = locations.last?.coordinate else { return }
+        guard let location = locations.last else { return }
         DispatchQueue.main.async {
-            self.currentLocation = coordinate
-            self.onceHandler?(coordinate)
+            self.currentLocation = location.coordinate
+            self.onceHandler?(location.coordinate)
             self.onceHandler = nil
+            self.onceWithAccuracyHandler?(location.coordinate, location.horizontalAccuracy)
+            self.onceWithAccuracyHandler = nil
         }
     }
 
@@ -51,7 +66,7 @@ final class LocationService: NSObject, ObservableObject, CLLocationManagerDelega
         }
         if manager.authorizationStatus == .authorizedWhenInUse ||
            manager.authorizationStatus == .authorizedAlways {
-            if onceHandler != nil { manager.requestLocation() }
+            if onceHandler != nil || onceWithAccuracyHandler != nil { manager.requestLocation() }
         }
     }
 }

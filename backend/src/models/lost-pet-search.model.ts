@@ -60,6 +60,24 @@ export async function findActiveSearches(): Promise<LostPetSearch[]> {
   return result.rows;
 }
 
+export interface LostPetSearchWithPet extends LostPetSearch {
+  pet_name: string;
+  pet_species: string;
+  pet_photo_urls: string[];
+}
+
+export async function findActiveSearchesByOwnerId(ownerId: string): Promise<LostPetSearchWithPet[]> {
+  const result = await pool.query<LostPetSearchWithPet>(
+    `SELECT s.*, p.name AS pet_name, p.species AS pet_species, p.photo_urls AS pet_photo_urls
+     FROM lost_pet_searches s
+     JOIN pets p ON p.id = s.pet_id
+     WHERE s.owner_id = $1 AND s.status = 'active'
+     ORDER BY s.started_at DESC`,
+    [ownerId]
+  );
+  return result.rows;
+}
+
 export async function updateSearchStatus(
   id: string,
   ownerId: string,

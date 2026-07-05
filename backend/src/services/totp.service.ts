@@ -5,6 +5,7 @@ import {
   findUserById,
   updateUserTotpSecret
 } from "../models/user.model.js";
+import { decryptSecret, encryptSecret } from "../config/encryption.js";
 
 export interface TotpSetupResult {
   secret: string;
@@ -22,7 +23,7 @@ export async function setupSecret(userId: string): Promise<TotpSetupResult> {
     length: 20
   });
 
-  await updateUserTotpSecret(userId, generated.base32);
+  await updateUserTotpSecret(userId, encryptSecret(generated.base32));
 
   const qr_image_url = await QRCode.toDataURL(generated.otpauth_url!);
 
@@ -46,8 +47,16 @@ export async function verifyCode(userId: string, token: string): Promise<boolean
   const user = await findUserById(userId);
   if (!user?.totp_secret) return false;
 
+  let secret: string;
+  try {
+    secret = decryptSecret(user.totp_secret);
+  } catch {
+    // Pre-encryption plaintext secrets, or a corrupted value, can never verify.
+    return false;
+  }
+
   return speakeasy.totp.verify({
-    secret: user.totp_secret,
+    secret,
     encoding: "base32",
     token,
     window: 1

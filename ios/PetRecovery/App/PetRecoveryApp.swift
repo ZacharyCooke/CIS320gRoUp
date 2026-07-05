@@ -51,7 +51,7 @@ struct PetRecoveryApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                PlaceholderRootView()
+                LoginView()
                     .navigationDestination(item: $profileLink) { link in
                         PublicPetProfileView(token: link.token)
                     }

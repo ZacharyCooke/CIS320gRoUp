@@ -6,12 +6,16 @@ const WS_URL = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ?? "http:/
 let socket: Socket | null = null;
 let userSocket: Socket | null = null;
 
+// Server verifies this token and only joins the search room if the token's
+// user actually owns this search — an unauthenticated or non-owning
+// connection is disconnected rather than silently allowed to listen in.
 export function connectToSearch(searchId: string): Socket {
   if (socket) {
     socket.disconnect();
   }
   socket = io(WS_URL, {
     query: { searchId },
+    auth: { token: getAccessToken() },
     transports: ["websocket"]
   });
   return socket;

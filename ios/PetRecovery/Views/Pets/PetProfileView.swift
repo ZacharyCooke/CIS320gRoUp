@@ -50,6 +50,8 @@ struct PetProfileView: View {
                 }
                 if pet.status != "lost" {
                     Button("Mark as Lost", role: .destructive) { showMarkLost = true }
+                } else {
+                    NavigationLink("Set Reward") { RewardSetupView(pet: pet) }
                 }
             }
             .sheet(isPresented: $showMarkLost) { MarkLostView(pet: pet) }

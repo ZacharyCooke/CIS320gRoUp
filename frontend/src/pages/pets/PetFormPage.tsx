@@ -18,6 +18,7 @@ export function PetFormPage() {
   const [size, setSize] = useState("medium");
   const [microchip, setMicrochip] = useState("");
   const [licenseTag, setLicenseTag] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // Medical
   const [conditions, setConditions] = useState<MedicalCondition[]>([]);
@@ -90,6 +91,12 @@ export function PetFormPage() {
         });
       }
 
+      if (photoFile) {
+        const formData = new FormData();
+        formData.append("photo", photoFile);
+        await apiClient.post(`/pets/${petId}/photo`, formData);
+      }
+
       navigate(`/pets/${petId}`);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
@@ -100,6 +107,7 @@ export function PetFormPage() {
   }
 
   return (
+    <div className="form-page-wrapper">
     <section className="form-page">
       <h1>Add pet profile</h1>
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
@@ -146,7 +154,11 @@ export function PetFormPage() {
           </label>
           <label>
             Photo
-            <input type="file" accept="image/png,image/jpeg" />
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+            />
           </label>
         </fieldset>
 
@@ -244,5 +256,6 @@ export function PetFormPage() {
         <button type="submit" disabled={loading}>{loading ? "Saving…" : "Save pet"}</button>
       </form>
     </section>
+    </div>
   );
 }

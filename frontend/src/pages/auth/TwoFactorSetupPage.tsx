@@ -45,7 +45,7 @@ export function TwoFactorSetupPage() {
         <section className="form-page" style={{ textAlign: "center" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
           <h1 style={{ color: "#0f766e" }}>2FA Enabled</h1>
-          <p>Your account is now protected. Future logins from new devices will require Microsoft Authenticator.</p>
+          <p>Your account is now protected. Future logins from new devices will require a code from your authenticator app.</p>
           <button type="button" onClick={() => navigate("/account/settings")}>
             Go to Account Settings
           </button>
@@ -77,14 +77,14 @@ export function TwoFactorSetupPage() {
       <section className="form-page">
         <h1>Set up Two-Factor Authentication</h1>
         <p style={{ color: "#5f6f89" }}>
-          Scan this QR code with <strong>Microsoft Authenticator</strong> on your phone, then enter the 6-digit code to confirm.
+          Scan this QR code with an authenticator app (e.g., Microsoft Authenticator, Google Authenticator, or Authy) on your phone, then enter the 6-digit code to confirm.
         </p>
 
         {qrImageUrl && (
           <div style={{ textAlign: "center", margin: "20px 0" }}>
             <img
               src={qrImageUrl}
-              alt="Scan with Microsoft Authenticator"
+              alt="Scan with your authenticator app"
               style={{ width: 200, height: 200, borderRadius: 8, border: "1px solid #e2e8f0" }}
             />
           </div>

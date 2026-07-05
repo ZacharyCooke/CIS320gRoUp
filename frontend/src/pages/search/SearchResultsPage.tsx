@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToSearch, disconnectSearch } from "../../services/websocket.client";
+import "leaflet/dist/leaflet.css";
+import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+import markerIcon2xUrl from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
 
 interface SearchResult {
   id: string;
@@ -36,6 +40,12 @@ interface VetBolo {
   distance_miles: number | null;
   email_status: string;
 }
+
+const SOURCE_META: Record<string, { label: string; icon: string; color: string }> = {
+  petfinder_api: { label: "PetFinder", icon: "🐾", color: "#7c3aed" },
+  tracking_device: { label: "Tracking Device", icon: "📡", color: "#0284c7" },
+  found_report: { label: "Community Report", icon: "🤝", color: "#059669" }
+};
 
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -84,11 +94,23 @@ export function SearchResultsPage() {
     return () => disconnectSearch();
   }, [id]);
 
-  // Lazy-load Leaflet to avoid SSR issues
+  // Lazy-load Leaflet to keep it out of the main bundle
   useEffect(() => {
     if (!mapRef.current || !search) return;
-    import("leaflet").then((L) => {
+    import("leaflet").then((mod) => {
+      const L = mod.default ?? mod;
       if (leafletMap.current) return;
+
+      // Vite/webpack break Leaflet's default marker icon (it resolves image
+      // paths relative to leaflet.js at runtime, which doesn't survive
+      // bundling) — repoint at the bundled asset URLs instead.
+      delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconUrl: markerIconUrl,
+        iconRetinaUrl: markerIcon2xUrl,
+        shadowUrl: markerShadowUrl
+      });
+
       leafletMap.current = L.map(mapRef.current!).setView(
         [search.center_lat, search.center_lng], 11
       );
@@ -96,20 +118,27 @@ export function SearchResultsPage() {
         attribution: "© OpenStreetMap contributors"
       }).addTo(leafletMap.current);
       L.circle([search.center_lat, search.center_lng], {
-        radius: search.radius_miles * 1609.34, color: "#3b82f6", fillOpacity: 0.1
+        radius: search.radius_miles * 1609.34, color: "#0f766e", fillOpacity: 0.1
       }).addTo(leafletMap.current);
     });
+
+    return () => {
+      leafletMap.current?.remove();
+      leafletMap.current = null;
+    };
   }, [search]);
 
   useEffect(() => {
     if (!leafletMap.current) return;
-    import("leaflet").then((L) => {
+    import("leaflet").then((mod) => {
+      const L = mod.default ?? mod;
       markers.current.forEach((m) => m.remove());
       markers.current = [];
       results.forEach((r) => {
         if (r.lat != null && r.lng != null) {
+          const meta = SOURCE_META[r.source];
           const m = L.marker([r.lat, r.lng])
-            .bindPopup(`<b>${r.name ?? "Unknown"}</b><br/>${r.source}`)
+            .bindPopup(`<b>${r.name ?? "Unknown"}</b><br/>${meta?.label ?? r.source}`)
             .addTo(leafletMap.current);
           markers.current.push(m);
         }
@@ -129,67 +158,133 @@ export function SearchResultsPage() {
     navigate("/dashboard");
   }
 
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (!search) return <p>Loading…</p>;
+  if (error) return <p className="app-shell" style={{ color: "red" }}>{error}</p>;
+  if (!search) return <p className="app-shell">Loading…</p>;
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h2>Search Results {complete ? "(complete)" : "(searching…)"}</h2>
+    <div className="app-shell">
+      <Link to="/dashboard" style={{ display: "inline-block", marginBottom: 20 }}>← Dashboard</Link>
 
-      <div ref={mapRef} style={{ height: 360, width: "100%", marginBottom: "1rem" }} />
-
-      <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "1rem" }}>
-        <label>
-          Radius: {radius} mi
-          <input type="range" min={1} max={500} value={radius}
-            onChange={(e) => setRadius(Number(e.target.value))} />
-        </label>
-        <button type="button" onClick={adjustRadius}>Update radius</button>
-        <button type="button" onClick={closeSearch} style={{ marginLeft: "auto", color: "red" }}>
-          Mark recovered
+      <div className="page-header-row">
+        <div>
+          <h1>🔍 Search Results</h1>
+          <p className="page-sub">
+            {complete ? "Search complete." : "Searching all linked sources — results stream in live."}
+          </p>
+        </div>
+        <button type="button" style={{ background: "#dc2626" }} onClick={closeSearch}>
+          ✓ Mark Recovered
         </button>
       </div>
 
-      <p>{results.length} result{results.length !== 1 ? "s" : ""} found</p>
-
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {results.map((r) => (
-          <li key={r.id} style={card}>
-            {r.photo_url && <img src={r.photo_url} alt={r.name ?? ""} style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }} />}
-            <div>
-              <strong>{r.name ?? "Unknown"}</strong>
-              {r.distance_miles != null && <span> — {r.distance_miles.toFixed(1)} mi away</span>}
-              <div style={{ fontSize: "0.85rem", color: "#555" }}>
-                {[r.species, r.breed, r.color].filter(Boolean).join(" · ")}
-              </div>
-              {r.description && <p style={{ margin: "0.25rem 0" }}>{r.description.slice(0, 120)}</p>}
-              {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer">View on {r.source}</a>}
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <h3>Vet Clinics Notified ({vetBolos.length})</h3>
-      {vetBolos.length === 0 ? (
-        <p style={{ color: "#555" }}>No nearby vet clinics notified yet.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {vetBolos.map((v) => (
-            <li key={v.id} style={card}>
-              <div>
-                <strong>{v.clinic_name}</strong>
-                <span style={{ marginLeft: "0.5rem", color: statusColor(v.email_status) }}>
-                  {v.email_status}
-                </span>
-                {v.distance_miles != null && <span> — {v.distance_miles.toFixed(1)} mi away</span>}
-                {v.clinic_address && (
-                  <div style={{ fontSize: "0.85rem", color: "#555" }}>{v.clinic_address}</div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+      {!complete && (
+        <div style={{
+          background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10,
+          padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10,
+          fontSize: "0.85rem", color: "#92400e"
+        }}>
+          <span style={{
+            width: 8, height: 8, borderRadius: "50%", background: "#f59e0b",
+            display: "inline-block", animation: "pulse 1s infinite"
+          }} />
+          Searching PetFinder, tracking devices, and community reports…
+        </div>
       )}
+
+      <div className="section-card" style={{ padding: 0, overflow: "hidden", marginBottom: 20 }}>
+        <div ref={mapRef} style={{ height: 400, width: "100%" }} />
+      </div>
+
+      <div className="section-card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+          <label style={{ flex: 1, minWidth: 220 }}>
+            Radius: {radius} mi
+            <input type="range" min={1} max={500} value={radius}
+              onChange={(e) => setRadius(Number(e.target.value))} />
+          </label>
+          <button type="button" className="btn-outline" onClick={adjustRadius}>Update radius</button>
+        </div>
+      </div>
+
+      <div className="section-card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div className="section-title" style={{ fontSize: "0.95rem", color: "#1e293b", textTransform: "none", letterSpacing: 0, marginBottom: 0 }}>
+            Search Results
+          </div>
+          <span className="badge badge-lost">{results.length} match{results.length !== 1 ? "es" : ""}</span>
+        </div>
+
+        {results.length === 0 && <p className="form-hint">No results yet — check back shortly.</p>}
+
+        {results.map((r) => {
+          const meta = SOURCE_META[r.source] ?? { label: r.source, icon: "❔", color: "#6b7280" };
+          return (
+            <div className="list-row" key={r.id} style={{ alignItems: "flex-start" }}>
+              <div className="list-row-left" style={{ alignItems: "flex-start" }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 10, flexShrink: 0,
+                  background: `${meta.color}1a`, display: "flex", alignItems: "center",
+                  justifyContent: "center", fontSize: "1.5rem", overflow: "hidden"
+                }}>
+                  {r.photo_url ? (
+                    <img src={r.photo_url} alt={r.name ?? ""} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : meta.icon}
+                </div>
+                <div>
+                  <div className="notif-type-label" style={{ color: meta.color }}>{meta.label}</div>
+                  <div className="list-row-name">{r.name ?? "Unknown"}</div>
+                  <div className="list-row-sub">
+                    {[r.species, r.breed, r.color].filter(Boolean).join(" · ")}
+                  </div>
+                  {r.description && (
+                    <p style={{ fontSize: "0.85rem", color: "#475569", margin: "4px 0 0" }}>
+                      {r.description.slice(0, 140)}
+                    </p>
+                  )}
+                  {r.source_url && (
+                    <a href={r.source_url} target="_blank" rel="noreferrer" style={{ fontSize: "0.8rem" }}>
+                      View on {meta.label} ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+              {r.distance_miles != null && (
+                <span className="status-pill" style={{ whiteSpace: "nowrap" }}>
+                  {r.distance_miles.toFixed(1)} mi
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="section-card">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div className="section-title" style={{ fontSize: "0.95rem", color: "#1e293b", textTransform: "none", letterSpacing: 0, marginBottom: 0 }}>
+            🏥 Vet Clinics Notified
+          </div>
+          <span className="tag tag-teal">{vetBolos.length}</span>
+        </div>
+        {vetBolos.length === 0 ? (
+          <p className="form-hint">No nearby vet clinics notified yet.</p>
+        ) : (
+          vetBolos.map((v) => (
+            <div className="list-row" key={v.id}>
+              <div className="list-row-left">
+                <span className="list-row-icon">🏥</span>
+                <div>
+                  <div className="list-row-name">{v.clinic_name}</div>
+                  {v.clinic_address && <div className="list-row-sub">{v.clinic_address}</div>}
+                </div>
+              </div>
+              <span className="status-pill" style={{ color: statusColor(v.email_status) }}>
+                ● {v.email_status}
+                {v.distance_miles != null && ` · ${v.distance_miles.toFixed(1)} mi`}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -199,8 +294,3 @@ function statusColor(status: string): string {
   if (status === "bounced") return "#ea580c";
   return "#6b7280";
 }
-
-const card: React.CSSProperties = {
-  display: "flex", gap: "0.75rem", padding: "0.75rem",
-  border: "1px solid #e5e7eb", borderRadius: 6, marginBottom: "0.5rem"
-};

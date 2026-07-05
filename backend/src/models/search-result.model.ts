@@ -1,6 +1,6 @@
 import { pool } from "../config/database.js";
 
-export type ResultSource = "petfinder_api" | "tracking_device" | "found_report";
+export type ResultSource = "petfinder_api" | "tracking_device" | "found_report" | "facebook_groups";
 
 export interface SearchResult {
   id: string;

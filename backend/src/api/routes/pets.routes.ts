@@ -51,11 +51,20 @@ petsRouter.get(
   })
 );
 
+// POST /pets — 201, 401, 403 pet_limit_reached (non-premium owner at the free-tier cap)
 petsRouter.post(
   "/",
   asyncHandler(async (req, res) => {
-    const pet = await pets.create(req.user!.id, req.body);
-    res.status(201).json({ pet });
+    try {
+      const pet = await pets.create(req.user!.id, req.body);
+      res.status(201).json({ pet });
+    } catch (err) {
+      if (err instanceof pets.PetLimitReachedError) {
+        res.status(403).json({ error: "pet_limit_reached", message: err.message });
+        return;
+      }
+      throw err;
+    }
   })
 );
 
@@ -92,6 +101,14 @@ petsRouter.post(
   })
 );
 
+petsRouter.get(
+  "/:id/tracking-devices",
+  asyncHandler(async (req, res) => {
+    const devices = await trackingDevices.listForPet(req.user!.id, param(req.params.id));
+    res.json({ tracking_devices: devices });
+  })
+);
+
 petsRouter.post(
   "/:id/tracking-devices",
   asyncHandler(async (req, res) => {
@@ -112,6 +129,22 @@ petsRouter.delete(
       param(req.params.deviceId)
     );
     res.status(deleted ? 204 : 404).send();
+  })
+);
+
+petsRouter.get(
+  "/:id/external-sources",
+  asyncHandler(async (req, res) => {
+    // External sources belong to the owner's account, not a specific pet
+    // (see data-model.md) — the :id here is only used to confirm the caller
+    // actually owns a pet before showing their account-wide linked sources.
+    const pet = await pets.read(req.user!.id, param(req.params.id));
+    if (!pet) {
+      res.status(404).json({ error: "pet_not_found" });
+      return;
+    }
+    const sources = await externalSources.list(req.user!.id);
+    res.json({ external_sources: sources });
   })
 );
 

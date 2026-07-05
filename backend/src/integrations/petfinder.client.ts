@@ -76,7 +76,8 @@ export async function searchPetFinder(
   lat: number,
   lng: number,
   radiusMiles: number,
-  species?: string
+  species?: string,
+  limit = 50
 ): Promise<PetFinderResult[]> {
   if (!env.PETFINDER_API_KEY || !env.PETFINDER_SECRET) {
     if (process.env.NODE_ENV !== "production") {
@@ -89,7 +90,7 @@ export async function searchPetFinder(
   const params = new URLSearchParams({
     location: `${lat},${lng}`,
     distance: String(Math.min(Math.ceil(radiusMiles), 500)),
-    limit: "50",
+    limit: String(Math.min(Math.max(limit, 1), 100)),
     status: "adoptable"
   });
   if (species) params.set("type", species);

@@ -20,6 +20,7 @@ interface NotificationSettings {
 }
 
 type FilterKey = "all" | "red" | "blue" | "green" | "amber";
+type ColorKey = "red" | "blue" | "green" | "amber" | "gray";
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "all", label: "All" },
@@ -29,21 +30,31 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "amber", label: "Claims" }
 ];
 
-function notificationColor(type: string): { bucket: FilterKey; color: string } {
+const LEGEND: { color: ColorKey; label: string }[] = [
+  { color: "red", label: "Your lost pet updates" },
+  { color: "blue", label: "BOLO — you're near a missing pet" },
+  { color: "green", label: "Lost pet reported near you" },
+  { color: "amber", label: "Claims & store" }
+];
+
+function notificationMeta(type: string): { bucket: FilterKey; color: ColorKey; icon: string; label: string } {
   switch (type) {
     case "pet_update":
+      return { bucket: "red", color: "red", icon: "🐕", label: "Your Lost Pet" };
     case "found_report_match":
+      return { bucket: "red", color: "red", icon: "📍", label: "Found Report Match" };
     case "search_complete":
-      return { bucket: "red", color: "#dc2626" };
+      return { bucket: "red", color: "red", icon: "✅", label: "Search Update" };
     case "bolo_alert":
-      return { bucket: "blue", color: "#2563eb" };
+      return { bucket: "blue", color: "blue", icon: "📡", label: "BOLO Alert" };
     case "nearby_lost":
-      return { bucket: "green", color: "#16a34a" };
+      return { bucket: "green", color: "green", icon: "🐾", label: "Lost Pet Near You" };
     case "claim_alert":
+      return { bucket: "amber", color: "amber", icon: "🤝", label: "Claim" };
     case "store_account":
-      return { bucket: "amber", color: "#d97706" };
+      return { bucket: "amber", color: "amber", icon: "🛍", label: "Store & Account" };
     default:
-      return { bucket: "all", color: "#6b7280" };
+      return { bucket: "all", color: "gray", icon: "🔔", label: "Notification" };
   }
 }
 
@@ -113,11 +124,11 @@ export function NotificationsPage() {
     setPermission(result);
   }
 
-  const filtered = notifications.filter((n) => filter === "all" || notificationColor(n.type).bucket === filter);
+  const filtered = notifications.filter((n) => filter === "all" || notificationMeta(n.type).bucket === filter);
 
   if (loadError) {
     return (
-      <section style={{ padding: "1.5rem" }}>
+      <section className="app-shell" style={{ maxWidth: 720 }}>
         <p role="alert" style={{ color: "#dc2626" }}>{loadError}</p>
         <Link to="/login">Sign in</Link>
       </section>
@@ -125,21 +136,31 @@ export function NotificationsPage() {
   }
 
   return (
-    <section style={{ padding: "1.5rem", maxWidth: 640 }}>
+    <section className="app-shell" style={{ maxWidth: 720 }}>
       <Link to="/dashboard" style={{ display: "inline-block", marginBottom: 20 }}>← Dashboard</Link>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Notifications{unread > 0 ? ` (${unread})` : ""}</h1>
+
+      <div className="page-header-row">
+        <div>
+          <h1>🔔 Notifications{unread > 0 ? ` (${unread})` : ""}</h1>
+          <p className="page-sub">Stay updated on your pets' searches and lost pets near you.</p>
+        </div>
         {unread > 0 && (
-          <button type="button" onClick={markAllRead} style={{ fontSize: "0.875rem" }}>
+          <button type="button" onClick={markAllRead} className="btn-outline">
             Mark all read
           </button>
         )}
       </div>
 
       {permission === "default" && (
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "16px 20px", marginBottom: 20 }}>
-          <p style={{ margin: "0 0 8px" }}>Enable browser notifications to get alerts even when this tab isn't focused.</p>
-          <button type="button" onClick={requestPermission}>Enable notifications</button>
+        <div className="permission-card">
+          <div className="permission-icon">📲</div>
+          <div>
+            <h3>Enable Push Notifications</h3>
+            <p>Get real-time BOLO alerts when you're near a missing pet, and immediate updates on your own pet's search.</p>
+            <div className="permission-btns">
+              <button type="button" className="btn-white" onClick={requestPermission}>Allow Notifications</button>
+            </div>
+          </div>
         </div>
       )}
       {permission === "denied" && (
@@ -147,6 +168,15 @@ export function NotificationsPage() {
           Browser notifications are blocked — enable them in your browser's site settings to receive alerts outside this tab.
         </p>
       )}
+
+      <div className="notif-legend">
+        {LEGEND.map((l) => (
+          <div className="notif-legend-item" key={l.color}>
+            <span className={`dot dot-${l.color}`} />
+            {l.label}
+          </div>
+        ))}
+      </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {FILTERS.map((f) => (
@@ -161,7 +191,8 @@ export function NotificationsPage() {
               background: filter === f.key ? "#0f766e" : "#fff",
               color: filter === f.key ? "#fff" : "#334155",
               fontSize: "0.8rem",
-              cursor: "pointer"
+              cursor: "pointer",
+              minHeight: "auto"
             }}
           >
             {f.label}
@@ -172,48 +203,61 @@ export function NotificationsPage() {
       {filtered.length === 0 ? (
         <p style={{ color: "#6b7280" }}>No notifications{filter !== "all" ? " of this type" : ""} yet.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px" }}>
+        <div style={{ marginBottom: 24 }}>
           {filtered.map((n) => {
-            const { color } = notificationColor(n.type);
+            const meta = notificationMeta(n.type);
             return (
-              <li key={n.id} style={{
-                borderLeft: `4px solid ${color}`,
-                background: n.read ? "#fff" : "#f8fafc",
-                borderRadius: 8,
-                padding: "12px 16px",
-                marginBottom: 10
-              }}>
-                <div style={{ fontWeight: 600 }}>{n.title}</div>
-                <div style={{ color: "#5f6f89", fontSize: "0.9rem", marginTop: 2 }}>{n.body}</div>
-                <div style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: 4 }}>
-                  {new Date(n.created_at).toLocaleString()}
+              <div
+                key={n.id}
+                className="section-card notif-card"
+                style={{
+                  borderLeft: `4px solid ${colorHex(meta.color)}`,
+                  background: n.read ? "#fff" : "#f8fafc",
+                  marginBottom: 10,
+                  padding: "14px 18px"
+                }}
+              >
+                <div className={`notif-avatar notif-avatar-${meta.color}`}>{meta.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className={`notif-type-label`} style={{ color: colorHex(meta.color) }}>{meta.label}</div>
+                  <div style={{ fontWeight: 700 }}>{n.title}</div>
+                  <div style={{ color: "#5f6f89", fontSize: "0.9rem", marginTop: 2 }}>{n.body}</div>
+                  <div style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: 6 }}>
+                    {new Date(n.created_at).toLocaleString()}
+                  </div>
                 </div>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       )}
 
       {settings && (
-        <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", padding: "20px 24px" }}>
-          <h2 style={{ fontSize: "1rem", marginBottom: 16 }}>Notification Settings</h2>
+        <div className="section-card">
+          <div className="section-title" style={{ fontSize: "0.95rem", color: "#1e293b", textTransform: "none", letterSpacing: 0 }}>
+            ⚙️ Notification Settings
+          </div>
           <SettingRow
-            label="Owner updates on my search (red)"
+            label="Owner updates on my search"
+            sub="Updates, sightings, and database matches for your lost pets"
             checked={settings.notif_pet_update}
             onChange={() => toggleSetting("notif_pet_update")}
           />
           <SettingRow
-            label="BOLO alerts within 1 mile (blue)"
+            label="BOLO alerts within 1 mile"
+            sub="Notified when you enter 1 mile of a missing pet's last known location"
             checked={settings.notif_bolo_alert}
             onChange={() => toggleSetting("notif_bolo_alert")}
           />
           <SettingRow
-            label="Community alerts within 2 miles (green)"
+            label="Community alerts within 2 miles"
+            sub="Alert when a pet is reported lost within 2 miles of your GPS location"
             checked={settings.notif_nearby_lost}
             onChange={() => toggleSetting("notif_nearby_lost")}
           />
           <SettingRow
-            label="Store & account notifications (amber)"
+            label="Store & account notifications"
+            sub="Claim alerts and account-related updates"
             checked={settings.notif_store_account}
             onChange={() => toggleSetting("notif_store_account")}
             last
@@ -224,17 +268,26 @@ export function NotificationsPage() {
   );
 }
 
+function colorHex(color: ColorKey): string {
+  switch (color) {
+    case "red": return "#b91c1c";
+    case "blue": return "#1d4ed8";
+    case "green": return "#15803d";
+    case "amber": return "#92400e";
+    default: return "#6b7280";
+  }
+}
+
 function SettingRow({
-  label, checked, onChange, last
-}: { label: string; checked: boolean; onChange: () => void; last?: boolean }) {
+  label, sub, checked, onChange, last
+}: { label: string; sub: string; checked: boolean; onChange: () => void; last?: boolean }) {
   return (
-    <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      paddingBottom: last ? 0 : 12, paddingTop: last ? 12 : 0,
-      borderBottom: last ? "none" : "1px solid #f1f5f9"
-    }}>
-      <span style={{ fontSize: "0.9rem" }}>{label}</span>
-      <input type="checkbox" checked={checked} onChange={onChange} />
+    <div className="list-row" style={{ borderBottom: last ? "none" : undefined }}>
+      <div>
+        <div style={{ fontSize: "0.9rem", fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: "0.78rem", color: "#64748b" }}>{sub}</div>
+      </div>
+      <input type="checkbox" className="toggle-switch" checked={checked} onChange={onChange} />
     </div>
   );
 }

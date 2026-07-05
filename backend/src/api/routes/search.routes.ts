@@ -6,16 +6,21 @@ import {
   createLostPetSearch,
   deleteActiveSearchLocationsByPetId,
   findActiveSearchByPetId,
+  findActiveSearchesByOwnerId,
   findSearchById,
   updateSearchRadius,
   updateSearchStatus
 } from "../../models/lost-pet-search.model.js";
 import { findResultsBySearchId } from "../../models/search-result.model.js";
 import { findPetById, updatePetStatus } from "../../models/pet.model.js";
+import { findUserById } from "../../models/user.model.js";
 import { runSearch } from "../../services/search-aggregator.service.js";
 import { findNearbyVetClinics } from "../../integrations/google-places.client.js";
 import { dispatchVetBolos } from "../../services/vet-bolo.service.js";
 import { findVetBolosBySearchId } from "../../models/vet-bolo.model.js";
+import { findActiveRewardByPetId } from "../../models/reward.model.js";
+import { cancel as cancelReward } from "../../services/reward.service.js";
+import crypto from "node:crypto";
 
 export const searchRouter = Router();
 
@@ -82,7 +87,19 @@ searchRouter.post(
       console.error("[vet-bolo] dispatch error:", err)
     );
 
-    res.status(201).json({ search, vet_bolos_dispatched: clinics.length });
+    const owner = await findUserById(ownerId);
+    res.status(201).json({ search, vet_bolos_dispatched: clinics.length, is_premium: owner?.is_premium ?? false });
+  })
+);
+
+// GET /searches/mine — every active search the current owner has, used to
+// power a "Find a Pet" nav entry that isn't tied to a specific pet's URL
+searchRouter.get(
+  "/searches/mine",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const searches = await findActiveSearchesByOwnerId(req.user!.id);
+    res.json({ searches });
   })
 );
 
@@ -108,7 +125,43 @@ searchRouter.post(
     await updatePetStatus(petId, ownerId, "safe");
     await deleteActiveSearchLocationsByPetId(petId);
 
-    res.json({ pet_id: petId, status: "safe", search_closed: !!search });
+    // A pet recovered outside the app's own proximity-verification flow (e.g.
+    // found and returned directly) means any still-open reward should be
+    // refunded automatically rather than left dangling in escrow. A reward
+    // mid-verification is left alone — cancel() rejects that on purpose.
+    let rewardRefunded = false;
+    const activeReward = await findActiveRewardByPetId(petId);
+    if (activeReward) {
+      try {
+        const result = await cancelReward(ownerId, activeReward.id, {
+          idempotency_key: `auto-cancel-mark-recovered-${crypto.randomUUID()}`
+        });
+        rewardRefunded = result.refund_initiated;
+      } catch (err) {
+        console.error("[reward] auto-cancel on mark-recovered skipped:", { petId, rewardId: activeReward.id, reason: (err as Error).message });
+      }
+    }
+
+    res.json({ pet_id: petId, status: "safe", search_closed: !!search, reward_refunded: rewardRefunded });
+  })
+);
+
+// GET /pets/:id/active-search
+searchRouter.get(
+  "/pets/:id/active-search",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const petId = param(req.params.id);
+    const ownerId = req.user!.id;
+
+    const pet = await findPetById(petId);
+    if (!pet || pet.owner_id !== ownerId) {
+      res.status(404).json({ error: "pet_not_found" });
+      return;
+    }
+
+    const search = await findActiveSearchByPetId(petId);
+    res.json({ search });
   })
 );
 

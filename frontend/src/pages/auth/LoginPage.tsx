@@ -57,7 +57,7 @@ export function LoginPage() {
       storeTokens(data);
       navigate("/dashboard");
     } catch {
-      setError("Invalid or expired code — check Microsoft Authenticator and try again.");
+      setError("Invalid or expired code — check your authenticator app and try again.");
       setTotpCode("");
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export function LoginPage() {
         <section className="form-page">
           <h1>Two-Factor Authentication</h1>
           <p style={{ color: "#5f6f89" }}>
-            Open Microsoft Authenticator and enter the 6-digit code for PetRecovery.
+            Open your authenticator app and enter the 6-digit code for PetRecovery.
           </p>
           {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
           <form onSubmit={handleTotp}>
@@ -138,11 +138,16 @@ export function LoginPage() {
             />
           </label>
           <button type="submit" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Signing in…" : "Sign in →"}
           </button>
         </form>
-        <p style={{ marginTop: 16, fontSize: "0.875rem", color: "#5f6f89" }}>
-          No account? <Link to="/register">Register</Link>
+
+        <div className="info-banner-teal" style={{ marginTop: 20 }}>
+          🔒 <div>If you're signing in from a new device or location, you'll be asked to verify with your authenticator app before access is granted.</div>
+        </div>
+
+        <p style={{ marginTop: 16, fontSize: "0.875rem", color: "#5f6f89", textAlign: "center" }}>
+          No account? <Link to="/register" style={{ fontWeight: 700 }}>Register</Link>
         </p>
       </section>
     </div>

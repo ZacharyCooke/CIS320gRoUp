@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 
 struct UserProfile: Decodable {
@@ -7,6 +8,16 @@ struct UserProfile: Decodable {
     let is_email_verified: Bool
     let is_phone_verified: Bool
     let is_2fa_enabled: Bool
+    var facebook_connected: Bool
+}
+
+// ASWebAuthenticationSession requires its presentation context provider to
+// stay alive for the duration of the session — a throwaway local instance
+// would be deallocated before the user finishes the Facebook consent screen.
+final class FacebookAuthPresentationContext: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        ASPresentationAnchor()
+    }
 }
 
 struct AccountSettingsView: View {
@@ -14,6 +25,9 @@ struct AccountSettingsView: View {
     @State private var isLoading = true
     @State private var loadError: String?
     @State private var showLogoutConfirm = false
+    @State private var facebookBusy = false
+    @State private var facebookError: String?
+    @State private var facebookContext = FacebookAuthPresentationContext()
 
     var body: some View {
         NavigationStack {
@@ -63,11 +77,60 @@ struct AccountSettingsView: View {
                 }
             }
 
+            Section("Facebook") {
+                if let facebookError {
+                    Text(facebookError).foregroundStyle(.red).font(.caption)
+                }
+                if p.facebook_connected {
+                    Label("Connected", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    Button("Disconnect", role: .destructive) { Task { await disconnectFacebook() } }
+                        .disabled(facebookBusy)
+                } else {
+                    Text("Optionally connect Facebook so lost-pet searches also scan groups you've joined. Read-only — never used to log in or post.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("Connect Facebook") { Task { await connectFacebook() } }
+                        .disabled(facebookBusy)
+                }
+            }
+
             Section {
                 Button("Sign Out", role: .destructive) {
                     showLogoutConfirm = true
                 }
             }
+        }
+    }
+
+    private func connectFacebook() async {
+        facebookBusy = true; facebookError = nil
+        defer { facebookBusy = false }
+        do {
+            let url = try await APIClient.shared.connectFacebook()
+            _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
+                let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "petrecovery") { callbackURL, error in
+                    if let callbackURL {
+                        continuation.resume(returning: callbackURL)
+                    } else {
+                        continuation.resume(throwing: error ?? URLError(.unknown))
+                    }
+                }
+                session.presentationContextProvider = facebookContext
+                session.start()
+            }
+            profile?.facebook_connected = true
+        } catch {
+            facebookError = "Failed to connect Facebook."
+        }
+    }
+
+    private func disconnectFacebook() async {
+        facebookBusy = true; facebookError = nil
+        defer { facebookBusy = false }
+        do {
+            try await APIClient.shared.disconnectFacebook()
+            profile?.facebook_connected = false
+        } catch {
+            facebookError = "Failed to disconnect Facebook."
         }
     }
 

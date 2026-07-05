@@ -17,3 +17,6 @@ frontend/dist/
 # Environment
 .env
 .env.local
+
+# Uploaded user content (local disk storage placeholder)
+backend/uploads/

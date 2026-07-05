@@ -46,3 +46,37 @@ export function getAccessToken(): string | null {
 export function setRefreshTokenHandler(handler: (() => Promise<string | null>) | null): void {
   refreshTokenHandler = handler;
 }
+
+function clearSessionAndRedirect(): void {
+  setAccessToken(null);
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  }
+}
+
+// Default refresh handler: rotates the stored refresh token for a new access
+// token so the 15-minute JWT (rules.md) doesn't silently strand the user mid-session.
+setRefreshTokenHandler(async () => {
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) {
+    clearSessionAndRedirect();
+    return null;
+  }
+
+  try {
+    const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refresh_token: refreshToken
+    });
+    setAccessToken(data.access_token);
+    localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
+    return data.access_token as string;
+  } catch {
+    clearSessionAndRedirect();
+    return null;
+  }
+});

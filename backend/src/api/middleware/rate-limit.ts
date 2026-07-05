@@ -5,7 +5,12 @@ const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
-  if (!req.path.includes("otp") && !req.path.includes("verify")) {
+  // /auth/register triggers an OTP email and (if a phone is given) an SMS to
+  // whatever contact info is submitted, unauthenticated — without this it
+  // could be used to spam-bomb an arbitrary email/phone.
+  const triggersExternalDispatch =
+    req.path.includes("otp") || req.path.includes("verify") || req.path.includes("register");
+  if (!triggersExternalDispatch) {
     next();
     return;
   }

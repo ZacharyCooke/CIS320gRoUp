@@ -11,8 +11,27 @@ import {
   type MedicalCondition,
   type Pet
 } from "../models/pet.model.js";
+import { findUserById } from "../models/user.model.js";
+
+// Free accounts are capped at this many pet profiles; Premium subscribers
+// (User.is_premium) are unlimited (spec: User Story 7, acceptance scenario 4).
+const FREE_TIER_PET_LIMIT = 3;
+
+export class PetLimitReachedError extends Error {
+  constructor() {
+    super(`Free accounts are limited to ${FREE_TIER_PET_LIMIT} pet profiles`);
+    this.name = "PetLimitReachedError";
+  }
+}
 
 export async function create(ownerId: string, input: Omit<CreatePetInput, "owner_id">): Promise<Pet> {
+  const owner = await findUserById(ownerId);
+  if (!owner?.is_premium) {
+    const existing = await findPetsByOwnerId(ownerId);
+    if (existing.length >= FREE_TIER_PET_LIMIT) {
+      throw new PetLimitReachedError();
+    }
+  }
   return createPet({ ...input, owner_id: ownerId });
 }
 

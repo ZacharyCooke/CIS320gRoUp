@@ -121,6 +121,46 @@ export async function updateNotificationSettings(
   return result.rows[0] ?? null;
 }
 
+export async function updateUserFacebookToken(
+  id: string,
+  encryptedToken: string
+): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET facebook_access_token_encrypted = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, encryptedToken]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function clearUserFacebookToken(id: string): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET facebook_access_token_encrypted = NULL, updated_at = now() WHERE id = $1 RETURNING *",
+    [id]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateUserPremiumStatus(id: string, isPremium: boolean): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET is_premium = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, isPremium]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function updateUserStripeCustomerId(id: string, customerId: string): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET stripe_customer_id = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, customerId]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function findUserByStripeCustomerId(customerId: string): Promise<User | null> {
+  const result = await pool.query<User>("SELECT * FROM users WHERE stripe_customer_id = $1", [customerId]);
+  return result.rows[0] ?? null;
+}
+
 export async function updateApnsDeviceToken(id: string, token: string): Promise<User | null> {
   const result = await pool.query<User>(
     "UPDATE users SET apns_device_token = $2, updated_at = now() WHERE id = $1 RETURNING *",
