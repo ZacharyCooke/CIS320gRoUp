@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+import { API_BASE_URL } from "../../services/api-client";
 
 interface PublicProfile {
   name: string;

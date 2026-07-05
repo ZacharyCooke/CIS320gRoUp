@@ -1,7 +1,7 @@
 import { io, type Socket } from "socket.io-client";
-import { getAccessToken } from "./api-client";
+import { API_BASE_URL, getAccessToken } from "./api-client";
 
-const WS_URL = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") ?? "http://localhost:3000";
+const WS_URL = API_BASE_URL.replace(/\/api\/?$/, "") || window.location.origin;
 
 let socket: Socket | null = null;
 let userSocket: Socket | null = null;
