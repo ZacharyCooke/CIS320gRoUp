@@ -1,8 +1,8 @@
 # API Contract: Pet Profiles, Tracking Devices, QR Codes & Rewards
 
-**Base path**: `/api/v1`
+**Base path**: `/api`
 **Auth**: All endpoints require Bearer token unless noted.
-**Last Updated**: 2026-07-01
+**Last Updated**: 2026-07-04
 
 ---
 
@@ -87,7 +87,7 @@ Update the pet's medical conditions array. Each item has a `condition` string an
   "medical_conditions": [
     { "condition": "Hypothyroidism", "share_publicly": true },
     { "condition": "Allergic to chicken", "share_publicly": true },
-    { "condition": "Anxiety — requires Trazodone", "share_publicly": false }
+    { "condition": "Anxiety â€” requires Trazodone", "share_publicly": false }
   ],
   "medical_emergency_notes": "Requires 0.3mg Levothyroxine daily with food. Spayed. Two prior ACL surgeries."
 }
@@ -106,7 +106,7 @@ Update the pet's temperament classification and finder approach notes.
 ```json
 {
   "temperament": "cautious",
-  "approach_notes": "Approach slowly, no direct eye contact. Do not reach for her — let her sniff your hand first."
+  "approach_notes": "Approach slowly, no direct eye contact. Do not reach for her â€” let her sniff your hand first."
 }
 ```
 
@@ -119,7 +119,7 @@ Update the pet's temperament classification and finder approach notes.
 
 ## PUT /pets/:id/vet
 
-Create or update the pet's primary veterinarian. Upserts — one primary vet per pet.
+Create or update the pet's primary veterinarian. Upserts â€” one primary vet per pet.
 
 **Request**:
 ```json
@@ -140,20 +140,27 @@ Create or update the pet's primary veterinarian. Upserts — one primary vet per
 
 Retrieve the primary vet for a pet.
 
-**Response 200**: PetVet object.
-**Response 404**: No vet on file for this pet.
+**Response 200**: `{ "vet": PetVet | null }`
 
 ---
 
 ## GET /pets/:id/qr
 
-Return the pet's QR code as SVG or PNG. The QR encodes `https://petrecovery.app/p/{qr_code_token}`.
+Return the pet's QR code data. The QR encodes the configured public profile URL for `/p/{qr_code_token}`.
 
 **Query params**:
-- `format` — `svg` (default) or `png`
-- `size` — pixel size for PNG (default: 256, max: 1024)
+- `format` - `json` (default) or `svg`
 
-**Response 200**: SVG or PNG image (Content-Type: `image/svg+xml` or `image/png`).
+**Response 200 (`format=json`)**:
+```json
+{
+  "token": "uuid",
+  "profile_url": "https://petrecovery.app/p/uuid",
+  "png_data_url": "data:image/png;base64,..."
+}
+```
+
+**Response 200 (`format=svg`)**: SVG image (`Content-Type: image/svg+xml`).
 **Response 404**: Pet not found.
 
 ---
@@ -162,13 +169,13 @@ Return the pet's QR code as SVG or PNG. The QR encodes `https://petrecovery.app/
 
 Rotate the pet's QR token. The old token becomes invalid. Use when a QR tag is lost or compromised.
 
-**Response 200**: `{ "qr_code_token": "new-uuid", "qr_url": "https://petrecovery.app/p/new-uuid" }`
+**Response 200**: `{ "token": "new-uuid", "profile_url": "https://petrecovery.app/p/new-uuid" }`
 
 ---
 
 ## GET /p/:token
 
-**Public endpoint — no auth required.** Returns the pet's public-facing profile. Only medical conditions with `share_publicly: true` are included. Owner contact info is included so finders can reach the owner directly.
+**Public endpoint â€” no auth required.** Returns the pet's public-facing profile. Only medical conditions with `share_publicly: true` are included. Owner contact info is included so finders can reach the owner directly.
 
 **Response 200**:
 ```json
@@ -205,8 +212,8 @@ Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email
 **Request**:
 ```json
 {
-  "center_latitude": 30.2672,
-  "center_longitude": -97.7431,
+  "center_lat": 30.2672,
+  "center_lng": -97.7431,
   "radius_miles": 10
 }
 ```
@@ -214,10 +221,12 @@ Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email
 **Response 201**:
 ```json
 {
-  "search_id": "uuid",
-  "pet_id": "uuid",
-  "status": "active",
-  "started_at": "2026-07-01T12:00:00Z",
+  "search": {
+    "id": "uuid",
+    "pet_id": "uuid",
+    "status": "active",
+    "started_at": "2026-07-01T12:00:00Z"
+  },
   "vet_bolos_dispatched": 4
 }
 ```
@@ -228,7 +237,7 @@ Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email
 
 Mark a pet as safe and close the active search.
 
-**Response 200**: `{ "status": "safe", "search_closed": true }`
+**Response 200**: `{ "pet_id": "uuid", "status": "safe", "search_closed": true, "reward_refunded": false }`
 
 ---
 
@@ -286,110 +295,6 @@ Remove a linked external source.
 
 ---
 
-## POST /rewards
+## Rewards, Escrow & Proximity
 
-Create a reward for a lost pet. Pet must be in `lost` status.
-
-**Request**:
-```json
-{
-  "pet_id": "uuid",
-  "amount_cents": 50000,
-  "currency": "USD"
-}
-```
-
-**Response 201**:
-```json
-{
-  "reward_id": "uuid",
-  "status": "pending_funding",
-  "amount_cents": 50000,
-  "stripe_payment_intent_id": "pi_..."
-}
-```
-
-**Response 400**: Pet not in `lost` status, or amount ≤ 0.
-
----
-
-## GET /rewards/:id
-
-Get the current status of a reward, including verification step states.
-
-**Response 200**:
-```json
-{
-  "reward_id": "uuid",
-  "pet_id": "uuid",
-  "amount_cents": 50000,
-  "status": "verification_in_progress",
-  "proximity_verification": {
-    "proximity_passed": true,
-    "pet_identity_passed": false,
-    "owner_identity_passed": false,
-    "all_passed": false
-  }
-}
-```
-
----
-
-## POST /rewards/:id/fund
-
-Record that funds have been deposited into escrow via a supported payment method. Moves status from `pending_funding` to `funded`.
-
-**Request**:
-```json
-{
-  "payment_source": "paypal",
-  "stripe_payment_intent_id": "pi_..."
-}
-```
-
-`payment_source` must be one of: `paypal`, `venmo`, `zelle`, `cashapp`, `apple_pay`, `google_pay`.
-
-**Response 200**: `{ "status": "funded" }`
-
----
-
-## POST /rewards/:id/proximity
-
-Submit real-time GPS coordinates from both devices for proximity verification. Called by both the owner's and finder's devices; server computes Haversine distance and updates the ProximityVerification record. If all three steps pass, escrow is released automatically.
-
-**Auth**: Required (owner or claimed finder)
-
-**Request**:
-```json
-{
-  "role": "owner",
-  "latitude": 30.2672,
-  "longitude": -97.7431,
-  "nonce": "server-issued-nonce",
-  "timestamp": "2026-07-01T14:23:11Z"
-}
-```
-
-**Response 200**:
-```json
-{
-  "proximity_passed": true,
-  "distance_feet": 8.3,
-  "all_passed": false,
-  "next_step": "pet_identity"
-}
-```
-
-**Response 400**: Expired nonce (> 10 seconds old) or missing coordinates.
-**Response 409**: Both device coordinates not yet submitted.
-
----
-
-## POST /rewards/:id/cancel
-
-Cancel the reward and trigger a full refund via Stripe.
-
-**Auth**: Required (owner only)
-
-**Response 200**: `{ "status": "cancelled", "refund_initiated": true }`
-**Response 400**: Reward is in `verification_in_progress` state — cannot cancel mid-verification.
+Reward creation, escrow funding, proximity verification, cancellation, and Stripe webhook contracts are defined in [api-rewards.md](./api-rewards.md). This keeps the money and location-sensitive API surface in one reviewed contract per the project constitution.

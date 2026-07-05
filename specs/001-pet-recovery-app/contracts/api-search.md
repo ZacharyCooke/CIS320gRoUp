@@ -1,7 +1,7 @@
 # API Contract: Search, Found Reports, Notifications, Vet BOLOs & Proximity
 
-**Base path**: `/api/v1`
-**Last Updated**: 2026-07-01
+**Base path**: `/api`
+**Last Updated**: 2026-07-04
 
 ---
 
@@ -14,32 +14,32 @@ Retrieve aggregated results for an active or past search.
 **Query params**:
 - `page` (default: 1)
 - `per_page` (default: 20, max: 100)
-- `source_type` — optional filter: `internal_report`, `petfinder_api`, `tracking_device`, `manual_link`, `facebook_groups`
+- `source_type` â€” optional filter: `internal_report`, `petfinder_api`, `tracking_device`, `manual_link`, `facebook_groups`
 
 **Response 200**:
 ```json
 {
-  "search_id": "uuid",
-  "pet_id": "uuid",
-  "center": { "latitude": 30.2672, "longitude": -97.7431 },
-  "radius_miles": 10,
-  "status": "active",
+  "search": {
+    "id": "uuid",
+    "pet_id": "uuid",
+    "center_lat": 30.2672,
+    "center_lng": -97.7431,
+    "radius_miles": 10,
+    "status": "active"
+  },
   "results": [
     {
       "id": "uuid",
-      "source_type": "petfinder_api",
-      "source_name": "PetFinder",
+      "source": "petfinder_api",
+      "name": "PetFinder",
       "description": "Yellow lab found near Zilker Park",
-      "result_latitude": 30.265,
-      "result_longitude": -97.771,
+      "lat": 30.265,
+      "lng": -97.771,
       "photo_url": "https://...",
-      "date_reported": "2026-06-29",
-      "result_url": "https://www.petfinder.com/animal/..."
+      "found_at": "2026-06-29T12:00:00Z",
+      "source_url": "https://www.petfinder.com/animal/..."
     }
-  ],
-  "total": 7,
-  "page": 1,
-  "per_page": 20
+  ]
 }
 ```
 
@@ -76,21 +76,21 @@ Submit a found-pet report. Authentication optional. On creation, the system chec
   "color": "yellow",
   "breed": "Labrador mix",
   "description": "Friendly, no collar, found near Zilker Park trail entrance.",
-  "latitude": 30.265,
-  "longitude": -97.771,
-  "location_name": "Zilker Park, Austin TX",
-  "date_found": "2026-06-29",
-  "reporter_contact": "finder@example.com"
+  "lat": 30.265,
+  "lng": -97.771,
+  "found_at": "2026-06-29T12:00:00Z",
+  "reporter_email": "finder@example.com",
+  "reporter_phone": "+15550000000"
 }
 ```
 
 **File upload**: Optional `photo` field as multipart/form-data.
+Unauthenticated submitters must provide `reporter_email` or `reporter_phone`.
 
 **Response 201**:
 ```json
 {
-  "report_id": "uuid",
-  "message": "Report submitted. Nearby pet owners have been notified."
+  "report": { "id": "uuid" }
 }
 ```
 
@@ -100,7 +100,7 @@ Submit a found-pet report. Authentication optional. On creation, the system chec
 
 ## GET /found-reports/:id
 
-Retrieve a specific found-pet report. `reporter_contact` is redacted for unauthenticated viewers.
+Retrieve a specific found-pet report. `reporter_email` and `reporter_phone` are redacted for unauthenticated viewers.
 
 **Auth**: Not required.
 
@@ -115,17 +115,16 @@ Search public found-pet reports by location and optional filters.
 **Auth**: Not required.
 
 **Query params**:
-- `latitude` (required)
-- `longitude` (required)
-- `radius_miles` (default: 10)
+- `lat`
+- `lng`
+- `radius`
 - `species` (optional)
 - `date_from` (optional, ISO 8601)
 
 **Response 200**:
 ```json
 {
-  "reports": [ /* array of FoundReport objects */ ],
-  "total": 3
+  "reports": [ /* array of FoundReport objects */ ]
 }
 ```
 
@@ -176,8 +175,8 @@ List the authenticated user's notifications, newest first.
 **Auth**: Required.
 
 **Query params**:
-- `type` — optional filter: `pet_update`, `bolo_alert`, `nearby_lost`, `store_account`
-- `unread_only` — boolean, default false
+- `type` - optional filter: `pet_update`, `bolo_alert`, `nearby_lost`, `claim_alert`, `store_account`
+- `unread_only` â€” boolean, default false
 - `page` (default: 1), `per_page` (default: 20)
 
 **Response 200**:
@@ -194,8 +193,7 @@ List the authenticated user's notifications, newest first.
       "related_entity_id": "uuid"
     }
   ],
-  "total": 7,
-  "unread_count": 3
+  "unread": 3
 }
 ```
 
@@ -207,7 +205,7 @@ Mark a single notification as read.
 
 **Auth**: Required.
 
-**Response 200**: `{ "is_read": true }`
+**Response 200**: `{ "notification": { "id": "uuid", "is_read": true } }`
 **Response 404**: Notification not found or does not belong to user.
 
 ---
@@ -221,45 +219,22 @@ Update the user's per-type notification toggle settings.
 **Request**:
 ```json
 {
-  "pet_update": true,
-  "bolo_alert": true,
-  "nearby_lost": true,
-  "store_account": false
+  "notif_pet_update": true,
+  "notif_bolo_alert": true,
+  "notif_nearby_lost": true,
+  "notif_store_account": false
 }
 ```
 
-All fields optional — only provided fields are updated.
+All fields optional â€” only provided fields are updated.
 
-**Response 200**: `{ "settings": { "pet_update": true, "bolo_alert": true, "nearby_lost": true, "store_account": false } }`
+**Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_store_account": false } }`
 
 ---
 
-## POST /proximity-check
+## Reward Proximity Nonce
 
-Issue a server-signed nonce for the proximity verification flow. Both the owner and finder must call this endpoint to receive matching nonces before submitting coordinates to `POST /rewards/:id/proximity`. Nonces expire after 10 seconds.
-
-**Auth**: Required.
-
-**Request**:
-```json
-{
-  "reward_id": "uuid",
-  "role": "owner"
-}
-```
-
-`role` must be `owner` or `finder`.
-
-**Response 200**:
-```json
-{
-  "nonce": "abc123xyz",
-  "expires_at": "2026-07-01T14:23:21Z"
-}
-```
-
-**Response 400**: Reward not in `funded` or `verification_in_progress` status.
-**Response 403**: User is not the reward owner or claimed finder.
+The `POST /proximity-check` nonce endpoint is defined in [api-rewards.md](./api-rewards.md). It is part of the reward/proximity contract, not the search/results contract.
 
 ---
 

@@ -1,20 +1,22 @@
 # API Contract: Authentication & Account Security
 
-**Base path**: `/api/v1/auth`
-**Last Updated**: 2026-07-01
+**Base path**: `/api/auth`
+**Last Updated**: 2026-07-04
 
 ---
 
 ## POST /auth/register
 
-Register a new user account. Password is hashed client-side before transmission; plaintext password is never sent.
+Register a new user account. Password is transmitted only over HTTPS/TLS; plaintext password is never stored, logged, or returned by the server.
 
 **Request**:
 ```json
 {
+  "first_name": "Zachary",
+  "last_name": "Cooke",
   "email": "owner@example.com",
   "phone": "+15551234567",
-  "password_hash": "bcrypt-hash-of-password"
+  "password": "user-entered-password"
 }
 ```
 
@@ -26,13 +28,13 @@ Register a new user account. Password is hashed client-side before transmission;
 }
 ```
 
-**Response 400**: Invalid email format, weak password hash, or duplicate email.
+**Response 400**: Invalid email format, weak password, or duplicate email.
 
 ---
 
 ## POST /auth/verify-contact
 
-Verify email address or phone number with OTP. Max 3 attempts; account locked for 15 minutes on failure.
+Verify email address or phone number with OTP. Max 3 attempts per issued OTP.
 
 **Request**:
 ```json
@@ -43,9 +45,17 @@ Verify email address or phone number with OTP. Max 3 attempts; account locked fo
 }
 ```
 
-**Response 200**: `{ "verified": true }`
+**Response 200**:
+```json
+{
+  "verified": true,
+  "access_token": "jwt...",
+  "refresh_token": "opaque-refresh-token"
+}
+```
+
 **Response 400**: Invalid or expired code.
-**Response 429**: Too many attempts; account temporarily locked.
+**Response 429**: Too many OTP/register attempts from the same IP hash.
 
 ---
 
@@ -57,42 +67,44 @@ Authenticate and start a session. IP hash is checked to determine if 2FA is requ
 ```json
 {
   "email": "owner@example.com",
-  "password_hash": "bcrypt-hash-of-password"
+  "password": "user-entered-password"
 }
 ```
 
-**Response 200 (known IP)**:
+**Response 200 (known IP or 2FA not enabled)**:
 ```json
 {
   "access_token": "jwt...",
-  "token_type": "Bearer",
-  "expires_in": 900
+  "refresh_token": "opaque-refresh-token",
+  "user_id": "uuid"
 }
 ```
 
-**Response 202 (new/unknown IP — 2FA required)**:
+**Response 200 (new/unknown IP and 2FA enabled)**:
 ```json
 {
   "requires_2fa": true,
-  "challenge_token": "short-lived-token"
+  "user_id": "uuid"
 }
 ```
 
 **Response 401**: Invalid credentials.
+**Response 403**: Email not verified.
 
 ---
 
 ## POST /auth/2fa/setup
 
-Initiate TOTP setup for Microsoft Authenticator (or any TOTP-compatible app).
+Initiate TOTP setup for Microsoft Authenticator or any TOTP-compatible app.
 
 **Auth**: Required (Bearer token)
 
 **Response 200**:
 ```json
 {
-  "totp_uri": "otpauth://totp/PetRecovery:owner@example.com?secret=BASE32SECRET&issuer=PetRecovery",
-  "qr_code_url": "https://api.petrecovery.app/auth/2fa/qr/..."
+  "secret": "BASE32SECRET",
+  "otpauth_url": "otpauth://totp/PetRecovery:owner@example.com?secret=BASE32SECRET&issuer=PetRecovery",
+  "qr_code_data_url": "data:image/png;base64,..."
 }
 ```
 
@@ -100,37 +112,73 @@ Initiate TOTP setup for Microsoft Authenticator (or any TOTP-compatible app).
 
 ## POST /auth/2fa/verify
 
-Complete TOTP challenge after login from unknown IP. On success the IP hash is stored as trusted.
+Dual mode endpoint:
+- Setup confirmation: send `Authorization: Bearer ...` and `{ "code": "482910" }`.
+- Login challenge: send `{ "user_id": "uuid", "code": "482910" }`.
+
+**Response 200 (setup confirmation)**:
+```json
+{ "enabled": true }
+```
+
+**Response 200 (login challenge)**:
+```json
+{
+  "access_token": "jwt...",
+  "refresh_token": "opaque-refresh-token",
+  "user_id": "uuid"
+}
+```
+
+**Response 400/401**: Invalid token, missing user ID, or invalid TOTP code.
+
+---
+
+## POST /auth/refresh
+
+Exchange a refresh token for a new access token. The current web and iOS clients submit the refresh token in JSON; HttpOnly-cookie storage is a future hardening task.
 
 **Request**:
 ```json
-{
-  "challenge_token": "short-lived-token",
-  "totp_code": "482910"
-}
+{ "refresh_token": "opaque-refresh-token" }
 ```
 
 **Response 200**:
 ```json
 {
   "access_token": "jwt...",
-  "token_type": "Bearer",
-  "expires_in": 900
+  "refresh_token": "new-opaque-refresh-token"
 }
 ```
 
-**Response 401**: Invalid or expired TOTP code.
+**Response 401**: Expired or invalid refresh token.
 
 ---
 
-## POST /auth/refresh
+## GET /auth/me
 
-Exchange a refresh token (HttpOnly cookie) for a new access token.
+Return the authenticated user's safe profile. Sensitive fields such as password hash, TOTP secret, and encrypted Facebook token are never returned.
 
-**Request**: No body — refresh token is read from HttpOnly cookie.
+**Auth**: Required
 
-**Response 200**: `{ "access_token": "jwt...", "expires_in": 900 }`
-**Response 401**: Expired or invalid refresh token.
+**Response 200**:
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "owner@example.com",
+    "phone": "+15551234567",
+    "is_email_verified": true,
+    "is_phone_verified": false,
+    "is_2fa_enabled": true,
+    "facebook_connected": true,
+    "notif_pet_update": true,
+    "notif_bolo_alert": true,
+    "notif_nearby_lost": true,
+    "notif_store_account": false
+  }
+}
+```
 
 ---
 
@@ -138,23 +186,44 @@ Exchange a refresh token (HttpOnly cookie) for a new access token.
 
 Revoke refresh token and end session.
 
-**Auth**: Required
+**Request**:
+```json
+{ "refresh_token": "opaque-refresh-token" }
+```
 
-**Response 204**: No content.
+**Response 200**:
+```json
+{ "logged_out": true }
+```
 
 ---
 
 ## POST /auth/facebook
 
-Initiate Facebook OAuth flow to allow reading of the user's local Facebook group posts for found-pet leads. Redirects to Facebook login.
+Initiate Facebook OAuth flow to allow reading of the user's local Facebook group posts for found-pet leads.
 
-**Auth**: Required (Bearer token — user must already have a PetRecovery account)
+**Auth**: Required (Bearer token; user must already have a PetRecovery account)
 
-**Response 302**: Redirect to Facebook OAuth consent screen.
+**Request**:
+```json
+{ "platform": "web" }
+```
+
+`platform` is `"web"` or `"ios"` (default `"web"`) and is threaded through the signed `state` token so the callback knows whether to redirect back to the web dashboard or an iOS custom URL scheme.
+
+**Response 200**:
+```json
+{ "redirect_url": "https://www.facebook.com/v19.0/dialog/oauth?..." }
+```
+
+**Response 503**:
+```json
+{ "error": "facebook_not_configured" }
+```
 
 **Scope requested**: `user_groups`, `groups_access_member_info` (read-only; no posting).
 
-**Note**: PetRecovery does NOT store Facebook credentials. Only the encrypted OAuth access token is stored for the duration of the session.
+**Note**: PetRecovery does not store Facebook credentials. Only the encrypted OAuth access token is stored and used to read joined-group posts.
 
 ---
 
@@ -165,12 +234,10 @@ OAuth callback endpoint. Facebook redirects here after the user authorizes the a
 **Auth**: Not required (called by Facebook redirect).
 
 **Query params**:
-- `code` — authorization code from Facebook
-- `state` — CSRF state token issued by the server
+- `code`: authorization code from Facebook
+- `state`: CSRF state token issued by the server
 
-**Response 302**: Redirects to `/dashboard` on success or `/settings?error=facebook_auth_failed` on failure.
-
-**Response 400**: Invalid state token (CSRF mismatch).
+**Response 302**: On success, redirects to `/dashboard` (web) or `petrecovery://facebook-callback?success=true` (iOS). On failure, redirects to `/account/settings?error=facebook_auth_failed`.
 
 ---
 
@@ -180,4 +247,7 @@ Revoke Facebook access and remove the stored token from the user's account.
 
 **Auth**: Required
 
-**Response 200**: `{ "disconnected": true }`
+**Response 200**:
+```json
+{ "disconnected": true }
+```

@@ -140,5 +140,5 @@
 - TypeScript strict mode is on across backend and frontend — no `any` without a comment explaining why
 - Use async/await, not `.then()` chains
 - Error logs include context: `logger.error("Failed to dispatch vet BOLO", { petId, searchId, reason })`
-- No magic strings/numbers — extract to named constants (e.g., a shared `constants.ts` for the 15-min JWT expiry, 2-mile BOLO radius, 10-ft proximity threshold)
+- No magic strings/numbers — extract to named constants (e.g., a shared `constants.ts` for the 15-min JWT expiry, 2-mile BOLO radius, 50-ft proximity threshold)
 - Commit messages reference the relevant spec/task number when possible
