@@ -131,6 +131,7 @@ struct MeUserDTO: Decodable {
     let notif_bolo_alert: Bool
     let notif_nearby_lost: Bool
     let notif_store_account: Bool
+    let is_premium: Bool
 }
 
 struct RewardDTO: Decodable, Identifiable {

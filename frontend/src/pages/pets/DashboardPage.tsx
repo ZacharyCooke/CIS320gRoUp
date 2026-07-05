@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { NotificationBell } from "../../components/NotificationBell";
+import { AdBanner, SidebarAd } from "../../components/AdBanner";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 
 const QRScannerModal = lazy(async () => {
   const module = await import("../../components/QRScannerModal");
@@ -31,8 +33,8 @@ export function DashboardPage() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
+  const { user } = useCurrentUser();
 
   useEffect(() => {
     apiClient
@@ -42,14 +44,6 @@ export function DashboardPage() {
         setError(err.response?.data?.error ?? "Failed to load pets");
       })
       .finally(() => setLoading(false));
-
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUserId(payload.id ?? null);
-      } catch { /* ignore */ }
-    }
   }, []);
 
   return (
@@ -66,7 +60,7 @@ export function DashboardPage() {
           <p className="page-sub">Manage your registered pets and tracking devices.</p>
         </div>
         <div className="header-actions">
-          {userId && <NotificationBell userId={userId} />}
+          {user && <NotificationBell userId={user.id} />}
           <button type="button" onClick={() => setShowScanner(true)}>📷 Scan QR</button>
           <button type="button" className="btn-outline" onClick={() => navigate("/found-report")}>
             Report Found Pet
@@ -74,6 +68,8 @@ export function DashboardPage() {
           <button type="button" onClick={() => navigate("/pets/new")}>+ Add Pet</button>
         </div>
       </div>
+
+      <AdBanner isPremium={user?.is_premium ?? false} adIndex={0} />
 
       {loading && <p>Loading…</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
@@ -110,6 +106,8 @@ export function DashboardPage() {
             <div className="plus">＋</div>
             <p>Register Another Pet</p>
           </div>
+
+          <SidebarAd isPremium={user?.is_premium ?? false} adIndex={1} />
         </div>
       )}
     </section>

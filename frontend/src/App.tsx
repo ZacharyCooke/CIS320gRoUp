@@ -32,6 +32,8 @@ const ProximityVerificationPage = lazyPage(
 );
 const AccountSettingsPage = lazyPage(() => import("./pages/account/AccountSettingsPage"), "AccountSettingsPage");
 const PublicPetProfile = lazyPage(() => import("./pages/public/PublicPetProfile"), "PublicPetProfile");
+const StorePage = lazyPage(() => import("./pages/store/StorePage"), "StorePage");
+const PremiumCheckoutPage = lazyPage(() => import("./pages/store/PremiumCheckoutPage"), "PremiumCheckoutPage");
 
 const stored = localStorage.getItem("access_token");
 if (stored) setAccessToken(stored);
@@ -61,6 +63,8 @@ export function App() {
           <Route path="/verify" element={<VerifyContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/found-report" element={<FoundReportPage />} />
+          <Route path="/store" element={<StorePage />} />
+          <Route path="/store/premium" element={<RequireAuth><PremiumCheckoutPage /></RequireAuth>} />
           <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
           <Route path="/pets/new" element={<RequireAuth><PetFormPage /></RequireAuth>} />
           <Route path="/pets/:id" element={<RequireAuth><PetProfilePage /></RequireAuth>} />
