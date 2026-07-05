@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { findActiveSearches } from "../models/lost-pet-search.model.js";
 import { findPetById } from "../models/pet.model.js";
 import { haversineDistanceMiles } from "./geo.service.js";
@@ -20,7 +21,13 @@ export async function evaluateLocationUpdate(
   lat: number,
   lng: number
 ): Promise<void> {
+  // One trace ID per location update so every search evaluated (skip, dedupe
+  // hit, or dispatch) against this single GPS ping can be correlated in logs.
+  const traceId = crypto.randomUUID();
   const activeSearches = await findActiveSearches();
+  console.log(
+    `[community-alert] trace=${traceId} user=${userId} evaluating ${activeSearches.length} active search(es)`
+  );
 
   for (const search of activeSearches) {
     if (search.owner_id === userId) continue;
@@ -32,7 +39,14 @@ export async function evaluateLocationUpdate(
     if (!pet) continue;
 
     const type = distance <= BOLO_RADIUS_MILES ? "bolo_alert" : "community_alert";
-    if (await alreadyNotified(userId, search.id, type)) continue;
+    if (await alreadyNotified(userId, search.id, type)) {
+      console.log(`[community-alert] trace=${traceId} search=${search.id} type=${type} skipped (dedupe window active)`);
+      continue;
+    }
+
+    console.log(
+      `[community-alert] trace=${traceId} search=${search.id} type=${type} distance_miles=${distance.toFixed(2)} dispatching`
+    );
 
     if (distance <= BOLO_RADIUS_MILES) {
       await dispatchBOLO(userId, pet, distance, { lat, lng });

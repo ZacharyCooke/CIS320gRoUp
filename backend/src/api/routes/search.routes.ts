@@ -20,6 +20,7 @@ import { dispatchVetBolos } from "../../services/vet-bolo.service.js";
 import { findVetBolosBySearchId } from "../../models/vet-bolo.model.js";
 import { findActiveRewardByPetId } from "../../models/reward.model.js";
 import { cancel as cancelReward } from "../../services/reward.service.js";
+import { clearLastKnownLocationByPetId } from "../../models/tracking-device.model.js";
 import crypto from "node:crypto";
 
 export const searchRouter = Router();
@@ -124,6 +125,7 @@ searchRouter.post(
 
     await updatePetStatus(petId, ownerId, "safe");
     await deleteActiveSearchLocationsByPetId(petId);
+    await clearLastKnownLocationByPetId(petId);
 
     // A pet recovered outside the app's own proximity-verification flow (e.g.
     // found and returned directly) means any still-open reward should be

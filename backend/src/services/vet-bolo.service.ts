@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { findNearbyVetClinics, type NearbyVetClinic } from "../integrations/google-places.client.js";
 import { sendEmail } from "../integrations/email.service.js";
 import { createVetBolo, type VetBolo } from "../models/vet-bolo.model.js";
@@ -11,19 +12,32 @@ export async function dispatchVetBolos(
   pet: Pet,
   clinics: NearbyVetClinic[]
 ): Promise<VetBolo[]> {
+  // One trace ID per dispatch batch so every clinic's outcome for this
+  // mark-lost event can be correlated back to the same request in logs.
+  const traceId = crypto.randomUUID();
+  console.log(
+    `[vet-bolo] trace=${traceId} search=${search.id} pet=${pet.id} dispatching to ${clinics.length} clinic(s)`
+  );
+
   const owner = await findUserById(pet.owner_id);
   const dispatched: VetBolo[] = [];
 
   for (const clinic of clinics) {
     const emailStatus = clinic.clinic_email
       ? await sendBoloEmail(clinic.clinic_email, pet, owner).then(
-          () => "sent" as const,
+          () => {
+            console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" email_status=sent`);
+            return "sent" as const;
+          },
           (err) => {
-            console.error("[vet-bolo] SendGrid dispatch error:", err);
+            console.error(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" SendGrid dispatch error:`, err);
             return "failed" as const;
           }
         )
-      : ("failed" as const);
+      : (() => {
+          console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" email_status=failed (no email on file)`);
+          return "failed" as const;
+        })();
 
     const bolo = await createVetBolo({
       search_id: search.id,

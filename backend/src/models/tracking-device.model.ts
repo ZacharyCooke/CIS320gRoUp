@@ -61,3 +61,16 @@ export async function deleteTrackingDeviceById(id: string, petId: string): Promi
   );
   return Boolean(result.rowCount);
 }
+
+// Location data is retained only while a pet is actively lost (CLAUDE.md,
+// rules.md) — clears the last-known-location signal once a pet is marked
+// recovered, mirroring LostPetSearch's deleteActiveSearchLocationsByPetId.
+// The device link itself (share_url) is kept; only the transient location is purged.
+export async function clearLastKnownLocationByPetId(petId: string): Promise<void> {
+  await pool.query(
+    `UPDATE tracking_devices
+     SET last_known_latitude = NULL, last_known_longitude = NULL, last_updated_at = NULL
+     WHERE pet_id = $1`,
+    [petId]
+  );
+}
