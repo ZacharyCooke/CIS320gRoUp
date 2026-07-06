@@ -9,7 +9,7 @@
 
 - Backend API running locally on `http://localhost:3000`
 - Web frontend running locally on `http://localhost:5173`
-- iOS app installed on simulator (iOS 15+) or physical device
+- iOS app installed on simulator (iOS 16+) or physical device
 - PostgreSQL and Redis running locally
 - SendGrid, Twilio, Stripe, and Google Places test credentials in `.env`
 - Microsoft Authenticator app on a mobile device for 2FA testing
@@ -122,7 +122,7 @@
 4. Confirm Stripe test payment intent is created with status `requires_capture`
 5. On a second device (as the finder), navigate to the reward claim screen
 6. Both devices submit GPS coordinates to the server within 10 seconds
-7. Confirm server computes distance and returns `proximity_passed: true` (coordinates within 10 feet)
+7. Confirm server computes distance and returns `proximity_passed: true` (coordinates within 50 feet)
 8. Finder scans Bella's QR tag → confirm `pet_identity_passed: true`
 9. Confirm owner identity lookup returns `owner_identity_passed: true`
 10. Confirm `all_passed: true` triggers Stripe `capture` on the payment intent

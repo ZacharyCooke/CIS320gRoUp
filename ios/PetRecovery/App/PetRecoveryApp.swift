@@ -1,28 +1,31 @@
 import SwiftUI
 
-/// Wraps a scanned/deep-linked profile token so it can drive a
-/// `navigationDestination(item:)` binding without conforming String itself.
-struct ProfileLink: Identifiable, Hashable {
-    let token: String
-    var id: String { token }
-}
-
 @main
 struct PetRecoveryApp: App {
-    @State private var profileLink: ProfileLink?
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    // `navigationDestination(item:)` needs iOS 17; this app targets 16, so the
+    // token and its presentation flag are tracked separately instead.
+    @State private var profileToken: String?
+    @State private var showProfileLink = false
 
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                PlaceholderRootView()
-                    .navigationDestination(item: $profileLink) { link in
-                        PublicPetProfileView(token: link.token)
+                RootView()
+                    .navigationDestination(isPresented: $showProfileLink) {
+                        if let profileToken {
+                            PublicPetProfileView(token: profileToken)
+                        }
                     }
             }
             .onOpenURL { url in
                 if let token = deepLinkToken(from: url) {
-                    profileLink = ProfileLink(token: token)
+                    profileToken = token
+                    showProfileLink = true
                 }
+            }
+            .task {
+                PushNotificationService.requestAuthorizationAndRegister()
             }
         }
     }
@@ -36,15 +39,5 @@ struct PetRecoveryApp: App {
         }
         // Custom scheme without host, or a Universal Link — match /p/<token>
         return extractProfileToken(from: url.absoluteString)
-    }
-}
-
-struct PlaceholderRootView: View {
-    var body: some View {
-        List {
-            Text("PetRecovery implementation scaffold")
-            Text("Feature screens will be added by user-story tasks.")
-        }
-        .navigationTitle("PetRecovery")
     }
 }

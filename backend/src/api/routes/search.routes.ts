@@ -6,6 +6,7 @@ import {
   createLostPetSearch,
   deleteActiveSearchLocationsByPetId,
   findActiveSearchByPetId,
+  findActiveSearchesInBounds,
   findSearchById,
   updateSearchRadius,
   updateSearchStatus
@@ -13,6 +14,11 @@ import {
 import { findResultsBySearchId } from "../../models/search-result.model.js";
 import { findPetById, updatePetStatus } from "../../models/pet.model.js";
 import { runSearch } from "../../services/search-aggregator.service.js";
+import { dispatchVetBolos } from "../../services/vet-bolo.service.js";
+import { findVetBolosBySearchId } from "../../models/vet-bolo.model.js";
+import { notifyNearbyUsersOfNewLostSearch } from "../../integrations/websocket.server.js";
+import { autoRefundActiveReward } from "../../services/reward.service.js";
+import { boundingBox, haversineDistanceMiles } from "../../services/geo.service.js";
 
 export const searchRouter = Router();
 
@@ -68,11 +74,78 @@ searchRouter.post(
     });
 
     // Fire-and-forget — results stream via WebSocket
-    runSearch(search, pet.species).catch((err) =>
+    runSearch(search, pet).catch((err) =>
       console.error("[search] aggregator error:", err)
     );
 
-    res.status(201).json({ search });
+    // Fire-and-forget — green community alerts to currently-connected nearby users
+    notifyNearbyUsersOfNewLostSearch(search).catch((err) =>
+      console.error("[search] community alert error:", err)
+    );
+
+    const vetBolos = await dispatchVetBolos(search.id, pet, body.data.center_lat, body.data.center_lng).catch(
+      (err) => {
+        console.error("[search] vet BOLO dispatch error:", err);
+        return [];
+      }
+    );
+
+    res.status(201).json({ search, vet_bolos_dispatched: vetBolos.length });
+  })
+);
+
+// GET /searches/:id/vet-bolos
+searchRouter.get(
+  "/searches/:id/vet-bolos",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const searchId = param(req.params.id);
+    const ownerId = req.user!.id;
+
+    const search = await findSearchById(searchId);
+    if (!search || search.owner_id !== ownerId) {
+      res.status(403).json({ error: "not_search_owner" });
+      return;
+    }
+
+    const vetBolos = await findVetBolosBySearchId(searchId);
+    res.json({ search_id: searchId, vet_bolos: vetBolos, total: vetBolos.length });
+  })
+);
+
+// GET /searches/nearby — active lost-pet searches near a location, for any logged-in user to browse.
+const nearbySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radius_miles: z.coerce.number().min(0.5).max(500).default(25)
+});
+
+searchRouter.get(
+  "/searches/nearby",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const parsed = nearbySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: "validation_error", details: parsed.error.flatten() });
+      return;
+    }
+    const { lat, lng, radius_miles: radius } = parsed.data;
+
+    const box = boundingBox(lat, lng, radius);
+    const candidates = await findActiveSearchesInBounds(box.minLat, box.maxLat, box.minLng, box.maxLng);
+
+    const nearby = candidates
+      .map((c) => ({
+        ...c,
+        distance_miles: haversineDistanceMiles(lat, lng, c.center_lat, c.center_lng)
+      }))
+      .filter((c) => c.distance_miles <= radius)
+      .sort((a, b) => a.distance_miles - b.distance_miles)
+      // Approximate location only — the exact center isn't needed once distance is computed,
+      // and owner_id is internal (used only for the "is this your own pet" check on the client).
+      .map(({ center_lat, center_lng, ...rest }) => rest);
+
+    res.json({ missing_pets: nearby, total: nearby.length });
   })
 );
 
@@ -97,6 +170,9 @@ searchRouter.post(
 
     await updatePetStatus(petId, ownerId, "safe");
     await deleteActiveSearchLocationsByPetId(petId);
+    await autoRefundActiveReward(petId).catch((err) =>
+      console.error("[search] auto-refund error:", err)
+    );
 
     res.json({ pet_id: petId, status: "safe", search_closed: !!search });
   })

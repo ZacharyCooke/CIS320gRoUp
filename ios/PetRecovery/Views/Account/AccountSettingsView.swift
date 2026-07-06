@@ -7,6 +7,7 @@ struct UserProfile: Decodable {
     let is_email_verified: Bool
     let is_phone_verified: Bool
     let is_2fa_enabled: Bool
+    let is_facebook_connected: Bool
 }
 
 struct AccountSettingsView: View {
@@ -63,12 +64,35 @@ struct AccountSettingsView: View {
                 }
             }
 
+            Section("Facebook Groups") {
+                if p.is_facebook_connected {
+                    Label("Connected", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    Button("Disconnect", role: .destructive) { Task { await disconnectFacebook() } }
+                } else {
+                    Text("Connect to search posts in Facebook groups you've joined for found-pet leads.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("Connect Facebook") { connectFacebook() }
+                }
+            }
+
             Section {
                 Button("Sign Out", role: .destructive) {
                     showLogoutConfirm = true
                 }
             }
         }
+    }
+
+    private func connectFacebook() {
+        guard let token = APIClient.shared.accessToken else { return }
+        FacebookAuthService.connect(baseURL: APIClient.shared.baseURL, accessToken: token) {
+            Task { await loadProfile() }
+        }
+    }
+
+    private func disconnectFacebook() async {
+        _ = try? await APIClient.shared.request(path: "auth/facebook/disconnect", method: "POST")
+        await loadProfile()
     }
 
     @ViewBuilder

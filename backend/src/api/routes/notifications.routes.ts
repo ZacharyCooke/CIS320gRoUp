@@ -1,12 +1,16 @@
 import { Router } from "express";
+import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authMiddleware } from "../middleware/auth.js";
 import {
   findNotificationsByUserId,
   markNotificationRead,
   markAllNotificationsRead,
-  countUnreadNotifications
+  countUnreadNotifications,
+  getNotificationSettings,
+  updateNotificationSettings
 } from "../../models/notification.model.js";
+import { setUserDeviceToken } from "../../models/user.model.js";
 
 export const notificationsRouter = Router();
 notificationsRouter.use(authMiddleware);
@@ -37,6 +41,49 @@ notificationsRouter.post(
   "/read-all",
   asyncHandler(async (req, res) => {
     await markAllNotificationsRead(req.user!.id);
+    res.json({ ok: true });
+  })
+);
+
+const settingsSchema = z.object({
+  pet_update: z.boolean().optional(),
+  bolo_alert: z.boolean().optional(),
+  community_alert: z.boolean().optional(),
+  claim_alert: z.boolean().optional()
+});
+
+notificationsRouter.get(
+  "/settings",
+  asyncHandler(async (req, res) => {
+    const settings = await getNotificationSettings(req.user!.id);
+    res.json({ settings });
+  })
+);
+
+notificationsRouter.patch(
+  "/settings",
+  asyncHandler(async (req, res) => {
+    const body = settingsSchema.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
+      return;
+    }
+    const settings = await updateNotificationSettings(req.user!.id, body.data);
+    res.json({ settings });
+  })
+);
+
+const deviceTokenSchema = z.object({ device_token: z.string().min(1) });
+
+notificationsRouter.post(
+  "/device-token",
+  asyncHandler(async (req, res) => {
+    const body = deviceTokenSchema.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
+      return;
+    }
+    await setUserDeviceToken(req.user!.id, body.data.device_token);
     res.json({ ok: true });
   })
 );

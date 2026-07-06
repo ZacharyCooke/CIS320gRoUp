@@ -2,7 +2,7 @@ name: PetRecovery
 options:
   bundleIdPrefix: com.petrecovery
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "16.0"
   createIntermediateGroups: true
 
 configs:
@@ -18,7 +18,7 @@ targets:
   PetRecovery:
     type: application
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources:
       - path: App
       - path: Models
@@ -28,6 +28,16 @@ targets:
       path: Info.plist
       properties:
         UILaunchScreen: {}
+        CFBundleDisplayName: PetRecovery
+        NSCameraUsageDescription: PetRecovery uses the camera to scan QR tags and add pet photos.
+        NSLocationWhenInUseUsageDescription: PetRecovery uses your location to search for lost pets and verify reunions.
+        NSPhotoLibraryUsageDescription: PetRecovery uses your photo library so you can upload pet profile photos.
+        NSLocationTemporaryUsageDescriptionDictionary:
+          RewardProximityVerification: Full-accuracy location is needed to confirm you and the finder are close enough to release the reward.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.petrecovery.deeplink
+            CFBundleURLSchemes:
+              - petrecovery
     entitlements:
       path: PetRecovery.entitlements
       properties:
@@ -39,7 +49,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.petrecovery.app
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     dependencies:
       # Adjust the product name to whichever Stripe module you actually
       # use — StripePaymentSheet covers the escrow/reward payment flow;
@@ -54,7 +64,7 @@ targets:
   PetRecoveryTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources:
       - path: PetRecoveryTests
     dependencies:

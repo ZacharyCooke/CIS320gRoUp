@@ -9,6 +9,9 @@ import { env } from "./config/env.js";
 export const app = express();
 
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+// Stripe webhook signatures are verified against the raw body — must be
+// registered before the global JSON parser, and only for this one path.
+app.use("/api/store/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: "1mb" }));
 app.use(ipDetectionMiddleware);
 app.use(rateLimitMiddleware);

@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { MarkLostModal } from "../search/MarkLostModal";
 
 interface MedicalCondition {
   condition: string;
   share_publicly: boolean;
+}
+
+interface TrackingDevice {
+  id: string;
+  device_type: string;
+  share_url: string;
+}
+
+interface ExternalSource {
+  id: string;
+  source_type: string;
+  source_name: string;
 }
 
 interface Pet {
@@ -20,6 +32,8 @@ interface Pet {
   medical_conditions: MedicalCondition[];
   medical_emergency_notes: string | null;
   share_emergency_notes: boolean;
+  tracking_devices: TrackingDevice[];
+  external_sources: ExternalSource[];
 }
 
 interface Vet {
@@ -37,6 +51,7 @@ const TEMPERAMENT_LABELS: Record<string, { label: string; color: string }> = {
 
 export function PetProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [pet, setPet] = useState<Pet | null>(null);
   const [vet, setVet] = useState<Vet | null>(null);
   const [qr, setQr] = useState<{ png_data_url: string; profile_url: string } | null>(null);
@@ -48,16 +63,23 @@ export function PetProfilePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [showMarkLost, setShowMarkLost] = useState(false);
 
+  const reloadPet = useCallback(async () => {
+    if (!id) return;
+    try {
+      const { data } = await apiClient.get(`/pets/${id}`);
+      setPet(data.pet);
+    } catch {
+      setLoadError("Could not load pet profile");
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     setPet(null);
     setVet(null);
     setQr(null);
     setLoadError(null);
-    apiClient
-      .get(`/pets/${id}`)
-      .then(({ data }) => setPet(data.pet))
-      .catch(() => setLoadError("Could not load pet profile"));
+    reloadPet();
     apiClient
       .get(`/pets/${id}/vet`)
       .then(({ data }) => setVet(data.vet))
@@ -66,7 +88,42 @@ export function PetProfilePage() {
       .get(`/pets/${id}/qr`)
       .then(({ data }) => setQr({ png_data_url: data.png_data_url, profile_url: data.profile_url }))
       .catch(() => {});
-  }, [id]);
+  }, [id, reloadPet]);
+
+  async function deletePet() {
+    if (!id) return;
+    if (!window.confirm(`Delete ${pet?.name ?? "this pet"}'s profile? This cannot be undone.`)) return;
+    try {
+      await apiClient.delete(`/pets/${id}`);
+      navigate("/dashboard");
+    } catch {
+      setActionError("Failed to delete pet profile");
+    }
+  }
+
+  async function unlinkDevice(deviceId: string) {
+    setActionMsg(null);
+    setActionError(null);
+    try {
+      await apiClient.delete(`/pets/${id}/tracking-devices/${deviceId}`);
+      setActionMsg("Tracking device removed.");
+      await reloadPet();
+    } catch {
+      setActionError("Failed to remove device");
+    }
+  }
+
+  async function unlinkSource(sourceId: string) {
+    setActionMsg(null);
+    setActionError(null);
+    try {
+      await apiClient.delete(`/pets/${id}/external-sources/${sourceId}`);
+      setActionMsg("External source removed.");
+      await reloadPet();
+    } catch {
+      setActionError("Failed to remove source");
+    }
+  }
 
   async function rotateQr() {
     setActionMsg(null);
@@ -93,6 +150,7 @@ export function PetProfilePage() {
       });
       setActionMsg("Tracking device linked.");
       setDeviceUrl("");
+      await reloadPet();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setActionError(e.response?.data?.error ?? "Failed to link device");
@@ -122,6 +180,7 @@ export function PetProfilePage() {
         source_url: sourceUrls[sourceType] ?? "https://petrecovery.app"
       });
       setActionMsg(`${sourceNames[sourceType] ?? sourceType} linked.`);
+      await reloadPet();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setActionError(e.response?.data?.error ?? "Failed to link source");
@@ -135,7 +194,7 @@ export function PetProfilePage() {
   const publicConditions = pet.medical_conditions.filter((c) => c.share_publicly);
 
   return (
-    <section>
+    <section style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem" }}>
       {showMarkLost && (
         <MarkLostModal petId={pet.id} petName={pet.name} onClose={() => setShowMarkLost(false)} />
       )}
@@ -161,6 +220,14 @@ export function PetProfilePage() {
           <button type="button" style={{ color: "red" }} onClick={() => setShowMarkLost(true)}>
             Mark as Lost
           </button>
+        </div>
+      )}
+
+      {pet.status === "lost" && (
+        <div style={{ margin: "8px 0" }}>
+          <Link to={`/pets/${pet.id}/reward`}>
+            <button type="button">Set Reward</button>
+          </Link>
         </div>
       )}
 
@@ -233,6 +300,34 @@ export function PetProfilePage() {
       {actionMsg && <p style={{ color: "green" }}>{actionMsg}</p>}
       {actionError && <p role="alert" style={{ color: "red" }}>{actionError}</p>}
 
+      {pet.tracking_devices.length > 0 && (
+        <>
+          <h2>Linked Tracking Devices</h2>
+          <ul>
+            {pet.tracking_devices.map((d) => (
+              <li key={d.id}>
+                {d.device_type} — <a href={d.share_url} target="_blank" rel="noopener noreferrer">{d.share_url}</a>{" "}
+                <button type="button" onClick={() => unlinkDevice(d.id)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {pet.external_sources.length > 0 && (
+        <>
+          <h2>Linked External Sources</h2>
+          <ul>
+            {pet.external_sources.map((s) => (
+              <li key={s.id}>
+                {s.source_name}{" "}
+                <button type="button" onClick={() => unlinkSource(s.id)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
       <h2>Link Tracking Device</h2>
       <form onSubmit={linkDevice}>
         <label>
@@ -268,6 +363,12 @@ export function PetProfilePage() {
         </label>
         <button type="submit">Link source</button>
       </form>
+
+      <div style={{ marginTop: 24, borderTop: "1px solid #e5e7eb", paddingTop: 16 }}>
+        <button type="button" style={{ color: "red" }} onClick={deletePet}>
+          Delete pet profile
+        </button>
+      </div>
     </section>
   );
 }

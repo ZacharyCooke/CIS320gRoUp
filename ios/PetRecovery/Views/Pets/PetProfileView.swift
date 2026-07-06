@@ -4,6 +4,8 @@ struct PetProfileView: View {
     let pet: PetDTO
 
     @State private var vet: VetDTO?
+    @State private var trackingDevices: [TrackingDeviceDTO] = []
+    @State private var externalSources: [ExternalSourceDTO] = []
     @State private var deviceType = "airtag"
     @State private var shareUrl = ""
     @State private var sourceType = "petfinder_api"
@@ -12,6 +14,7 @@ struct PetProfileView: View {
     @State private var isLinkingDevice = false
     @State private var isLinkingSource = false
     @State private var showMarkLost = false
+    @Environment(\.dismiss) private var dismiss
 
     private let sourceNames = [
         "petfinder_api": "PetFinder", "petfbi_scrape": "PetFBI",
@@ -50,6 +53,10 @@ struct PetProfileView: View {
                 }
                 if pet.status != "lost" {
                     Button("Mark as Lost", role: .destructive) { showMarkLost = true }
+                } else {
+                    NavigationLink("Set Reward") {
+                        RewardSetupView(petId: pet.id, petName: pet.name)
+                    }
                 }
             }
             .sheet(isPresented: $showMarkLost) { MarkLostView(pet: pet) }
@@ -104,6 +111,31 @@ struct PetProfileView: View {
                 Section { Text(err).foregroundStyle(.red) }
             }
 
+            if !trackingDevices.isEmpty {
+                Section("Linked Tracking Devices") {
+                    ForEach(trackingDevices) { device in
+                        VStack(alignment: .leading) {
+                            Text(device.device_type.capitalized).bold()
+                            Text(device.share_url).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                    }
+                    .onDelete { offsets in
+                        Task { await unlinkDevices(at: offsets) }
+                    }
+                }
+            }
+
+            if !externalSources.isEmpty {
+                Section("Linked External Sources") {
+                    ForEach(externalSources) { source in
+                        Text(source.source_name)
+                    }
+                    .onDelete { offsets in
+                        Task { await unlinkSources(at: offsets) }
+                    }
+                }
+            }
+
             Section("Link Tracking Device") {
                 Picker("Device type", selection: $deviceType) {
                     Text("AirTag").tag("airtag")
@@ -129,9 +161,47 @@ struct PetProfileView: View {
                 }
                 .disabled(isLinkingSource)
             }
+
+            Section {
+                Button("Delete pet profile", role: .destructive) {
+                    Task { await deletePet() }
+                }
+            }
         }
         .navigationTitle(pet.name)
-        .task { vet = try? await APIClient.shared.getPetVet(petId: pet.id) }
+        .task {
+            vet = try? await APIClient.shared.getPetVet(petId: pet.id)
+            await reloadLinkedItems()
+        }
+    }
+
+    private func reloadLinkedItems() async {
+        guard let detail = try? await APIClient.shared.getPetDetail(petId: pet.id) else { return }
+        trackingDevices = detail.tracking_devices
+        externalSources = detail.external_sources
+    }
+
+    private func unlinkDevices(at offsets: IndexSet) async {
+        for index in offsets {
+            try? await APIClient.shared.unlinkTrackingDevice(petId: pet.id, deviceId: trackingDevices[index].id)
+        }
+        await reloadLinkedItems()
+    }
+
+    private func unlinkSources(at offsets: IndexSet) async {
+        for index in offsets {
+            try? await APIClient.shared.unlinkExternalSource(petId: pet.id, sourceId: externalSources[index].id)
+        }
+        await reloadLinkedItems()
+    }
+
+    private func deletePet() async {
+        do {
+            try await APIClient.shared.deletePet(petId: pet.id)
+            dismiss()
+        } catch {
+            errorMessage = "Failed to delete pet profile"
+        }
     }
 
     private func linkDevice() async {
@@ -141,6 +211,7 @@ struct PetProfileView: View {
             try await APIClient.shared.linkTrackingDevice(petId: pet.id, deviceType: deviceType, shareUrl: shareUrl)
             statusMessage = "Tracking device linked."
             shareUrl = ""
+            await reloadLinkedItems()
         } catch { errorMessage = error.localizedDescription }
         isLinkingDevice = false
     }
@@ -155,6 +226,7 @@ struct PetProfileView: View {
                 sourceUrl: sourceUrls[sourceType] ?? "https://petrecovery.app"
             )
             statusMessage = "\(sourceNames[sourceType] ?? sourceType) linked."
+            await reloadLinkedItems()
         } catch { errorMessage = error.localizedDescription }
         isLinkingSource = false
     }

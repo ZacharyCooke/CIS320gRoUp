@@ -60,6 +60,57 @@ export async function findActiveSearches(): Promise<LostPetSearch[]> {
   return result.rows;
 }
 
+export interface NearbyMissingPet {
+  search_id: string;
+  pet_id: string;
+  owner_id: string;
+  center_lat: number;
+  center_lng: number;
+  started_at: Date;
+  name: string;
+  species: string;
+  breed: string | null;
+  color: string;
+  photo_urls: string[];
+  temperament: string;
+  approach_notes: string | null;
+  qr_code_token: string;
+}
+
+/** Active lost-pet searches within a bounding box — precise radius filtering happens in the service layer. */
+export async function findActiveSearchesInBounds(
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number
+): Promise<NearbyMissingPet[]> {
+  const result = await pool.query<NearbyMissingPet>(
+    `SELECT
+       ls.id AS search_id,
+       ls.pet_id,
+       ls.owner_id,
+       ls.center_lat,
+       ls.center_lng,
+       ls.started_at,
+       p.name,
+       p.species,
+       p.breed,
+       p.color,
+       p.photo_urls,
+       p.temperament,
+       p.approach_notes,
+       p.qr_code_token
+     FROM lost_pet_searches ls
+     JOIN pets p ON p.id = ls.pet_id
+     WHERE ls.status = 'active'
+       AND ls.center_lat BETWEEN $1 AND $2
+       AND ls.center_lng BETWEEN $3 AND $4
+     ORDER BY ls.started_at DESC`,
+    [minLat, maxLat, minLng, maxLng]
+  );
+  return result.rows;
+}
+
 export async function updateSearchStatus(
   id: string,
   ownerId: string,

@@ -6,6 +6,7 @@ import { connectToSearch, disconnectSearch } from "../../services/websocket.clie
 interface SearchResult {
   id: string;
   source: string;
+  external_id: string | null;
   name: string | null;
   species: string | null;
   breed: string | null;
@@ -29,6 +30,15 @@ interface Search {
   radius_miles: number;
 }
 
+interface VetBolo {
+  id: string;
+  clinic_name: string;
+  clinic_address: string | null;
+  distance_miles: number;
+  email_status: "sent" | "bounced" | "failed";
+  sent_at: string | null;
+}
+
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -37,6 +47,7 @@ export function SearchResultsPage() {
   const [complete, setComplete] = useState(false);
   const [radius, setRadius] = useState(10);
   const [error, setError] = useState<string | null>(null);
+  const [vetBolos, setVetBolos] = useState<VetBolo[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markers = useRef<any[]>([]);
@@ -50,11 +61,28 @@ export function SearchResultsPage() {
       setResults(data.results ?? []);
     }).catch(() => setError("Search not found."));
 
+    apiClient.get(`/searches/${id}/vet-bolos`).then(({ data }) => {
+      setVetBolos(data.vet_bolos ?? []);
+    }).catch(() => { /* no vet BOLOs dispatched yet */ });
+
     const socket = connectToSearch(id);
     socket.on("new_result", (result: SearchResult) => {
       setResults((prev) => [...prev, result]);
     });
     socket.on("search_complete", () => setComplete(true));
+    socket.on("vet_bolo_sent", (data: { clinic_name: string; email_status: VetBolo["email_status"] }) => {
+      setVetBolos((prev) => [
+        ...prev,
+        {
+          id: `${data.clinic_name}-${prev.length}`,
+          clinic_name: data.clinic_name,
+          clinic_address: null,
+          distance_miles: 0,
+          email_status: data.email_status,
+          sent_at: new Date().toISOString()
+        }
+      ]);
+    });
 
     return () => disconnectSearch();
   }, [id]);
@@ -104,11 +132,25 @@ export function SearchResultsPage() {
     navigate("/dashboard");
   }
 
+  async function claimReport(foundReportId: string) {
+    if (!id) return;
+    try {
+      const { data } = await apiClient.post(`/found-reports/${foundReportId}/claim`, { search_id: id });
+      alert(
+        data.owner_contact
+          ? `Claimed! The finder has been sent your contact info: ${data.owner_contact}`
+          : "Claimed! The finder has been notified."
+      );
+    } catch {
+      alert("Could not claim this report — it may already be claimed.");
+    }
+  }
+
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!search) return <p>Loading…</p>;
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div style={{ padding: "1rem", maxWidth: 900, margin: "0 auto" }}>
       <h2>Search Results {complete ? "(complete)" : "(searching…)"}</h2>
 
       <div ref={mapRef} style={{ height: 360, width: "100%", marginBottom: "1rem" }} />
@@ -125,6 +167,26 @@ export function SearchResultsPage() {
         </button>
       </div>
 
+      {vetBolos.length > 0 && (
+        <div style={{ marginBottom: "1rem" }}>
+          <h3 style={{ marginBottom: "0.5rem" }}>Vet clinics notified ({vetBolos.length})</h3>
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {vetBolos.map((v) => (
+              <li key={v.id} style={{ ...card, alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <strong>{v.clinic_name}</strong>
+                  {v.clinic_address && <div style={{ fontSize: "0.8rem", color: "#555" }}>{v.clinic_address}</div>}
+                  {v.distance_miles > 0 && (
+                    <div style={{ fontSize: "0.8rem", color: "#555" }}>{v.distance_miles.toFixed(1)} mi away</div>
+                  )}
+                </div>
+                <span style={statusBadge(v.email_status)}>{v.email_status}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p>{results.length} result{results.length !== 1 ? "s" : ""} found</p>
 
       <ul style={{ listStyle: "none", padding: 0 }}>
@@ -139,6 +201,13 @@ export function SearchResultsPage() {
               </div>
               {r.description && <p style={{ margin: "0.25rem 0" }}>{r.description.slice(0, 120)}</p>}
               {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer">View on {r.source}</a>}
+              {r.source === "found_report" && r.external_id && (
+                <div style={{ marginTop: 6 }}>
+                  <button type="button" onClick={() => claimReport(r.external_id!)}>
+                    This is my pet — claim it
+                  </button>
+                </div>
+              )}
             </div>
           </li>
         ))}
@@ -151,3 +220,16 @@ const card: React.CSSProperties = {
   display: "flex", gap: "0.75rem", padding: "0.75rem",
   border: "1px solid #e5e7eb", borderRadius: 6, marginBottom: "0.5rem"
 };
+
+function statusBadge(status: VetBolo["email_status"]): React.CSSProperties {
+  const colors: Record<VetBolo["email_status"], { bg: string; fg: string }> = {
+    sent: { bg: "#dcfce7", fg: "#166534" },
+    bounced: { bg: "#fee2e2", fg: "#991b1b" },
+    failed: { bg: "#f3f4f6", fg: "#4b5563" }
+  };
+  const c = colors[status];
+  return {
+    background: c.bg, color: c.fg, borderRadius: 999,
+    padding: "2px 10px", fontSize: "0.75rem", fontWeight: 600, textTransform: "capitalize"
+  };
+}

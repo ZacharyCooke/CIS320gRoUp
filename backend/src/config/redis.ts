@@ -6,12 +6,6 @@ export const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 3
 });
 
-export async function connectRedis(): Promise<void> {
-  if (redis.status === "end" || redis.status === "wait") {
-    await redis.connect();
-  }
-}
-
 export async function closeRedis(): Promise<void> {
   await redis.quit();
 }

@@ -33,15 +33,6 @@ export async function setupSecret(userId: string): Promise<TotpSetupResult> {
   };
 }
 
-export function generateQRUri(secret: string, email: string): string {
-  return speakeasy.otpauthURL({
-    secret,
-    label: encodeURIComponent(`PetRecovery:${email}`),
-    issuer: "PetRecovery",
-    encoding: "base32"
-  });
-}
-
 export async function verifyCode(userId: string, token: string): Promise<boolean> {
   const user = await findUserById(userId);
   if (!user?.totp_secret) return false;

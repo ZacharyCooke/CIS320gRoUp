@@ -8,7 +8,7 @@ declare module "express-serve-static-core" {
   }
 }
 
-export function hashIpAddress(ipAddress: string): string {
+function hashIpAddress(ipAddress: string): string {
   return crypto.createHmac("sha256", env.IP_HASH_SECRET).update(ipAddress).digest("hex");
 }
 

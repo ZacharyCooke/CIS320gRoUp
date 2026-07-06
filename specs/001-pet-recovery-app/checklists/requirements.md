@@ -39,7 +39,7 @@
 - Tracking device integration (AirTag, Amazon tag) is scoped to owner-pasted share URLs — no real-time API polling. Documented in Assumptions.
 - Found-pet report submission is open to unregistered users — scoped in FR-015 and Assumptions.
 - HIPAA explicitly does not apply to animal medical records; medical info is shared entirely at owner discretion. Documented in Assumptions.
-- GPS proximity check (10-foot threshold) has accuracy caveats documented in research.md §12 and Assumptions. Edge case (poor GPS signal) noted in spec.md Edge Cases.
+- GPS proximity check (50-foot threshold) has accuracy caveats documented in research.md §12 and Assumptions. Edge case (poor GPS signal) noted in spec.md Edge Cases.
 - Facebook OAuth requires Facebook App Review for production deployment. Documented as conditional in databases.md and Assumptions.
 - Reward escrow uses Stripe Connect; individual payment apps (PayPal, Venmo, etc.) are deposit channels. Documented in research.md §11.
 - Ready to proceed to implementation via `/speckit-implement`.

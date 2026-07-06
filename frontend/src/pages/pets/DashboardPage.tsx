@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { NotificationBell } from "../../components/NotificationBell";
 import { QRScannerModal } from "../../components/QRScannerModal";
+import { AdBanner } from "../../components/AdBanner";
 
 interface Pet {
   id: string;
@@ -38,7 +39,7 @@ export function DashboardPage() {
   }, []);
 
   return (
-    <section style={{ padding: "1.5rem" }}>
+    <section style={{ padding: "1.5rem", maxWidth: 1100, margin: "0 auto" }}>
       {showScanner && <QRScannerModal onClose={() => setShowScanner(false)} />}
       <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
         <h1 style={{ margin: 0, flex: 1 }}>My Pets</h1>
@@ -53,15 +54,30 @@ export function DashboardPage() {
         >
           Report Found Pet
         </button>
+        <button
+          type="button"
+          style={{ background: "#e0f2f1", color: "#0f766e" }}
+          onClick={() => navigate("/community-map")}
+        >
+          Community Map
+        </button>
         <button type="button" onClick={() => navigate("/pets/new")}>
           + Add Pet
         </button>
+        <button type="button" onClick={() => navigate("/store")}>
+          Store
+        </button>
+      </div>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <AdBanner slot="banner" />
       </div>
 
       {loading && <p>Loading…</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
 
-      <div className="page-grid">
+      <div style={{ display: "flex", gap: "1.5rem" }}>
+      <div className="page-grid" style={{ flex: 1 }}>
         {pets.map((pet) => (
           <article
             key={pet.id}
@@ -79,6 +95,10 @@ export function DashboardPage() {
         {!loading && !error && pets.length === 0 && (
           <p>No pets yet. <Link to="/pets/new">Add your first pet.</Link></p>
         )}
+      </div>
+      <aside style={{ width: 220 }}>
+        <AdBanner slot="sidebar" />
+      </aside>
       </div>
     </section>
   );

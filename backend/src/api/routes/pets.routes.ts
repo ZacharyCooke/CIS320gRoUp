@@ -8,6 +8,7 @@ import * as pets from "../../services/pet.service.js";
 import * as petVets from "../../services/pet-vet.service.js";
 import * as trackingDevices from "../../services/tracking-device.service.js";
 import { generatePNG, generateSVG, publicProfileUrl } from "../../services/qr.service.js";
+import { attachPremiumStatus, enforcePetLimit } from "../middleware/premium.js";
 
 const medicalSchema = z.object({
   medical_conditions: z
@@ -42,17 +43,32 @@ petsRouter.get(
 petsRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
-    const pet = await pets.read(req.user!.id, param(req.params.id));
+    const petId = param(req.params.id);
+    const pet = await pets.read(req.user!.id, petId);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
     }
-    res.json({ pet });
+    const [tracking_devices, external_sources] = await Promise.all([
+      trackingDevices.listForPet(req.user!.id, petId),
+      externalSources.list(req.user!.id)
+    ]);
+    res.json({ pet: { ...pet, tracking_devices, external_sources } });
+  })
+);
+
+petsRouter.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const deleted = await pets.remove(req.user!.id, param(req.params.id));
+    res.status(deleted ? 204 : 404).send();
   })
 );
 
 petsRouter.post(
   "/",
+  asyncHandler(attachPremiumStatus),
+  asyncHandler(enforcePetLimit),
   asyncHandler(async (req, res) => {
     const pet = await pets.create(req.user!.id, req.body);
     res.status(201).json({ pet });

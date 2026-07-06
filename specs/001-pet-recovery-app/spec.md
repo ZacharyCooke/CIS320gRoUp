@@ -229,7 +229,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **SC-005**: System supports 500 concurrent users without degraded response times.
 - **SC-006**: 90% of first-time users complete registration, pet add, and search without external help (validated via structured usability sessions in T166; not an automated check).
 - **SC-007**: BOLO emails to nearby vet clinics are dispatched within 60 seconds of a pet being marked lost.
-- **SC-008**: GPS proximity check confirms 50-foot reunion with ≥95% accuracy on supported devices (iPhone XS or later running iOS 15+; Android with GPS hardware accuracy ≤ 5 m).
+- **SC-008**: GPS proximity check confirms 50-foot reunion with ≥95% accuracy on supported devices (iPhone XS or later running iOS 16+; Android with GPS hardware accuracy ≤ 5 m).
 - **SC-009**: Escrowed reward funds release to finder within 10 seconds of all three verifications passing.
 - **SC-010**: Scanning a PetRecovery QR tag displays the pet's public profile in under 3 seconds on any camera-equipped device.
 - **SC-011**: All critical user flows function on both website and iOS app with no feature gaps.
@@ -239,7 +239,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 ## Assumptions
 
-- Users accessing the iOS app have iOS 15 or later.
+- Users accessing the iOS app have iOS 16 or later (required by `navigationDestination`, used throughout the app's navigation).
 - Microsoft Authenticator is available on the user's mobile device for 2FA.
 - AirTag and Amazon tag integration uses owner-pasted share URLs; no real-time API polling.
 - PetFinder API v2 is the primary automated external source for found-animal data.

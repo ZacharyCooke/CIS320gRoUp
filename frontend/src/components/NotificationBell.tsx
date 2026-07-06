@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { apiClient } from "../services/api-client";
 import { io } from "socket.io-client";
+import { showBrowserNotification } from "../services/push-notifications";
 
 interface Notification {
   id: string;
@@ -27,6 +28,7 @@ export function NotificationBell({ userId }: { userId: string }) {
       if (n.type && n.title) {
         setNotifications((prev) => [n, ...prev]);
         setUnread((u) => u + 1);
+        showBrowserNotification(n.title, n.body);
       }
     });
     return () => { socket.disconnect(); };

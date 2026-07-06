@@ -61,6 +61,14 @@ machine, etc.). This doc covers the one-time setup and the ongoing workflow.
   which avoids Xcode project merge conflicts entirely. `project.yml` is the
   source of truth — edit that, not the generated `.xcodeproj`, when adding
   new source folders or dependencies.
+- **`Info.plist` is also generated, not hand-edited.** Because `project.yml`
+  declares an `info.properties` block, `xcodegen generate` **overwrites**
+  `Info.plist` from that block every time — it does not merge with whatever
+  is already on disk. All permission strings (camera, location, photo
+  library) and the `petrecovery://` URL scheme live in `project.yml`'s
+  `targets.PetRecovery.info.properties`. If you need a new `Info.plist` key,
+  add it there, then re-run `xcodegen generate` — don't edit `Info.plist`
+  directly, it'll be silently discarded on the next generate.
 
 ---
 

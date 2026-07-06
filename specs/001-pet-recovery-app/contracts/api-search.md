@@ -5,6 +5,45 @@
 
 ---
 
+## GET /searches/nearby
+
+List active lost-pet searches (missing pets) within a radius of a given point. Powers the "Community Map" — any logged-in user can browse missing pets near a location, not just their own.
+
+**Auth**: Required (any authenticated user).
+
+**Query params**:
+- `lat` (required)
+- `lng` (required)
+- `radius_miles` (default: 25, max: 500)
+
+**Response 200**:
+```json
+{
+  "missing_pets": [
+    {
+      "search_id": "uuid",
+      "pet_id": "uuid",
+      "owner_id": "uuid",
+      "started_at": "2026-07-01T12:00:00Z",
+      "name": "Bella",
+      "species": "dog",
+      "breed": "Labrador",
+      "color": "golden",
+      "photo_urls": ["https://..."],
+      "temperament": "friendly",
+      "approach_notes": "Responds to her name.",
+      "qr_code_token": "uuid",
+      "distance_miles": 0.9
+    }
+  ],
+  "total": 1
+}
+```
+
+Note: the search's exact `center_lat`/`center_lng` are intentionally **not** included — only `distance_miles` — so a bulk, location-queryable endpoint can't be used to pinpoint a lost pet's precise last-known location. Clients that want full details and owner contact info should link to `GET /p/:qr_code_token` (no auth required), matching the same disclosure the pet's printed QR tag already gives a finder.
+
+---
+
 ## GET /searches/:id/results
 
 Retrieve aggregated results for an active or past search.
@@ -176,7 +215,7 @@ List the authenticated user's notifications, newest first.
 **Auth**: Required.
 
 **Query params**:
-- `type` — optional filter: `pet_update`, `bolo_alert`, `nearby_lost`, `store_account`
+- `type` — optional filter: `pet_update` (red), `bolo_alert` (blue), `community_alert` (green), `claim_alert` (amber — found-report claim), `proximity_alert` (amber — reward proximity), plus legacy values `found_report_match`, `search_complete`, `system`
 - `unread_only` — boolean, default false
 - `page` (default: 1), `per_page` (default: 20)
 
@@ -212,9 +251,19 @@ Mark a single notification as read.
 
 ---
 
+## GET /notifications/settings
+
+Retrieve the user's current per-category notification toggle settings.
+
+**Auth**: Required.
+
+**Response 200**: `{ "settings": { "pet_update": true, "bolo_alert": true, "community_alert": true, "claim_alert": true } }`
+
+---
+
 ## PATCH /notifications/settings
 
-Update the user's per-type notification toggle settings.
+Update the user's per-category notification toggle settings. `claim_alert` gates both found-report claim notifications and reward proximity-verification notifications (both are the "amber" category).
 
 **Auth**: Required.
 
@@ -223,14 +272,14 @@ Update the user's per-type notification toggle settings.
 {
   "pet_update": true,
   "bolo_alert": true,
-  "nearby_lost": true,
-  "store_account": false
+  "community_alert": true,
+  "claim_alert": false
 }
 ```
 
 All fields optional — only provided fields are updated.
 
-**Response 200**: `{ "settings": { "pet_update": true, "bolo_alert": true, "nearby_lost": true, "store_account": false } }`
+**Response 200**: `{ "settings": { "pet_update": true, "bolo_alert": true, "community_alert": true, "claim_alert": false } }`
 
 ---
 

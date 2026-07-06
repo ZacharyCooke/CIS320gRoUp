@@ -6,9 +6,11 @@ struct SearchResultsView: View {
     let pet: PetDTO
 
     @State private var results: [SearchResultDTO] = []
+    @State private var vetBolos: [VetBoloDTO] = []
     @State private var isComplete = false
     @State private var radiusMiles: Double
     @State private var errorMessage: String?
+    @State private var claimMessage: String?
     @State private var isMarkingRecovered = false
     @Environment(\.dismiss) private var dismiss
 
@@ -52,19 +54,35 @@ struct SearchResultsView: View {
             if let error = errorMessage {
                 Section { Text(error).foregroundStyle(.red) }
             }
+            if let claimMessage {
+                Section { Text(claimMessage).foregroundStyle(.green) }
+            }
+
+            if !vetBolos.isEmpty {
+                Section("Vet clinics notified (\(vetBolos.count))") {
+                    ForEach(vetBolos) { bolo in
+                        VetBoloRow(bolo: bolo)
+                    }
+                }
+            }
 
             Section("Results") {
                 if results.isEmpty {
                     Text("No results yet").foregroundStyle(.secondary)
                 } else {
                     ForEach(results, id: \.id) { result in
-                        ResultRow(result: result)
+                        ResultRow(result: result) { reportId in
+                            Task { await claimReport(reportId) }
+                        }
                     }
                 }
             }
         }
         .navigationTitle("Search: \(pet.name)")
-        .task { await loadResults() }
+        .task {
+            await loadResults()
+            await loadVetBolos()
+        }
     }
 
     private struct GeoResult: Identifiable {
@@ -73,10 +91,8 @@ struct SearchResultsView: View {
 
     private var geoResults: [GeoResult] {
         results.compactMap { r in
-            guard let lat = r.distance_miles.map({ _ in r.distance_miles }), // just need non-nil check
-                  let _ = r.source_url else { return nil }
-            _ = lat
-            return nil
+            guard let lat = r.lat, let lng = r.lng else { return nil }
+            return GeoResult(id: r.id, lat: lat, lng: lng)
         }
     }
 
@@ -87,6 +103,20 @@ struct SearchResultsView: View {
             isComplete = response.search.status != "active"
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func loadVetBolos() async {
+        vetBolos = (try? await APIClient.shared.getVetBolos(searchId: search.id).vet_bolos) ?? []
+    }
+
+    private func claimReport(_ foundReportId: String) async {
+        do {
+            let response = try await APIClient.shared.claimFoundReport(reportId: foundReportId, searchId: search.id)
+            claimMessage = response.owner_contact.map { "Claimed! The finder was sent your contact info: \($0)" }
+                ?? "Claimed! The finder has been notified."
+        } catch {
+            errorMessage = "Could not claim this report — it may already be claimed."
         }
     }
 
@@ -111,6 +141,7 @@ struct SearchResultsView: View {
 
 private struct ResultRow: View {
     let result: SearchResultDTO
+    let onClaim: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -130,6 +161,10 @@ private struct ResultRow: View {
             if let url = result.source_url, let link = URL(string: url) {
                 Link("View on \(result.source)", destination: link).font(.caption)
             }
+            if result.source == "found_report", let reportId = result.external_id {
+                Button("This is my pet — claim it") { onClaim(reportId) }
+                    .font(.caption)
+            }
         }
         .padding(.vertical, 4)
     }
@@ -137,4 +172,39 @@ private struct ResultRow: View {
 
 private extension String {
     var nilIfEmpty: String? { isEmpty ? nil : self }
+}
+
+private struct VetBoloRow: View {
+    let bolo: VetBoloDTO
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(bolo.clinic_name).bold()
+                if let address = bolo.clinic_address {
+                    Text(address).font(.caption).foregroundStyle(.secondary)
+                }
+                if bolo.distance_miles > 0 {
+                    Text(String(format: "%.1f mi away", bolo.distance_miles))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Text(bolo.email_status.capitalized)
+                .font(.caption2).fontWeight(.semibold)
+                .padding(.horizontal, 8).padding(.vertical, 3)
+                .background(statusColor.opacity(0.15))
+                .foregroundStyle(statusColor)
+                .clipShape(Capsule())
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var statusColor: Color {
+        switch bolo.email_status {
+        case "sent": return .green
+        case "bounced": return .red
+        default: return .secondary
+        }
+    }
 }

@@ -39,7 +39,7 @@ Build a multi-platform pet recovery service (website + iOS app) that allows owne
 
 **Testing**: Jest + Supertest (backend); React Testing Library + Vitest (frontend); XCTest (iOS)
 
-**Target Platform**: Web (Chrome, Safari, Firefox — latest 2 versions); iOS 15+
+**Target Platform**: Web (Chrome, Safari, Firefox — latest 2 versions); iOS 16+ (raised from the original 15+ target — the app's navigation relies on `navigationDestination`, an iOS 16 API)
 
 **Project Type**: REST API + WebSockets backend; React SPA frontend; iOS native app
 

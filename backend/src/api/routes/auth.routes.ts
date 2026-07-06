@@ -10,9 +10,11 @@ import { register, verifyOTP } from "../../services/user.service.js";
 import { verifyPassword } from "../../services/password.service.js";
 import { setupSecret, verifyCode, enableTwoFactor } from "../../services/totp.service.js";
 import { isTrustedIPHash, storeTrustedIPHash } from "../../services/ip-record.service.js";
-import { findUserByEmail, findUserById } from "../../models/user.model.js";
+import { findUserByEmail, findUserById, setUserFacebookToken, clearUserFacebookToken } from "../../models/user.model.js";
 import { redis } from "../../config/redis.js";
 import { env } from "../../config/env.js";
+import { buildAuthorizationUrl, exchangeCodeForToken, isFacebookConfigured } from "../../integrations/facebook.client.js";
+import { encrypt } from "../../services/crypto.service.js";
 
 export const authRouter = Router();
 
@@ -287,7 +289,71 @@ authRouter.get(
     // Strip sensitive fields before returning
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password_hash, totp_secret, facebook_access_token_encrypted, ...safe } = found;
-    res.json({ user: safe });
+    res.json({ user: { ...safe, is_facebook_connected: Boolean(facebook_access_token_encrypted) } });
+  })
+);
+
+// ─── Facebook OAuth (read-only group access; no credentials stored) ──────────
+
+// Full-page browser redirects can't carry an Authorization header, so the
+// caller's JWT is accepted as a query param here and re-embedded (short-lived)
+// as the OAuth `state` so the callback can recover which user is linking.
+authRouter.get(
+  "/facebook",
+  asyncHandler(async (req, res) => {
+    if (!isFacebookConfigured()) {
+      res.status(501).json({ error: "facebook_not_configured" });
+      return;
+    }
+
+    const bearer = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.slice(7)
+      : (req.query.access_token as string | undefined);
+
+    if (!bearer) {
+      res.status(401).json({ error: "missing bearer token" });
+      return;
+    }
+
+    let userId: string;
+    try {
+      userId = (jwt.verify(bearer, env.JWT_SECRET) as { id: string }).id;
+    } catch {
+      res.status(401).json({ error: "invalid bearer token" });
+      return;
+    }
+
+    const state = jwt.sign({ uid: userId }, env.JWT_SECRET, { expiresIn: "5m" });
+    res.redirect(buildAuthorizationUrl(state));
+  })
+);
+
+authRouter.get(
+  "/facebook/callback",
+  asyncHandler(async (req, res) => {
+    const { code, state } = req.query as { code?: string; state?: string };
+
+    try {
+      if (!code || !state) throw new Error("missing code or state");
+      const { uid } = jwt.verify(state, env.JWT_SECRET) as { uid: string };
+
+      const accessToken = await exchangeCodeForToken(code);
+      await setUserFacebookToken(uid, encrypt(accessToken));
+
+      res.redirect(`${env.PUBLIC_WEB_URL}/dashboard`);
+    } catch (err) {
+      console.error("[auth] facebook callback error:", err);
+      res.redirect(`${env.PUBLIC_WEB_URL}/account/settings?error=facebook_auth_failed`);
+    }
+  })
+);
+
+authRouter.post(
+  "/facebook/disconnect",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    await clearUserFacebookToken(req.user!.id);
+    res.json({ disconnected: true });
   })
 );
 

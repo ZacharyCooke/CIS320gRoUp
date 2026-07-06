@@ -49,7 +49,15 @@ export function RegisterPage() {
 
   return (
     <div className="form-page-wrapper">
-      <section className="form-page">
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%" }}>
+        <div style={{
+          maxWidth: 440, width: "100%", boxSizing: "border-box",
+          background: "#ecfdf5", border: "1px solid #6ee7b7",
+          borderRadius: 12, padding: "14px 18px", textAlign: "center", fontSize: "0.9rem", color: "#065f46"
+        }}>
+          🐾 <strong>See missing &amp; found pets near you</strong> — your new account unlocks the Community Map.
+        </div>
+        <section className="form-page">
         <h1>Create your PetRecovery account</h1>
 
         {error && <p role="alert" style={{ color: "#dc2626", marginBottom: 8 }}>{error}</p>}
@@ -127,7 +135,8 @@ export function RegisterPage() {
             {loading ? "Registering…" : "Register"}
           </button>
         </form>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

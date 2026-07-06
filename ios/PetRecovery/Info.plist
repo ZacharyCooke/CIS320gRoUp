@@ -2,14 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>PetRecovery</string>
-	<key>NSCameraUsageDescription</key>
-	<string>PetRecovery uses the camera to scan QR tags and add pet photos.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PetRecovery uses your location to search for lost pets and verify reunions.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PetRecovery uses your photo library so you can upload pet profile photos.</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,5 +29,20 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PetRecovery uses the camera to scan QR tags and add pet photos.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>RewardProximityVerification</key>
+		<string>Full-accuracy location is needed to confirm you and the finder are close enough to release the reward.</string>
+	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PetRecovery uses your location to search for lost pets and verify reunions.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PetRecovery uses your photo library so you can upload pet profile photos.</string>
+	<key>UILaunchScreen</key>
+	<dict/>
 </dict>
 </plist>

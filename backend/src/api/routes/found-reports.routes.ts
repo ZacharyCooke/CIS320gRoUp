@@ -7,6 +7,11 @@ import {
   findFoundReports
 } from "../../models/found-report.model.js";
 import { submitFoundReport, queryByRadius, claimReport } from "../../services/found-report.service.js";
+import { findSearchById } from "../../models/lost-pet-search.model.js";
+import { findUserById } from "../../models/user.model.js";
+import { dispatchClaimAlert } from "../../services/notification.service.js";
+import { sendEmail } from "../../integrations/email.service.js";
+import { sendSms } from "../../integrations/sms.service.js";
 
 export const foundReportsRouter = Router();
 
@@ -82,11 +87,40 @@ foundReportsRouter.post(
       res.status(400).json({ error: "search_id required" });
       return;
     }
+
+    const search = await findSearchById(search_id);
+    if (!search || search.owner_id !== req.user!.id) {
+      res.status(403).json({ error: "not_search_owner" });
+      return;
+    }
+
     const report = await claimReport(req.params.id, search_id);
     if (!report) {
       res.status(409).json({ error: "already_claimed_or_not_found" });
       return;
     }
-    res.json({ report });
+
+    const reporterContact = [report.reporter_email, report.reporter_phone].filter(Boolean).join(" · ") || null;
+
+    // FR-022a — exchange contact info both ways. The owner gets an amber
+    // in-app/email/SMS notification (they have an account); the finder has no
+    // account, so they're emailed/texted directly with the owner's contact info.
+    await dispatchClaimAlert(search.owner_id, report.id, reporterContact);
+
+    const owner = await findUserById(search.owner_id);
+    const ownerContact = owner
+      ? [owner.first_name && owner.last_name ? `${owner.first_name} ${owner.last_name}` : null, owner.email, owner.phone]
+          .filter(Boolean)
+          .join(" · ")
+      : null;
+
+    if (ownerContact) {
+      const subject = "Your found-pet report was matched!";
+      const body = `Great news — the owner confirmed this matches their pet. Their contact info: ${ownerContact}`;
+      if (report.reporter_email) await sendEmail({ to: report.reporter_email, subject, text: body });
+      if (report.reporter_phone) await sendSms({ to: report.reporter_phone, body: `${subject} ${body}` });
+    }
+
+    res.json({ report: { ...report, reporter_contact: reporterContact }, owner_contact: ownerContact });
   })
 );

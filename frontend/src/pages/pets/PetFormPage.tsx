@@ -100,7 +100,7 @@ export function PetFormPage() {
   }
 
   return (
-    <section className="form-page">
+    <section style={{ maxWidth: 640, margin: "0 auto", padding: "1.5rem" }}>
       <h1>Add pet profile</h1>
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit}>

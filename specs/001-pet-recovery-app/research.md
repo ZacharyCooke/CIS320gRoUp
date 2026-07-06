@@ -149,7 +149,7 @@
 
 **Rationale**: Stripe Connect natively supports "destination charges" and payment holds — the closest commercially available analog to escrow without a banking license. Funds are captured but not transferred to any party until the release trigger fires. This is simpler than building a separate escrow ledger.
 
-**Release trigger**: Server-side only. The ProximityVerification record is set all_passed=true only when three conditions are verified server-side simultaneously: (a) both device GPS coordinates are submitted and Haversine distance ≤ 10 feet, (b) QR token scan or microchip read matches the pet's record, (c) the owner's session token matches the registered account owning the pet.
+**Release trigger**: Server-side only. The ProximityVerification record is set all_passed=true only when three conditions are verified server-side simultaneously: (a) both device GPS coordinates are submitted and Haversine distance ≤ 50 feet, (b) QR token scan or microchip read matches the pet's record, (c) the owner's session token matches the registered account owning the pet.
 
 **Refund logic**: Stripe's `refund` endpoint is called on the payment intent when the owner cancels or the pet is marked recovered through another means.
 
@@ -157,11 +157,11 @@
 
 ---
 
-## 12. GPS Proximity Verification (10-Foot Check)
+## 12. GPS Proximity Verification (50-Foot Check)
 
-**Decision**: Both the owner and finder submit their device GPS coordinates (signed with a server-issued nonce + timestamp) within a 10-second window. Server applies Haversine and checks if distance ≤ 10 feet (3.05 meters).
+**Decision**: Both the owner and finder submit their device GPS coordinates (signed with a server-issued nonce + timestamp) within a 10-second window. Server applies Haversine and checks if distance ≤ 50 feet (15.24 meters).
 
-**Accuracy note**: Consumer smartphone GPS accuracy is typically 3–5 meters (10–16 feet) in open areas and up to 10+ meters indoors. The 10-foot (3.05 meter) threshold will fall within the margin of error in some environments. Mitigation: if the computed distance is between 10–30 feet, the app prompts both parties to hold their phones at the same height and retry once.
+**Accuracy note**: Consumer smartphone GPS accuracy is typically 3–5 meters (10–16 feet) in open areas and up to 10+ meters indoors. Per FR-025, when either device reports accuracy worse than 15 meters, the system prompts both parties to confirm the reunion manually instead of relying on the computed distance.
 
 **Anti-spoofing**: Coordinates are signed with the server-issued nonce. Replay attacks are prevented by the timestamp (must be within 10 seconds). No client-side coordinate modification can pass server validation.
 

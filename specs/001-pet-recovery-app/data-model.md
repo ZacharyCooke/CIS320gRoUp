@@ -266,7 +266,7 @@ Tracks the three-step verification process required before a reward can be relea
 | finder_latitude | decimal | Finder device lat at verification time |
 | finder_longitude | decimal | Finder device lon at verification time |
 | distance_feet | decimal | Computed distance between devices |
-| proximity_passed | boolean | True if distance_feet ≤ 10 |
+| proximity_passed | boolean | True if distance_feet ≤ 50 |
 | proximity_verified_at | timestamp | |
 | pet_identity_method | enum | qr_scan, microchip_read |
 | pet_identity_passed | boolean | |
@@ -363,6 +363,6 @@ funded → cancelled                        (owner cancels)
 - FoundReport.latitude must be between -90 and 90; longitude between -180 and 180
 - LostPetSearch.radius_miles must be between 0.5 and 100
 - Reward.amount_cents must be a positive integer
-- ProximityVerification.distance_feet must be a positive decimal; proximity_passed = distance_feet ≤ 10
+- ProximityVerification.distance_feet must be a positive decimal; proximity_passed = distance_feet ≤ 50
 - IPRecord.ip_hash is stored as SHA-256; raw IP is never persisted
 - VetBOLO: distance_miles must be ≤ 2 (only clinics within 2-mile radius receive BOLO)
