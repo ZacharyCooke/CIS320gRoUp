@@ -7,7 +7,7 @@
 
 ## Summary
 
-Build a multi-platform pet recovery service (website + iOS app) that allows owners to register pets with full profiles (photos, medical conditions, temperament, primary vet), link tracking devices, and run simultaneous multi-source searches using GPS-based location filtering. When a pet is marked lost, automated BOLO emails go to all vet clinics within 2 miles. Community members receive location-aware push notifications (BOLO alerts within 1 mile, community alerts within 2 miles). A reward escrow system lets owners post monetary rewards, released automatically after GPS proximity + identity verification. Apple Pay and Google Pay are handled through Stripe Connect; PayPal, Venmo, Zelle, and CashApp are v1 manual-confirm deposit channels with programmatic integrations deferred to v2. The app is free with ads; a Premium subscription removes ads and unlocks additional features. A QR code on each pet profile allows anyone with a camera to instantly view that pet's data.
+Build a multi-platform pet recovery service (website + iOS app) that allows owners to register pets with full profiles (photos, medical conditions, temperament, primary vet), link tracking devices, and run simultaneous multi-source searches using GPS-based location filtering. When a pet is marked lost, automated BOLO emails go to all vet clinics within 2 miles. Community members receive location-aware push notifications (BOLO alerts within 1 mile, community alerts within 2 miles). A reward escrow system lets owners post monetary rewards, released automatically after GPS proximity + identity verification. Apple Pay and Google Pay are handled through Stripe Connect; PayPal, Venmo, Zelle, and CashApp are v1 manual-confirm deposit channels with programmatic integrations deferred to v2. The app is free with ads; a Premium subscription removes ads and raises explicitly implemented free-tier feature limits. A QR code on each pet profile allows anyone with a camera to instantly view that pet's data.
 
 ---
 
@@ -69,7 +69,9 @@ Build a multi-platform pet recovery service (website + iOS app) that allows owne
 
 **Constitution Version**: 1.1.0, ratified 2026-07-04, amended 2026-07-05
 
-**Gate Status**: PASS WITH GATED TASKS. `tasks.md` includes T168-T187 for contract-first, test-first, integration, audit, observability, privacy, legal, workflow, platform parity, documentation drift, and product-quality gates. T168-T178 are complete and Phase 7E implementation is no longer blocked by the constitution pre-gate. Public launch remains blocked until legal/compliance gates T179-T183, workflow gate T184, iOS build/runtime parity, real-device GPS accuracy validation, and remaining polish/accessibility tasks are complete.
+**Gate Status**: PASS WITH GATED TASKS. `tasks.md` includes T168-T189 for contract-first, test-first, integration, audit, observability, privacy, legal, workflow, platform parity, documentation drift, Stripe-native funding validation, real-device GPS validation, and product-quality gates. T168-T178 are complete and Phase 7E implementation is no longer blocked by the constitution pre-gate. Public launch remains blocked until legal/compliance gates T179-T183, workflow gate T184, iOS build/runtime parity, Stripe-native funding validation, real-device GPS accuracy validation, and remaining polish/accessibility tasks are complete.
+
+**Launch Status**: Development may continue, but public launch is blocked until T179-T183 legal/compliance gates, T185/T161 iOS build/runtime parity, T188 Stripe-native reward funding validation, T189 real-device GPS field testing, and T187 product-surface review are complete.
 
 **Required Gates Before Implementation Continues**:
 

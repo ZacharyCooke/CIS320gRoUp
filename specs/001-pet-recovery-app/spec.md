@@ -114,7 +114,7 @@ All users authenticate with email/password. The system enforces TOTP-based 2FA v
 
 ### User Story 7 - Store & Advertising (Priority: P4)
 
-The app is free and supported by contextual banner advertisements. An in-app store sells PetRecovery-verified safety products (QR tags, GPS trackers, ID tags, first aid kits) and a Premium subscription that removes ads and unlocks additional features.
+The app is free and supported by contextual banner advertisements. An in-app store sells PetRecovery-verified safety products (QR tags, GPS trackers, ID tags, first aid kits) and a Premium subscription that removes ads and raises explicitly implemented free-tier feature limits.
 
 **Independent Test**: A user can browse the store, view products, and see ads on the dashboard without an account.
 
@@ -170,7 +170,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **FR-017**: System MUST allow any camera-equipped device to scan a PetRecovery QR tag and immediately display the pet's public profile without requiring an account or app installation. The public profile URL (`/p/:token`) serves as the no-app-required path; the iOS deep link (petrecovery://) is a convenience for users who have the app installed. (Covers unauthenticated scanning access; see FR-009 for QR generation.)
 
 **Notifications**
-- **FR-018**: System MUST request push notification permission from the user on first use.
+- **FR-018**: System MUST surface notification permission onboarding on first relevant use and use platform-compliant, user-gesture-based permission prompts where required by the browser or operating system.
 - **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, vet BOLO sent). Tracking-device data (AirTag, Amazon tag) is owner-pasted share URLs with no real-time polling (see Assumptions) and does not currently generate live ping-triggered notifications.
 - **FR-020**: System MUST send blue BOLO alerts to any user who enters within 1 mile of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
 - **FR-021**: System MUST send green community alerts to any user within 2 miles of their current GPS location when a new pet is reported lost.
@@ -179,7 +179,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 **Reward Escrow**
 - **FR-023**: System MUST allow an owner to post a reward amount for a lost pet's safe return.
-- **FR-024**: System MUST accept reward funding via Apple Pay and Google Pay (native Stripe Connect). PayPal, Venmo, Zelle, and CashApp are displayed as supported deposit channels; v1 directs users to transfer funds manually via those platforms and confirm in-app. Full programmatic integration for those four is deferred to v2.
+- **FR-024**: System MUST support reward funding via Apple Pay and Google Pay through Stripe Connect for production escrow, with real Stripe test/prod keys required before live validation can pass. PayPal, Venmo, Zelle, and CashApp are displayed as supported deposit channels; v1 directs users to transfer funds manually via those platforms and confirm in-app. Full programmatic integration for those four is deferred to v2.
 - **FR-025**: System MUST hold reward funds in escrow until all three verification conditions pass: (a) GPS proximity of owner and finder devices within 50 feet, (b) pet identity confirmed via QR scan or microchip, (c) owner identity confirmed against registered account and microchip. On devices reporting GPS accuracy worse than 15 meters, the system MUST prompt both parties to confirm the reunion manually before releasing funds.
 - **FR-026**: System MUST release escrowed funds to the finder immediately and automatically when all three verification conditions pass simultaneously.
 - **FR-027**: System MUST return escrowed funds to the owner if the pet is marked recovered through any other means or if the owner cancels.
@@ -192,7 +192,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 **Store & Advertising**
 - **FR-032**: System MUST display contextual banner advertisements on free accounts throughout the app.
-- **FR-033**: System MUST offer a Premium subscription that removes all ads and unlocks additional features.
+- **FR-033**: System MUST offer a Premium subscription that removes all ads and raises free-tier feature limits explicitly implemented in the app (for example, the pet-profile limit). Any additional Premium-only capability MUST be listed in this specification and decomposed into implementation tasks before it is treated as in scope.
 - **FR-034**: System MUST include an in-app store with PetRecovery-verified safety products.
 
 **Development Process**
@@ -226,10 +226,10 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **SC-002**: A lost-pet search returns consolidated results across all sources in under 10 seconds.
 - **SC-003**: 2FA challenge completes in under 30 seconds for users with a TOTP authenticator app set up.
 - **SC-004**: 95% of found-pet reports are visible in owner searches within 60 seconds of submission.
-- **SC-005**: System supports 500 concurrent users without degraded response times.
+- **SC-005**: System supports 500 concurrent users on documented test hardware with p95 latency under 750ms, p99 latency under 1.5s, error rate under 1%, and zero timeouts on representative public and authenticated read paths.
 - **SC-006**: 90% of first-time users complete registration, pet add, and search without external help (validated via structured usability sessions in T166; not an automated check).
 - **SC-007**: BOLO emails to nearby vet clinics are dispatched within 60 seconds of a pet being marked lost.
-- **SC-008**: GPS proximity check confirms 50-foot reunion with ≥95% accuracy on supported devices (iPhone XS or later running iOS 15+). Android is out of scope for this project (this app is web + native iOS only, per launch-checklist.md's explicit iOS-only stack decision) and is not a validation target for this criterion.
+- **SC-008**: GPS proximity check confirms 50-foot reunion with ≥95% accuracy on supported devices (iPhone XS or later running iOS 15+) in a documented real-device field test with the trial count, locations, device models, OS versions, and pass/fail criteria recorded. Android is out of scope for this project (this app is web + native iOS only, per launch-checklist.md's explicit iOS-only stack decision) and is not a validation target for this criterion.
 - **SC-009**: Escrowed reward funds release to finder within 10 seconds of all three verifications passing.
 - **SC-010**: Scanning a PetRecovery QR tag displays the pet's public profile in under 3 seconds on any camera-equipped device.
 - **SC-011**: All critical user flows function on both website and iOS app with no feature gaps.
