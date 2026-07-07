@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/auth.js";
+import { assertOwned } from "../middleware/ownership.js";
+import { parseOr400 } from "../middleware/validate.js";
 import {
   findFoundReportById,
   findFoundReports,
@@ -42,12 +44,9 @@ foundReportsRouter.post(
   optionalAuthMiddleware,
   foundReportPhotoUpload.single("photo"),
   asyncHandler(async (req, res) => {
-    const body = createSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
-    if (!req.user && !body.data.reporter_email && !body.data.reporter_phone) {
+    const body = parseOr400(createSchema, req.body, res);
+    if (!body) return;
+    if (!req.user && !body.reporter_email && !body.reporter_phone) {
       res.status(400).json({ error: "finder_contact_required" });
       return;
     }
@@ -59,9 +58,9 @@ foundReportsRouter.post(
     }
 
     const report = await submitFoundReport({
-      ...body.data,
+      ...body,
       photo_urls,
-      found_at: body.data.found_at ? new Date(body.data.found_at) : undefined
+      found_at: body.found_at ? new Date(body.found_at) : undefined
     });
     res.status(201).json({ report });
   })
@@ -113,10 +112,7 @@ foundReportsRouter.post(
       return;
     }
     const search = await findSearchById(search_id);
-    if (!search || search.owner_id !== req.user!.id) {
-      res.status(404).json({ error: "search_not_found" });
-      return;
-    }
+    if (!assertOwned(search, req.user!.id, res, "search_not_found")) return;
     const report = await claimReport(req.params.id, search_id);
     if (!report) {
       res.status(409).json({ error: "already_claimed_or_not_found" });

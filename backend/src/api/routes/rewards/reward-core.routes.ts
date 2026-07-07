@@ -5,6 +5,7 @@ import { findActiveRewardByPetId, findRewardById } from "../../../models/reward.
 import * as RewardService from "../../../services/reward.service.js";
 import { asyncHandler } from "../../middleware/async-handler.js";
 import { authMiddleware } from "../../middleware/auth.js";
+import { parseOr400 } from "../../middleware/validate.js";
 import { isPartyToReward, loadOwnedReward } from "./reward-route-helpers.js";
 
 export const rewardCoreRouter = Router();
@@ -44,14 +45,11 @@ rewardCoreRouter.post(
   "/rewards",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = createRewardSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(createRewardSchema, req.body, res);
+    if (!body) return;
 
     try {
-      const { reward, audit_log_ref } = await RewardService.create(req.user!.id, body.data);
+      const { reward, audit_log_ref } = await RewardService.create(req.user!.id, body);
       res.status(201).json({
         reward_id: reward.id,
         status: reward.status,
@@ -98,11 +96,8 @@ rewardCoreRouter.post(
   "/rewards/:id/fund",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = fundRewardSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(fundRewardSchema, req.body, res);
+    if (!body) return;
 
     const reward = await loadOwnedReward(req.params.id, req.user!.id);
     if (!reward) {
@@ -111,7 +106,7 @@ rewardCoreRouter.post(
     }
 
     try {
-      const { reward: updated, audit_log_ref } = await RewardService.fund(req.user!.id, reward.id, body.data);
+      const { reward: updated, audit_log_ref } = await RewardService.fund(req.user!.id, reward.id, body);
       res.json({
         status: updated.status,
         audit_log_ref,
@@ -127,11 +122,8 @@ rewardCoreRouter.post(
   "/rewards/:id/cancel",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = cancelRewardSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(cancelRewardSchema, req.body, res);
+    if (!body) return;
 
     const reward = await loadOwnedReward(req.params.id, req.user!.id);
     if (!reward) {
@@ -140,7 +132,7 @@ rewardCoreRouter.post(
     }
 
     try {
-      const result = await RewardService.cancel(req.user!.id, reward.id, body.data);
+      const result = await RewardService.cancel(req.user!.id, reward.id, body);
       res.json({
         status: result.reward.status,
         refund_initiated: result.refund_initiated,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { parseOr400 } from "../middleware/validate.js";
 import { petPhotoUpload, storePetPhoto } from "../../services/photo.service.js";
 import * as externalSources from "../../services/external-source.service.js";
 import * as pets from "../../services/pet.service.js";
@@ -41,10 +42,6 @@ export const petsRouter = Router();
 
 petsRouter.use(authMiddleware);
 
-function param(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0] : value ?? "";
-}
-
 petsRouter.get(
   "/",
   asyncHandler(async (req, res) => {
@@ -55,7 +52,7 @@ petsRouter.get(
 petsRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
-    const pet = await pets.read(req.user!.id, param(req.params.id));
+    const pet = await pets.read(req.user!.id, req.params.id);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
@@ -84,7 +81,7 @@ petsRouter.post(
 petsRouter.put(
   "/:id",
   asyncHandler(async (req, res) => {
-    const pet = await pets.update(req.user!.id, param(req.params.id), req.body);
+    const pet = await pets.update(req.user!.id, req.params.id, req.body);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
@@ -104,7 +101,7 @@ petsRouter.post(
     }
 
     const stored = await storePetPhoto(req.file);
-    const pet = await pets.addPhoto(req.user!.id, param(req.params.id), stored.photo_url);
+    const pet = await pets.addPhoto(req.user!.id, req.params.id, stored.photo_url);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
@@ -117,7 +114,7 @@ petsRouter.post(
 petsRouter.get(
   "/:id/tracking-devices",
   asyncHandler(async (req, res) => {
-    const devices = await trackingDevices.listForPet(req.user!.id, param(req.params.id));
+    const devices = await trackingDevices.listForPet(req.user!.id, req.params.id);
     res.json({ tracking_devices: devices });
   })
 );
@@ -125,14 +122,11 @@ petsRouter.get(
 petsRouter.post(
   "/:id/tracking-devices",
   asyncHandler(async (req, res) => {
-    const parsed = trackingDeviceSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(trackingDeviceSchema, req.body, res, "fields");
+    if (!parsed) return;
     const trackingDevice = await trackingDevices.link(req.user!.id, {
-      ...parsed.data,
-      pet_id: param(req.params.id)
+      ...parsed,
+      pet_id: req.params.id
     });
     res.status(201).json({ tracking_device: trackingDevice });
   })
@@ -143,8 +137,8 @@ petsRouter.delete(
   asyncHandler(async (req, res) => {
     const deleted = await trackingDevices.unlink(
       req.user!.id,
-      param(req.params.id),
-      param(req.params.deviceId)
+      req.params.id,
+      req.params.deviceId
     );
     res.status(deleted ? 204 : 404).send();
   })
@@ -156,7 +150,7 @@ petsRouter.get(
     // External sources belong to the owner's account, not a specific pet
     // (see data-model.md) — the :id here is only used to confirm the caller
     // actually owns a pet before showing their account-wide linked sources.
-    const pet = await pets.read(req.user!.id, param(req.params.id));
+    const pet = await pets.read(req.user!.id, req.params.id);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
@@ -169,13 +163,10 @@ petsRouter.get(
 petsRouter.post(
   "/:id/external-sources",
   asyncHandler(async (req, res) => {
-    const parsed = externalSourceSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(externalSourceSchema, req.body, res, "fields");
+    if (!parsed) return;
     const source = await externalSources.link({
-      ...parsed.data,
+      ...parsed,
       owner_id: req.user!.id
     });
     res.status(201).json({ external_source: source });
@@ -185,7 +176,7 @@ petsRouter.post(
 petsRouter.delete(
   "/:id/external-sources/:sourceId",
   asyncHandler(async (req, res) => {
-    const deleted = await externalSources.unlink(req.user!.id, param(req.params.sourceId));
+    const deleted = await externalSources.unlink(req.user!.id, req.params.sourceId);
     res.status(deleted ? 204 : 404).send();
   })
 );
@@ -193,12 +184,9 @@ petsRouter.delete(
 petsRouter.patch(
   "/:id/medical",
   asyncHandler(async (req, res) => {
-    const parsed = medicalSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
-    const pet = await pets.updateMedical(req.user!.id, param(req.params.id), parsed.data);
+    const parsed = parseOr400(medicalSchema, req.body, res, "fields");
+    if (!parsed) return;
+    const pet = await pets.updateMedical(req.user!.id, req.params.id, parsed);
     if (!pet) { res.status(404).json({ error: "pet_not_found" }); return; }
     res.json({ pet });
   })
@@ -207,12 +195,9 @@ petsRouter.patch(
 petsRouter.put(
   "/:id/vet",
   asyncHandler(async (req, res) => {
-    const parsed = vetSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
-    const vet = await petVets.upsert(param(req.params.id), req.user!.id, parsed.data);
+    const parsed = parseOr400(vetSchema, req.body, res, "fields");
+    if (!parsed) return;
+    const vet = await petVets.upsert(req.params.id, req.user!.id, parsed);
     if (!vet) { res.status(404).json({ error: "pet_not_found" }); return; }
     res.json({ vet });
   })
@@ -221,7 +206,7 @@ petsRouter.put(
 petsRouter.get(
   "/:id/vet",
   asyncHandler(async (req, res) => {
-    const vet = await petVets.get(param(req.params.id), req.user!.id);
+    const vet = await petVets.get(req.params.id, req.user!.id);
     res.json({ vet: vet ?? null });
   })
 );
@@ -229,7 +214,7 @@ petsRouter.get(
 petsRouter.delete(
   "/:id/vet",
   asyncHandler(async (req, res) => {
-    const deleted = await petVets.remove(param(req.params.id), req.user!.id);
+    const deleted = await petVets.remove(req.params.id, req.user!.id);
     res.status(deleted ? 204 : 404).send();
   })
 );
@@ -237,13 +222,13 @@ petsRouter.delete(
 petsRouter.get(
   "/:id/qr",
   asyncHandler(async (req, res) => {
-    const pet = await pets.read(req.user!.id, param(req.params.id));
+    const pet = await pets.read(req.user!.id, req.params.id);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;
     }
 
-    const format = param(req.query.format as string | undefined) || "json";
+    const format = (req.query.format as string | undefined) || "json";
     if (format === "svg") {
       const svg = await generateSVG(pet.qr_code_token);
       res.type("image/svg+xml").send(svg);
@@ -262,7 +247,7 @@ petsRouter.get(
 petsRouter.post(
   "/:id/rotate-qr",
   asyncHandler(async (req, res) => {
-    const pet = await pets.rotateQr(req.user!.id, param(req.params.id));
+    const pet = await pets.rotateQr(req.user!.id, req.params.id);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });
       return;

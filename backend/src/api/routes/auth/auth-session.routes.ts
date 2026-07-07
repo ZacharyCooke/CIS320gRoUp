@@ -9,6 +9,7 @@ import { verifyPassword } from "../../../services/password.service.js";
 import { enableTwoFactor, setupSecret, verifyCode } from "../../../services/totp.service.js";
 import { asyncHandler } from "../../middleware/async-handler.js";
 import { authMiddleware } from "../../middleware/auth.js";
+import { parseOr400 } from "../../middleware/validate.js";
 import { issueTokenPair, RT_PREFIX, TIMING_DUMMY_HASH } from "./auth-token.service.js";
 
 export const authSessionRouter = Router();
@@ -30,13 +31,10 @@ const refreshSchema = z.object({
 authSessionRouter.post(
   "/login",
   asyncHandler(async (req, res) => {
-    const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(loginSchema, req.body, res, "fields");
+    if (!parsed) return;
 
-    const { email, password } = parsed.data;
+    const { email, password } = parsed;
     const user = await findUserByEmail(email);
 
     if (!user) {
@@ -85,13 +83,10 @@ authSessionRouter.post(
 authSessionRouter.post(
   "/2fa/verify",
   asyncHandler(async (req, res) => {
-    const parsed = totpChallengeSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(totpChallengeSchema, req.body, res, "fields");
+    if (!parsed) return;
 
-    const { code, user_id } = parsed.data;
+    const { code, user_id } = parsed;
     const authHeader = req.headers.authorization;
 
     if (authHeader?.startsWith("Bearer ")) {

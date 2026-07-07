@@ -5,6 +5,7 @@ import { sendOtpEmail } from "../../../integrations/email.service.js";
 import { sendOtpSms } from "../../../integrations/sms.service.js";
 import { register, verifyOTP } from "../../../services/user.service.js";
 import { asyncHandler } from "../../middleware/async-handler.js";
+import { parseOr400 } from "../../middleware/validate.js";
 import { issueTokenPair } from "./auth-token.service.js";
 
 export const authRegistrationRouter = Router();
@@ -26,13 +27,10 @@ const verifyContactSchema = z.object({
 authRegistrationRouter.post(
   "/register",
   asyncHandler(async (req, res) => {
-    const parsed = registerSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(registerSchema, req.body, res, "fields");
+    if (!parsed) return;
 
-    const result = await register(parsed.data);
+    const result = await register(parsed);
 
     if (result.verification_codes.email) {
       await sendOtpEmail(result.user.email, result.verification_codes.email);
@@ -54,13 +52,10 @@ authRegistrationRouter.post(
 authRegistrationRouter.post(
   "/verify-contact",
   asyncHandler(async (req, res) => {
-    const parsed = verifyContactSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten().fieldErrors });
-      return;
-    }
+    const parsed = parseOr400(verifyContactSchema, req.body, res, "fields");
+    if (!parsed) return;
 
-    const { user_id, channel, code } = parsed.data;
+    const { user_id, channel, code } = parsed;
     const verified = await verifyOTP(user_id, channel, code);
 
     if (!verified) {

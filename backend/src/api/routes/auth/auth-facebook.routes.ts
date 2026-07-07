@@ -5,6 +5,7 @@ import { getFacebookAuthUrl, isFacebookConfigured, passport } from "../../../int
 import { clearUserFacebookToken } from "../../../models/user.model.js";
 import { asyncHandler } from "../../middleware/async-handler.js";
 import { authMiddleware } from "../../middleware/auth.js";
+import { parseOr400 } from "../../middleware/validate.js";
 
 export const authFacebookRouter = Router();
 
@@ -16,14 +17,11 @@ authFacebookRouter.post(
   "/facebook",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = facebookInitiateSchema.safeParse(req.body ?? {});
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(facebookInitiateSchema, req.body ?? {}, res);
+    if (!body) return;
 
     try {
-      const redirect_url = getFacebookAuthUrl(req.user!.id, body.data.platform);
+      const redirect_url = getFacebookAuthUrl(req.user!.id, body.platform);
       res.json({ redirect_url });
     } catch {
       res.status(503).json({ error: "facebook_not_configured" });

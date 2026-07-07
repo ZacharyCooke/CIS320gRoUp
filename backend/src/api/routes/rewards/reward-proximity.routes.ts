@@ -4,6 +4,7 @@ import { findRewardById, updateRewardStatus } from "../../../models/reward.model
 import { issueNonce, submitProximityCoordinates } from "../../../services/proximity.service.js";
 import { asyncHandler } from "../../middleware/async-handler.js";
 import { authMiddleware } from "../../middleware/auth.js";
+import { parseOr400 } from "../../middleware/validate.js";
 import { isPartyToReward, releaseAndNotifyIfAllPassed } from "./reward-route-helpers.js";
 
 export const rewardProximityRouter = Router();
@@ -27,13 +28,10 @@ rewardProximityRouter.post(
   "/proximity-check",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = proximityCheckSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(proximityCheckSchema, req.body, res);
+    if (!body) return;
 
-    const reward = await findRewardById(body.data.reward_id);
+    const reward = await findRewardById(body.reward_id);
     if (!reward) {
       res.status(404).json({ error: "reward_not_found" });
       return;
@@ -48,7 +46,7 @@ rewardProximityRouter.post(
     }
 
     try {
-      const { nonce, expires_in } = await issueNonce(body.data.reward_id, body.data.role);
+      const { nonce, expires_in } = await issueNonce(body.reward_id, body.role);
       res.json({ nonce, expires_at: new Date(Date.now() + expires_in * 1000).toISOString() });
     } catch (err) {
       res.status(400).json({ error: "proximity_nonce_failed", message: (err as Error).message });
@@ -60,11 +58,8 @@ rewardProximityRouter.post(
   "/rewards/:id/proximity",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const body = proximitySubmitSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(proximitySubmitSchema, req.body, res);
+    if (!body) return;
 
     const reward = await findRewardById(req.params.id);
     if (!reward) {
@@ -80,11 +75,11 @@ rewardProximityRouter.post(
     try {
       verification = await submitProximityCoordinates({
         reward_id: reward.id,
-        role: body.data.role,
-        nonce: body.data.nonce,
-        latitude: body.data.latitude,
-        longitude: body.data.longitude,
-        gps_accuracy_m: body.data.accuracy_meters
+        role: body.role,
+        nonce: body.nonce,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        gps_accuracy_m: body.accuracy_meters
       });
     } catch (err) {
       res.status(400).json({ error: "proximity_submission_failed", message: (err as Error).message });

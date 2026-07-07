@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { assertOwned } from "../middleware/ownership.js";
+import { parseOr400 } from "../middleware/validate.js";
 import {
   createLostPetSearch,
   deleteActiveSearchLocationsByPetId,
@@ -27,10 +29,6 @@ import crypto from "node:crypto";
 
 export const searchRouter = Router();
 
-function param(v: string | string[] | undefined): string {
-  return Array.isArray(v) ? v[0] : v ?? "";
-}
-
 const markLostSchema = z.object({
   center_lat: z.number(),
   center_lng: z.number(),
@@ -47,20 +45,14 @@ searchRouter.post(
   "/pets/:id/mark-lost",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const petId = param(req.params.id);
+    const petId = req.params.id;
     const ownerId = req.user!.id;
 
     const pet = await findPetById(petId);
-    if (!pet || pet.owner_id !== ownerId) {
-      res.status(404).json({ error: "pet_not_found" });
-      return;
-    }
+    if (!assertOwned(pet, ownerId, res, "pet_not_found")) return;
 
-    const body = markLostSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(markLostSchema, req.body, res);
+    if (!body) return;
 
     const existing = await findActiveSearchByPetId(petId);
     if (existing) {
@@ -73,9 +65,9 @@ searchRouter.post(
     const search = await createLostPetSearch({
       pet_id: petId,
       owner_id: ownerId,
-      center_lat: body.data.center_lat,
-      center_lng: body.data.center_lng,
-      radius_miles: body.data.radius_miles
+      center_lat: body.center_lat,
+      center_lng: body.center_lng,
+      radius_miles: body.radius_miles
     });
 
     // Fire-and-forget — results stream via WebSocket
@@ -85,7 +77,7 @@ searchRouter.post(
 
     // Clinic discovery is fast and cached, so we await it to report a count; the actual
     // email sends run in the background so a slow/down SendGrid never blocks this response.
-    const clinics = await findNearbyVetClinics(body.data.center_lat, body.data.center_lng);
+    const clinics = await findNearbyVetClinics(body.center_lat, body.center_lng);
     dispatchVetBolos(search, pet, clinics).catch((err) =>
       console.error("[vet-bolo] dispatch error:", err)
     );
@@ -111,14 +103,11 @@ searchRouter.post(
   "/pets/:id/mark-recovered",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const petId = param(req.params.id);
+    const petId = req.params.id;
     const ownerId = req.user!.id;
 
     const pet = await findPetById(petId);
-    if (!pet || pet.owner_id !== ownerId) {
-      res.status(404).json({ error: "pet_not_found" });
-      return;
-    }
+    if (!assertOwned(pet, ownerId, res, "pet_not_found")) return;
 
     const search = await findActiveSearchByPetId(petId);
     if (search) {
@@ -155,14 +144,11 @@ searchRouter.get(
   "/pets/:id/active-search",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const petId = param(req.params.id);
+    const petId = req.params.id;
     const ownerId = req.user!.id;
 
     const pet = await findPetById(petId);
-    if (!pet || pet.owner_id !== ownerId) {
-      res.status(404).json({ error: "pet_not_found" });
-      return;
-    }
+    if (!assertOwned(pet, ownerId, res, "pet_not_found")) return;
 
     const search = await findActiveSearchByPetId(petId);
     res.json({ search });
@@ -174,14 +160,11 @@ searchRouter.get(
   "/searches/:id/results",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const searchId = param(req.params.id);
+    const searchId = req.params.id;
     const ownerId = req.user!.id;
 
     const search = await findSearchById(searchId);
-    if (!search || search.owner_id !== ownerId) {
-      res.status(404).json({ error: "search_not_found" });
-      return;
-    }
+    if (!assertOwned(search, ownerId, res, "search_not_found")) return;
 
     const results = await findResultsBySearchId(searchId);
     res.json({ search, results });
@@ -193,14 +176,11 @@ searchRouter.get(
   "/searches/:id/vet-bolos",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const searchId = param(req.params.id);
+    const searchId = req.params.id;
     const ownerId = req.user!.id;
 
     const search = await findSearchById(searchId);
-    if (!search || search.owner_id !== ownerId) {
-      res.status(403).json({ error: "forbidden" });
-      return;
-    }
+    if (!assertOwned(search, ownerId, res, "forbidden", 403)) return;
 
     const vetBolos = await findVetBolosBySearchId(searchId);
     res.json({ search_id: searchId, vet_bolos: vetBolos, total: vetBolos.length });
@@ -219,12 +199,9 @@ searchRouter.get(
   "/searches/nearby",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const parsed = nearbySchema.safeParse(req.query);
-    if (!parsed.success) {
-      res.status(400).json({ error: "validation_error", details: parsed.error.flatten() });
-      return;
-    }
-    const { lat, lng, radius_miles: radius } = parsed.data;
+    const parsed = parseOr400(nearbySchema, req.query, res);
+    if (!parsed) return;
+    const { lat, lng, radius_miles: radius } = parsed;
 
     const box = boundingBox(lat, lng, radius);
     const candidates = await findActiveSearchesInBounds(box.minLat, box.maxLat, box.minLng, box.maxLng);
@@ -249,27 +226,21 @@ searchRouter.patch(
   "/searches/:id",
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const searchId = param(req.params.id);
+    const searchId = req.params.id;
     const ownerId = req.user!.id;
 
-    const body = patchSearchSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
+    const body = parseOr400(patchSearchSchema, req.body, res);
+    if (!body) return;
 
     let search = await findSearchById(searchId);
-    if (!search || search.owner_id !== ownerId) {
-      res.status(404).json({ error: "search_not_found" });
-      return;
-    }
+    if (!assertOwned(search, ownerId, res, "search_not_found")) return;
 
-    if (body.data.radius_miles !== undefined) {
-      search = (await updateSearchRadius(searchId, ownerId, body.data.radius_miles)) ?? search;
+    if (body.radius_miles !== undefined) {
+      search = (await updateSearchRadius(searchId, ownerId, body.radius_miles)) ?? search;
     }
-    if (body.data.status !== undefined) {
-      search = (await updateSearchStatus(searchId, ownerId, body.data.status)) ?? search;
-      if (body.data.status === "closed") {
+    if (body.status !== undefined) {
+      search = (await updateSearchStatus(searchId, ownerId, body.status)) ?? search;
+      if (body.status === "closed") {
         await deleteActiveSearchLocationsByPetId(search.pet_id);
       }
     }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { parseOr400 } from "../middleware/validate.js";
 import {
   findNotificationsByUserId,
   markNotificationRead,
@@ -54,12 +55,9 @@ const settingsSchema = z.object({
 notificationsRouter.patch(
   "/settings",
   asyncHandler(async (req, res) => {
-    const body = settingsSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
-    const user = await updateNotificationSettings(req.user!.id, body.data);
+    const body = parseOr400(settingsSchema, req.body, res);
+    if (!body) return;
+    const user = await updateNotificationSettings(req.user!.id, body);
     res.json({
       settings: {
         notif_pet_update: user?.notif_pet_update,
@@ -79,12 +77,9 @@ const deviceTokenSchema = z.object({
 notificationsRouter.post(
   "/device-token",
   asyncHandler(async (req, res) => {
-    const body = deviceTokenSchema.safeParse(req.body);
-    if (!body.success) {
-      res.status(400).json({ error: "validation_error", details: body.error.flatten() });
-      return;
-    }
-    await updateApnsDeviceToken(req.user!.id, body.data.token);
+    const body = parseOr400(deviceTokenSchema, req.body, res);
+    if (!body) return;
+    await updateApnsDeviceToken(req.user!.id, body.token);
     res.json({ ok: true });
   })
 );
