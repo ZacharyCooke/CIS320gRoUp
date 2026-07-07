@@ -27,6 +27,7 @@ const PetProfilePage = lazyPage(() => import("./pages/pets/PetProfilePage"), "Pe
 const SearchResultsPage = lazyPage(() => import("./pages/search/SearchResultsPage"), "SearchResultsPage");
 const FindPetPage = lazyPage(() => import("./pages/search/FindPetPage"), "FindPetPage");
 const FoundReportPage = lazyPage(() => import("./pages/search/FoundReportPage"), "FoundReportPage");
+const CommunityMapPage = lazyPage(() => import("./pages/search/CommunityMapPage"), "CommunityMapPage");
 const NotificationsPage = lazyPage(() => import("./pages/notifications/NotificationsPage"), "NotificationsPage");
 const RewardSetupPage = lazyPage(() => import("./pages/reward/RewardSetupPage"), "RewardSetupPage");
 const ProximityVerificationPage = lazyPage(
@@ -81,6 +82,7 @@ export function App() {
             <Route path="/pets/:id" element={<RequireAuth><PetProfilePage /></RequireAuth>} />
             <Route path="/search" element={<RequireAuth><FindPetPage /></RequireAuth>} />
             <Route path="/searches/:id" element={<RequireAuth><SearchResultsPage /></RequireAuth>} />
+            <Route path="/community-map" element={<RequireAuth><CommunityMapPage /></RequireAuth>} />
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
             <Route path="/pets/:id/reward" element={<RequireAuth><RewardSetupPage /></RequireAuth>} />
             <Route path="/rewards/:id/verify" element={<RequireAuth><ProximityVerificationPage /></RequireAuth>} />

@@ -24,6 +24,7 @@ export function NavBar() {
       <div className="top-nav-links">
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/search">Find a Pet</Link>
+        <Link to="/community-map">Community Map</Link>
         <Link to="/notifications">Notifications</Link>
         <Link to="/store">Store</Link>
         <Link to="/account/settings">Account</Link>

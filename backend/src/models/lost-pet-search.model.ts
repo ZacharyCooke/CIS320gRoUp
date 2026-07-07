@@ -110,6 +110,58 @@ export async function updateSearchRadius(
   return result.rows[0] ?? null;
 }
 
+export interface NearbyMissingPet {
+  search_id: string;
+  pet_id: string;
+  owner_id: string;
+  center_lat: number;
+  center_lng: number;
+  started_at: Date;
+  name: string;
+  species: string;
+  breed: string | null;
+  color: string;
+  photo_urls: string[];
+  temperament: string;
+  approach_notes: string | null;
+  qr_code_token: string;
+}
+
+// Community Map — active lost-pet searches within a lat/lng bounding box, for the
+// caller to further filter by exact Haversine distance. Only active searches are
+// surfaced (per location-retention rule: a recovered pet's location is purged).
+export async function findActiveSearchesInBounds(
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number
+): Promise<NearbyMissingPet[]> {
+  const result = await pool.query<NearbyMissingPet>(
+    `SELECT
+       ls.id AS search_id,
+       ls.pet_id,
+       ls.owner_id,
+       ls.center_lat,
+       ls.center_lng,
+       ls.started_at,
+       p.name,
+       p.species,
+       p.breed,
+       p.color,
+       p.photo_urls,
+       p.temperament,
+       p.approach_notes,
+       p.qr_code_token
+     FROM lost_pet_searches ls
+     JOIN pets p ON p.id = ls.pet_id
+     WHERE ls.status = 'active'
+       AND ls.center_lat BETWEEN $1 AND $2
+       AND ls.center_lng BETWEEN $3 AND $4`,
+    [minLat, maxLat, minLng, maxLng]
+  );
+  return result.rows;
+}
+
 export async function deleteActiveSearchLocationsByPetId(petId: string): Promise<void> {
   await pool.query(
     `UPDATE lost_pet_searches

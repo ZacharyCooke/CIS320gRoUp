@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToUser, disconnectUser } from "../../services/websocket.client";
+import { showBrowserNotification } from "../../services/push-notifications";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
 import { EmptyState } from "../../components/EmptyState";
@@ -81,6 +82,7 @@ export function NotificationsPage() {
     const handler = (n: NotificationItem) => {
       setNotifications((prev) => [n, ...prev]);
       setUnread((u) => u + 1);
+      showBrowserNotification(n.title, n.body);
     };
     for (const event of LIVE_EVENTS) socket.on(event, handler);
     return () => { disconnectUser(); };

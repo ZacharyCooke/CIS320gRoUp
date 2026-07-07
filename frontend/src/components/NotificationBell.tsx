@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../services/api-client";
 import { connectToUser, disconnectUser } from "../services/websocket.client";
+import { showBrowserNotification } from "../services/push-notifications";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { Spinner } from "./Spinner";
@@ -31,6 +32,7 @@ export function NotificationBell({ userId }: { userId: string }) {
       if (n.type && n.title) {
         setNotifications((prev) => [n, ...prev]);
         setUnread((u) => u + 1);
+        showBrowserNotification(n.title, n.body);
       }
     });
     return () => { disconnectUser(); };

@@ -7,10 +7,12 @@ import {
   deleteActiveSearchLocationsByPetId,
   findActiveSearchByPetId,
   findActiveSearchesByOwnerId,
+  findActiveSearchesInBounds,
   findSearchById,
   updateSearchRadius,
   updateSearchStatus
 } from "../../models/lost-pet-search.model.js";
+import { boundingBox, haversineDistanceMiles } from "../../services/geo.service.js";
 import { findResultsBySearchId } from "../../models/search-result.model.js";
 import { findPetById, updatePetStatus } from "../../models/pet.model.js";
 import { findUserById } from "../../models/user.model.js";
@@ -202,6 +204,43 @@ searchRouter.get(
 
     const vetBolos = await findVetBolosBySearchId(searchId);
     res.json({ search_id: searchId, vet_bolos: vetBolos, total: vetBolos.length });
+  })
+);
+
+// GET /searches/nearby — active lost-pet searches near a location, for the
+// Community Map; any logged-in user may browse (not just the search's owner).
+const nearbySchema = z.object({
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+  radius_miles: z.coerce.number().min(0.5).max(500).default(25)
+});
+
+searchRouter.get(
+  "/searches/nearby",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const parsed = nearbySchema.safeParse(req.query);
+    if (!parsed.success) {
+      res.status(400).json({ error: "validation_error", details: parsed.error.flatten() });
+      return;
+    }
+    const { lat, lng, radius_miles: radius } = parsed.data;
+
+    const box = boundingBox(lat, lng, radius);
+    const candidates = await findActiveSearchesInBounds(box.minLat, box.maxLat, box.minLng, box.maxLng);
+
+    const nearby = candidates
+      .map((c) => ({
+        ...c,
+        distance_miles: haversineDistanceMiles(lat, lng, c.center_lat, c.center_lng)
+      }))
+      .filter((c) => c.distance_miles <= radius)
+      .sort((a, b) => a.distance_miles - b.distance_miles)
+      // Approximate location only — the exact center isn't needed once distance is computed,
+      // and owner_id is internal (used only for the "is this your own pet" check on the client).
+      .map(({ center_lat, center_lng, ...rest }) => rest);
+
+    res.json({ missing_pets: nearby, total: nearby.length });
   })
 );
 
