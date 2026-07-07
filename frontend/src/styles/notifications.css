@@ -1,5 +1,5 @@
 .permission-card {
-  background: linear-gradient(135deg, #0f766e, #0d9488);
+  background: linear-gradient(135deg, var(--color-teal-700), var(--color-teal-600));
   border-radius: 14px;
   padding: 22px 26px;
   color: #fff;
@@ -22,7 +22,7 @@
 
 .permission-card p {
   font-size: 0.85rem;
-  color: #ccfbf1;
+  color: var(--color-teal-100);
   line-height: 1.5;
   margin-bottom: 14px;
   max-width: 520px;
@@ -118,7 +118,7 @@
 }
 
 .toggle-switch:checked {
-  background: #0f766e;
+  background: var(--color-teal-700);
 }
 
 .toggle-switch:checked::after {

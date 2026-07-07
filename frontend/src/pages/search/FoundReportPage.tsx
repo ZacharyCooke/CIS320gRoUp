@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/api-client";
+import { AuthLayout } from "../../components/AuthLayout";
 import { ErrorState } from "../../components/ErrorState";
 
 export function FoundReportPage() {
@@ -79,19 +80,16 @@ export function FoundReportPage() {
 
   if (success) {
     return (
-      <div className="form-page-wrapper">
-        <section className="form-page" style={{ textAlign: "center" }}>
-          <h1 style={{ color: "#0f766e" }}>Report submitted!</h1>
-          <p>Thank you for helping reunite a pet with its owner. Your report has been sent to nearby active searches.</p>
-          <button type="button" onClick={() => setSuccess(false)}>Submit another report</button>
-        </section>
-      </div>
+      <AuthLayout contentStyle={{ textAlign: "center" }}>
+        <h1 style={{ color: "#0f766e" }}>Report submitted!</h1>
+        <p>Thank you for helping reunite a pet with its owner. Your report has been sent to nearby active searches.</p>
+        <button type="button" onClick={() => setSuccess(false)}>Submit another report</button>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="form-page-wrapper">
-      <section className="form-page" style={{ maxWidth: 560 }}>
+    <AuthLayout contentStyle={{ maxWidth: 560 }}>
         <h1>🐾 Report a Found Pet</h1>
         <p style={{ color: "#6b7280", marginBottom: "1.25rem", marginTop: 0 }}>
           No account needed. Fill in what you know — every detail helps.
@@ -198,7 +196,6 @@ export function FoundReportPage() {
             {submitting ? "Submitting…" : "Submit Found Pet Report →"}
           </button>
         </form>
-      </section>
-    </div>
+    </AuthLayout>
   );
 }

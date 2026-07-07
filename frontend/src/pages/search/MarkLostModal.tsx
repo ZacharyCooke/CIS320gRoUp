@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { ErrorState } from "../../components/ErrorState";
@@ -11,12 +11,22 @@ interface Props {
 
 export function MarkLostModal({ petId, petName, onClose }: Props) {
   const navigate = useNavigate();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [radius, setRadius] = useState(10);
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    dialogRef.current?.focus();
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   function autoFillGPS() {
     setLocating(true);
@@ -59,7 +69,7 @@ export function MarkLostModal({ petId, petName, onClose }: Props) {
 
   return (
     <div style={overlay}>
-      <div style={modal}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={`Mark ${petName} as lost`} tabIndex={-1} style={modal}>
         <h2>Mark {petName} as Lost</h2>
 
         <button type="button" onClick={autoFillGPS} disabled={locating}>
@@ -103,5 +113,5 @@ const overlay: React.CSSProperties = {
 };
 const modal: React.CSSProperties = {
   background: "#fff", borderRadius: 8, padding: "2rem",
-  minWidth: 320, display: "flex", flexDirection: "column", gap: "0.5rem"
+  width: "90%", maxWidth: 360, display: "flex", flexDirection: "column", gap: "0.5rem"
 };

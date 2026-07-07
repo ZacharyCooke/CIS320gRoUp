@@ -306,7 +306,7 @@ function SettingRow({
         <div style={{ fontSize: "0.9rem", fontWeight: 600 }}>{label}</div>
         <div style={{ fontSize: "0.78rem", color: "#64748b" }}>{sub}</div>
       </div>
-      <input type="checkbox" className="toggle-switch" checked={checked} onChange={onChange} />
+      <input type="checkbox" className="toggle-switch" checked={checked} onChange={onChange} aria-label={label} />
     </div>
   );
 }

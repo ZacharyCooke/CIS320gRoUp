@@ -18,7 +18,7 @@
 }
 
 .ad-strip a {
-  color: #0f766e;
+  color: var(--color-teal-700);
   font-weight: 600;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .sidebar-ad a {
-  color: #0f766e;
+  color: var(--color-teal-700);
   font-weight: 600;
   font-size: 0.82rem;
 }
@@ -85,50 +85,14 @@
   padding: 0 24px 48px;
 }
 
-.store-topbar {
+.store-cart-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 0;
-}
-
-.store-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: #0f766e;
-  font-size: 0;
-  font-weight: 850;
-  text-decoration: none;
-}
-
-.store-logo::before {
-  content: "PR";
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: #0f766e;
-  color: #fff;
-  display: inline-grid;
-  place-items: center;
-  font-size: 0.78rem;
-  font-weight: 900;
-}
-
-.store-logo::after {
-  content: "PetRecovery";
-  font-size: 1.35rem;
-}
-
-.store-topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 0.9rem;
+  justify-content: flex-end;
+  padding: 18px 0 0;
 }
 
 .cart-pill {
-  background: #0f766e;
+  background: var(--color-teal-700);
   color: #fff;
   padding: 6px 14px;
   border-radius: 999px;
@@ -137,7 +101,7 @@
 }
 
 .store-hero {
-  background: linear-gradient(135deg, #0f766e, #0d9488);
+  background: linear-gradient(135deg, var(--color-teal-700), var(--color-teal-600));
   border-radius: 16px;
   padding: 32px 36px;
   color: #fff;
@@ -187,8 +151,8 @@
 }
 
 .cat-tab.active {
-  color: #0f766e !important;
-  border-bottom-color: #0f766e;
+  color: var(--color-teal-700) !important;
+  border-bottom-color: var(--color-teal-700);
 }
 
 .store-main {
@@ -212,7 +176,7 @@
   margin-bottom: 18px;
 }
 
-.filter-group label {
+.filter-group-label {
   display: block;
   font-size: 0.7rem;
   font-weight: 700;
@@ -234,7 +198,7 @@
 
 .filter-item input {
   min-height: auto;
-  accent-color: #0f766e;
+  accent-color: var(--color-teal-700);
 }
 
 .products-header {
@@ -262,7 +226,7 @@
 
 .product-img {
   height: 130px;
-  background: linear-gradient(135deg, #ccfbf1, #f0fdfa);
+  background: linear-gradient(135deg, var(--color-teal-100), var(--color-teal-50));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,7 +317,7 @@
 }
 
 .premium-error {
-  color: #fecaca;
+  color: var(--color-danger-200);
   font-size: 0.8rem;
   margin-top: 10px;
 }

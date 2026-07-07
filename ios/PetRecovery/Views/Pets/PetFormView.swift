@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct PetFormView: View {
     var onCreated: ((PetDTO) -> Void)?
@@ -27,8 +29,14 @@ struct PetFormView: View {
     @State private var vetPhone = ""
     @State private var vetEmail = ""
 
+    // Photo
+    @State private var isPhotoPickerPresented = false
+    @State private var photoData: Data?
+    @State private var photoFileName = "pet-photo.jpg"
+
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var photoUploadWarning: String?
     @Environment(\.dismiss) private var dismiss
 
     private let temperamentOptions = [
@@ -56,6 +64,19 @@ struct PetFormView: View {
                 }
                 TextField("Microchip number (optional)", text: $microchip)
                     .keyboardType(.numberPad)
+            }
+
+            Section("Photo") {
+                Button(photoData == nil ? "Choose Photo" : "Replace Photo") {
+                    isPhotoPickerPresented = true
+                }
+                .accessibilityHint("A clear photo helps match this pet if it's ever lost or found")
+                if photoData != nil {
+                    LabeledContent("Selected", value: photoFileName)
+                    Button("Remove Photo", role: .destructive) {
+                        photoData = nil
+                    }
+                }
             }
 
             Section("Temperament") {
@@ -118,6 +139,22 @@ struct PetFormView: View {
             }
         }
         .navigationTitle("Add Pet")
+        .sheet(isPresented: $isPhotoPickerPresented) {
+            PetPhotoPicker(imageData: $photoData, fileName: $photoFileName)
+        }
+        .alert(
+            "Pet Saved",
+            isPresented: Binding(
+                get: { photoUploadWarning != nil },
+                set: { if !$0 { photoUploadWarning = nil } }
+            ),
+            actions: {
+                Button("OK") { dismiss() }
+            },
+            message: {
+                Text(photoUploadWarning ?? "")
+            }
+        )
     }
 
     private func addCondition() {
@@ -157,11 +194,87 @@ struct PetFormView: View {
                 )
             }
 
+            if let photoData {
+                do {
+                    _ = try await APIClient.shared.multipartRequest(
+                        path: "pets/\(petId)/photo",
+                        fields: [:],
+                        file: MultipartUploadFile(
+                            fieldName: "photo",
+                            fileName: photoFileName,
+                            mimeType: "image/jpeg",
+                            data: photoData
+                        )
+                    )
+                } catch {
+                    // Pet + medical/vet data already saved successfully — a photo failure
+                    // shouldn't block the rest of the flow (degrade gracefully, per rules.md).
+                    // Route through an alert rather than dismissing immediately, since the
+                    // inline error banner below would never be seen before the sheet closes.
+                    onCreated?(response.pet)
+                    photoUploadWarning = "Your pet was saved, but the photo failed to upload. You can add one later from the pet's profile."
+                    isLoading = false
+                    return
+                }
+            }
+
             onCreated?(response.pet)
             dismiss()
         } catch {
             errorMessage = "Failed to save pet — please try again."
         }
         isLoading = false
+    }
+}
+
+private struct PetPhotoPicker: UIViewControllerRepresentable {
+    @Binding var imageData: Data?
+    @Binding var fileName: String
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration(photoLibrary: .shared())
+        configuration.filter = .images
+        configuration.selectionLimit = 1
+
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    final class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        private let parent: PetPhotoPicker
+
+        init(parent: PetPhotoPicker) {
+            self.parent = parent
+        }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            parent.dismiss()
+
+            guard let provider = results.first?.itemProvider,
+                  provider.canLoadObject(ofClass: UIImage.self) else {
+                return
+            }
+
+            let suggestedName = provider.suggestedName ?? "pet-photo"
+            provider.loadObject(ofClass: UIImage.self) { object, _ in
+                guard let image = object as? UIImage,
+                      let data = image.jpegData(compressionQuality: 0.85) else {
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    self.parent.fileName = "\(suggestedName).jpg"
+                    self.parent.imageData = data
+                }
+            }
+        }
     }
 }

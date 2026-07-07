@@ -24,7 +24,17 @@ function extractToken(decoded: string): string | null {
 export function QRScannerModal({ onClose }: QRScannerModalProps) {
   const navigate = useNavigate();
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    dialogRef.current?.focus();
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     const scanner = new Html5Qrcode(READER_ID);
@@ -75,7 +85,7 @@ export function QRScannerModal({ onClose }: QRScannerModalProps) {
         zIndex: 1000
       }}
     >
-      <div style={{ background: "white", padding: 20, borderRadius: 12, maxWidth: 360, width: "90%" }}>
+      <div ref={dialogRef} tabIndex={-1} style={{ background: "white", padding: 20, borderRadius: 12, maxWidth: 360, width: "90%" }}>
         <h2 style={{ marginTop: 0 }}>Scan pet QR code</h2>
         <div id={READER_ID} style={{ width: "100%" }} />
         {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}

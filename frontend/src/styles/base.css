@@ -2,6 +2,20 @@
   color: #172033;
   background: #f6f8fb;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Brand (teal) */
+  --color-teal-700: #0f766e;
+  --color-teal-600: #0d9488;
+  --color-teal-200: #99f6e4;
+  --color-teal-100: #ccfbf1;
+  --color-teal-50: #f0fdfa;
+
+  /* Danger (red) */
+  --color-danger-700: #b91c1c;
+  --color-danger-600: #dc2626;
+  --color-danger-300: #fca5a5;
+  --color-danger-200: #fecaca;
+  --color-danger-50: #fef2f2;
 }
 
 @keyframes pulse {
@@ -18,14 +32,14 @@ body {
 }
 
 a {
-  color: #0f766e;
+  color: var(--color-teal-700);
 }
 
 .brand-logo {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #0f766e;
+  color: var(--color-teal-700);
   font-size: 1.35rem;
   font-weight: 850;
   text-decoration: none;
@@ -40,7 +54,7 @@ a {
   width: 38px;
   height: 38px;
   border-radius: 8px;
-  background: #0f766e;
+  background: var(--color-teal-700);
   color: #fff;
   display: inline-grid;
   place-items: center;
@@ -159,7 +173,7 @@ a {
 .home-hero-panel strong {
   display: block;
   font-size: 1.15rem;
-  color: #0f766e;
+  color: var(--color-teal-700);
   margin-bottom: 6px;
 }
 
@@ -197,7 +211,7 @@ a {
 
 .info-kicker {
   display: inline-block;
-  color: #0f766e;
+  color: var(--color-teal-700);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -209,7 +223,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: #0f766e;
+  background: var(--color-teal-700);
   color: #fff;
   border-radius: 8px;
   padding: 24px;
@@ -222,7 +236,7 @@ a {
 
 .home-callout button {
   background: #fff;
-  color: #0f766e;
+  color: var(--color-teal-700);
   white-space: nowrap;
 }
 
@@ -257,7 +271,7 @@ a {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #0f766e;
+  color: var(--color-teal-700);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -325,17 +339,30 @@ p {
 
 .btn-outline {
   background: #fff !important;
-  color: #0f766e !important;
-  border: 1.5px solid #99f6e4 !important;
+  color: var(--color-teal-700) !important;
+  border: 1.5px solid var(--color-teal-200) !important;
 }
 
 .btn-white {
   background: #fff !important;
-  color: #0f766e !important;
+  color: var(--color-teal-700) !important;
 }
 
 .btn-ghost {
   background: transparent !important;
-  color: #ccfbf1 !important;
-  border: 1px solid #99f6e4 !important;
+  color: var(--color-teal-100) !important;
+  border: 1px solid var(--color-teal-200) !important;
+}
+
+.app-footer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.app-footer a {
+  color: #94a3b8;
 }

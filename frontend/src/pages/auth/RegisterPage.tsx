@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
+import { AuthLayout } from "../../components/AuthLayout";
 import { ErrorState } from "../../components/ErrorState";
 
 function useMathCaptcha() {
@@ -75,8 +76,7 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="form-page-wrapper">
-      <section className="form-page">
+    <AuthLayout>
         <span className="tag tag-teal" style={{ display: "inline-block", marginBottom: 12 }}>🐾 Free Account</span>
         <h1>Create your PetRecovery account</h1>
         <p style={{ color: "#6b7280", marginTop: -16, marginBottom: 20, fontSize: "0.9rem" }}>
@@ -184,7 +184,6 @@ export function RegisterPage() {
         <p style={{ textAlign: "center", marginTop: 20, fontSize: "0.9rem", color: "#64748b" }}>
           Already have an account? <Link to="/login" style={{ fontWeight: 700 }}>Sign in</Link>
         </p>
-      </section>
-    </div>
+    </AuthLayout>
   );
 }

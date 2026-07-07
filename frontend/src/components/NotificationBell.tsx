@@ -99,7 +99,7 @@ export function NotificationBell({ userId }: { userId: string }) {
       {open && (
         <div style={{
           position: "absolute", right: 0, top: "calc(100% + 8px)",
-          width: 340, maxHeight: 480, overflowY: "auto",
+          width: 340, maxWidth: "calc(100vw - 32px)", maxHeight: 480, overflowY: "auto",
           background: "#fff", borderRadius: 10,
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
           border: "1px solid #e5e7eb", zIndex: 500

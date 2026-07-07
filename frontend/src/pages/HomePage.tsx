@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { NavBar } from "../components/NavBar";
+import { Footer } from "../components/Footer";
 
 function isAuthenticated(): boolean {
   return !!localStorage.getItem("access_token");
@@ -107,6 +108,7 @@ export function HomePage() {
             <Link to="/found-report"><button type="button">Report a found pet</button></Link>
           </section>
         </div>
+        <Footer />
       </main>
     </>
   );

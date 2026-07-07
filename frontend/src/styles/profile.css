@@ -15,8 +15,8 @@
   height: 140px;
   flex-shrink: 0;
   border-radius: 14px;
-  border: 2px solid #99f6e4;
-  background: linear-gradient(135deg, #ccfbf1, #f0fdfa);
+  border: 2px solid var(--color-teal-200);
+  background: linear-gradient(135deg, var(--color-teal-100), var(--color-teal-50));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,9 +84,9 @@
 }
 
 .badge-lost {
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 1.5px solid #fca5a5;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border: 1.5px solid var(--color-danger-300);
 }
 
 .section-grid {
@@ -170,7 +170,7 @@
 .status-pill {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--color-teal-700);
   white-space: nowrap;
 }
 

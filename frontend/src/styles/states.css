@@ -10,7 +10,7 @@
   width: 20px;
   height: 20px;
   border: 3px solid #e2e8f0;
-  border-top-color: #0f766e;
+  border-top-color: var(--color-teal-700);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -27,10 +27,10 @@
 
 .error-state {
   padding: 20px 24px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border: 1px solid var(--color-danger-200);
+  background: var(--color-danger-50);
   border-radius: 10px;
-  color: #b91c1c;
+  color: var(--color-danger-700);
 }
 
 .error-state p {

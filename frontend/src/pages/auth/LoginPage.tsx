@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
+import { AuthLayout } from "../../components/AuthLayout";
 import { ErrorState } from "../../components/ErrorState";
 
 type Screen = "credentials" | "totp";
@@ -75,82 +76,78 @@ export function LoginPage() {
 
   if (screen === "totp") {
     return (
-      <div className="form-page-wrapper">
-        <section className="form-page">
-          <h1>Two-Factor Authentication</h1>
-          <p style={{ color: "#5f6f89" }}>
-            Open your authenticator app and enter the 6-digit code for PetRecovery.
-          </p>
-          {error && <ErrorState message={error} />}
-          <form onSubmit={handleTotp}>
-            <label>
-              Authenticator code
-              <input
-                value={totpCode}
-                onChange={(e) => setTotpCode(e.target.value)}
-                inputMode="numeric"
-                maxLength={6}
-                autoComplete="one-time-code"
-                required
-              />
-            </label>
-            <button type="submit" disabled={loading || totpCode.length !== 6}>
-              {loading ? "Verifying…" : "Verify"}
-            </button>
-          </form>
-          <p style={{ marginTop: 16, fontSize: "0.875rem" }}>
-            <button
-              type="button"
-              style={{ background: "none", color: "#0f766e", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}
-              onClick={() => { setScreen("credentials"); setError(null); setTotpCode(""); }}
-            >
-              ← Back to login
-            </button>
-          </p>
-        </section>
-      </div>
+      <AuthLayout>
+        <h1>Two-Factor Authentication</h1>
+        <p style={{ color: "#5f6f89" }}>
+          Open your authenticator app and enter the 6-digit code for PetRecovery.
+        </p>
+        {error && <ErrorState message={error} />}
+        <form onSubmit={handleTotp}>
+          <label>
+            Authenticator code
+            <input
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="one-time-code"
+              required
+            />
+          </label>
+          <button type="submit" disabled={loading || totpCode.length !== 6}>
+            {loading ? "Verifying…" : "Verify"}
+          </button>
+        </form>
+        <p style={{ marginTop: 16, fontSize: "0.875rem" }}>
+          <button
+            type="button"
+            style={{ background: "none", color: "#0f766e", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}
+            onClick={() => { setScreen("credentials"); setError(null); setTotpCode(""); }}
+          >
+            ← Back to login
+          </button>
+        </p>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="form-page-wrapper">
-      <section className="form-page">
-        <h1>Sign in to PetRecovery</h1>
-        {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
-        <form onSubmit={handleLogin}>
-          <label>
-            Email
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              required
-              autoComplete="email"
-            />
-          </label>
-          <label>
-            Password
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              required
-              autoComplete="current-password"
-            />
-          </label>
-          <button type="submit" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in →"}
-          </button>
-        </form>
+    <AuthLayout>
+      <h1>Sign in to PetRecovery</h1>
+      {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+      <form onSubmit={handleLogin}>
+        <label>
+          Email
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+            autoComplete="email"
+          />
+        </label>
+        <label>
+          Password
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            required
+            autoComplete="current-password"
+          />
+        </label>
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing in…" : "Sign in →"}
+        </button>
+      </form>
 
-        <div className="info-banner-teal" style={{ marginTop: 20 }}>
-          🔒 <div>If you're signing in from a new device or location, you'll be asked to verify with your authenticator app before access is granted.</div>
-        </div>
+      <div className="info-banner-teal" style={{ marginTop: 20 }}>
+        🔒 <div>If you're signing in from a new device or location, you'll be asked to verify with your authenticator app before access is granted.</div>
+      </div>
 
-        <p style={{ marginTop: 16, fontSize: "0.875rem", color: "#5f6f89", textAlign: "center" }}>
-          No account? <Link to="/register" style={{ fontWeight: 700 }}>Register</Link>
-        </p>
-      </section>
-    </div>
+      <p style={{ marginTop: 16, fontSize: "0.875rem", color: "#5f6f89", textAlign: "center" }}>
+        No account? <Link to="/register" style={{ fontWeight: 700 }}>Register</Link>
+      </p>
+    </AuthLayout>
   );
 }

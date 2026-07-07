@@ -3,7 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { AdBanner } from "../../components/AdBanner";
 import { EmptyState } from "../../components/EmptyState";
+import { NavBar } from "../../components/NavBar";
+import { Footer } from "../../components/Footer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
+
+function isAuthenticated(): boolean {
+  return !!localStorage.getItem("access_token");
+}
 
 type Category = "id_tags" | "gps_trackers" | "safety_gear";
 type PetType = "dog" | "cat" | "small_pet";
@@ -102,6 +108,7 @@ function formatPrice(cents: number): string {
 
 export function StorePage() {
   const navigate = useNavigate();
+  const authed = isAuthenticated();
   const { user, loading: userLoading, error: userError, refetch: refetchUser } = useCurrentUser();
   const [activeCategory, setActiveCategory] = useState<Category | "all">("all");
   const [priceBands, setPriceBands] = useState<Set<string>>(new Set());
@@ -162,16 +169,27 @@ export function StorePage() {
   const isPremium = user?.is_premium ?? false;
 
   return (
-    <section className="store-page">
-      <div className="store-topbar">
-        <Link to="/" className="store-logo">🐾 PetRecovery</Link>
-        <div className="store-topbar-actions">
-          <Link to="/dashboard">Dashboard</Link>
+    <>
+      {authed && <NavBar />}
+      <section className="store-page">
+        {!authed && (
+          <header className="home-topbar">
+            <Link to="/" className="brand-logo" aria-label="PetRecovery home">
+              <span className="brand-mark">PR</span>
+              <span>PetRecovery</span>
+            </Link>
+            <nav className="home-topbar-links">
+              <Link to="/found-report">Report Found Pet</Link>
+              <Link to="/login">Log in</Link>
+            </nav>
+          </header>
+        )}
+
+        <div className="store-cart-row">
           <span className="cart-pill">🛒 Cart ({cartCount})</span>
         </div>
-      </div>
 
-      {!userLoading && <AdBanner isPremium={isPremium} adIndex={0} />}
+        {!userLoading && <AdBanner isPremium={isPremium} adIndex={0} />}
       {userError && (
         <p className="form-hint" role="alert">
           Could not confirm your Premium status right now — ads may show even if you're subscribed.{" "}
@@ -215,29 +233,29 @@ export function StorePage() {
         <aside className="store-filters">
           <h3>Filter</h3>
           <div className="filter-group">
-            <label>Price</label>
+            <span className="filter-group-label">Price</span>
             {PRICE_BANDS.map((band) => (
-              <div className="filter-item" key={band.id}>
+              <label className="filter-item" key={band.id}>
                 <input
                   type="checkbox"
                   checked={priceBands.has(band.id)}
                   onChange={() => toggleSetValue(priceBands, band.id, setPriceBands)}
                 />
-                <span onClick={() => toggleSetValue(priceBands, band.id, setPriceBands)}>{band.label}</span>
-              </div>
+                {band.label}
+              </label>
             ))}
           </div>
           <div className="filter-group">
-            <label>Pet Type</label>
+            <span className="filter-group-label">Pet Type</span>
             {(Object.keys(PET_TYPE_LABELS) as PetType[]).map((type) => (
-              <div className="filter-item" key={type}>
+              <label className="filter-item" key={type}>
                 <input
                   type="checkbox"
                   checked={petTypes.has(type)}
                   onChange={() => toggleSetValue(petTypes, type, setPetTypes)}
                 />
-                <span onClick={() => toggleSetValue(petTypes, type, setPetTypes)}>{PET_TYPE_LABELS[type]}</span>
-              </div>
+                {PET_TYPE_LABELS[type]}
+              </label>
             ))}
           </div>
         </aside>
@@ -307,6 +325,8 @@ export function StorePage() {
           </div>
         </div>
       </div>
-    </section>
+      </section>
+      <Footer />
+    </>
   );
 }

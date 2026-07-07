@@ -95,7 +95,19 @@ export function DashboardPage() {
       {!loading && !error && pets.length > 0 && (
         <div className="pet-grid">
           {pets.map((pet) => (
-            <div key={pet.id} className="pet-card" onClick={() => navigate(`/pets/${pet.id}`)}>
+            <div
+              key={pet.id}
+              className="pet-card"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/pets/${pet.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(`/pets/${pet.id}`);
+                }
+              }}
+            >
               <div className="pet-card-photo">
                 {pet.photo_urls?.[0] ? (
                   <img src={pet.photo_urls[0]} alt={pet.name} />
@@ -120,7 +132,18 @@ export function DashboardPage() {
             </div>
           ))}
 
-          <div className="add-pet-card" onClick={() => navigate("/pets/new")}>
+          <div
+            className="add-pet-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigate("/pets/new")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate("/pets/new");
+              }
+            }}
+          >
             <div className="plus">＋</div>
             <p>Register Another Pet</p>
           </div>

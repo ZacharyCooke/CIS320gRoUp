@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
+import { Footer } from "../../components/Footer";
 import { API_BASE_URL } from "../../services/api-client";
 
 interface PublicProfile {
@@ -24,6 +25,17 @@ const TEMPERAMENT_LABELS: Record<string, { label: string; color: string }> = {
   cautious: { label: "Cautious — approach carefully", color: "#d97706" },
   report_only: { label: "Report Only — Do Not Approach", color: "#dc2626" }
 };
+
+function PublicProfileHeader() {
+  return (
+    <header style={{ display: "flex", justifyContent: "center", padding: "20px 24px 0" }}>
+      <Link to="/" className="brand-logo" aria-label="PetRecovery home">
+        <span className="brand-mark">PR</span>
+        <span>PetRecovery</span>
+      </Link>
+    </header>
+  );
+}
 
 export function PublicPetProfile() {
   const { token } = useParams<{ token: string }>();
@@ -50,13 +62,33 @@ export function PublicPetProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  if (loading) return <div style={{ padding: 24 }}><Spinner label="Loading pet profile…" /></div>;
-  if (error) return <div style={{ padding: 24 }}><ErrorState message={error} onRetry={loadProfile} /></div>;
+  if (loading) {
+    return (
+      <>
+        <PublicProfileHeader />
+        <div style={{ padding: 24 }}><Spinner label="Loading pet profile…" /></div>
+        <Footer />
+      </>
+    );
+  }
+  if (error) {
+    return (
+      <>
+        <PublicProfileHeader />
+        <div style={{ padding: 24 }}><ErrorState message={error} onRetry={loadProfile} /></div>
+        <Footer />
+      </>
+    );
+  }
   if (!profile) {
     return (
-      <div style={{ padding: 24 }}>
-        <ErrorState message="This pet profile could not be found." onRetry={loadProfile} />
-      </div>
+      <>
+        <PublicProfileHeader />
+        <div style={{ padding: 24 }}>
+          <ErrorState message="This pet profile could not be found." onRetry={loadProfile} />
+        </div>
+        <Footer />
+      </>
     );
   }
 
@@ -66,6 +98,8 @@ export function PublicPetProfile() {
   };
 
   return (
+    <>
+    <PublicProfileHeader />
     <main style={{ maxWidth: 520, margin: "0 auto", padding: 24 }}>
       {profile.status === "lost" && (
         <div
@@ -160,5 +194,7 @@ export function PublicPetProfile() {
         )}
       </section>
     </main>
+    <Footer />
+    </>
   );
 }

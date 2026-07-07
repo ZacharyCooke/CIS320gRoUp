@@ -4,6 +4,7 @@ struct DashboardView: View {
     @State private var pets: [PetDTO] = []
     @State private var isLoading = true
     @State private var loadError: String?
+    @State private var isAddingPet = false
 
     var body: some View {
         Group {
@@ -30,6 +31,27 @@ struct DashboardView: View {
         .navigationTitle("My Pets")
         .task { await loadPets() }
         .refreshable { await loadPets() }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    isAddingPet = true
+                } label: {
+                    Label("Add Pet", systemImage: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $isAddingPet) {
+            NavigationStack {
+                PetFormView { newPet in
+                    pets.append(newPet)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { isAddingPet = false }
+                    }
+                }
+            }
+        }
     }
 
     private func loadPets() async {

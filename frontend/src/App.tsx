@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { NavBar } from "./components/NavBar";
+import { Footer } from "./components/Footer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Spinner } from "./components/Spinner";
 import { setAccessToken } from "./services/api-client";
@@ -50,6 +51,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
     <>
       <NavBar />
       {children}
+      <Footer />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient, setAccessToken } from "../../services/api-client";
+import { AuthLayout } from "../../components/AuthLayout";
 import { ErrorState } from "../../components/ErrorState";
 
 // Mirrors the real server-side OTP_TTL_MS (10 minutes) in user.service.ts —
@@ -65,8 +66,7 @@ export function VerifyContactPage() {
   }
 
   return (
-    <div className="form-page-wrapper">
-    <section className="form-page" style={{ textAlign: "center" }}>
+    <AuthLayout contentStyle={{ textAlign: "center" }}>
       <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📧</div>
       <h1>Check your email</h1>
       <p style={{ color: "#64748b", marginBottom: email ? 4 : 16 }}>We sent a 6-digit verification code to</p>
@@ -95,7 +95,6 @@ export function VerifyContactPage() {
       <p style={{ marginTop: 16, fontSize: "0.8rem", color: "#94a3b8" }}>
         {secondsLeft > 0 ? `Code expires in ${formatCountdown(secondsLeft)}` : "Code may have expired — try registering again if it doesn't work."}
       </p>
-    </section>
-    </div>
+    </AuthLayout>
   );
 }

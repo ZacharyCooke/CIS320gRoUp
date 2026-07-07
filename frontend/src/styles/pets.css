@@ -21,7 +21,7 @@
 
 .pet-card-photo {
   height: 150px;
-  background: linear-gradient(135deg, #ccfbf1, #f0fdfa);
+  background: linear-gradient(135deg, var(--color-teal-100), var(--color-teal-50));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,8 +73,8 @@
 }
 
 .tag-teal {
-  background: #f0fdfa;
-  color: #0f766e;
+  background: var(--color-teal-50);
+  color: var(--color-teal-700);
 }
 
 .add-pet-card {
@@ -94,8 +94,8 @@
 }
 
 .add-pet-card:hover {
-  border-color: #0f766e;
-  color: #0f766e;
+  border-color: var(--color-teal-700);
+  color: var(--color-teal-700);
 }
 
 .add-pet-card .plus {
