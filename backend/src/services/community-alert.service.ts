@@ -5,8 +5,8 @@ import { haversineDistanceMiles } from "./geo.service.js";
 import { redis } from "../config/redis.js";
 import { dispatchBOLO, dispatchCommunityAlert } from "./notification.service.js";
 
-const BOLO_RADIUS_MILES = 1;
-const COMMUNITY_RADIUS_MILES = 2;
+const BOLO_RADIUS_MILES = 5;
+const COMMUNITY_RADIUS_MILES = 5;
 const DEDUPE_TTL_SECONDS = 60 * 30;
 
 async function alreadyNotified(userId: string, searchId: string, type: string): Promise<boolean> {

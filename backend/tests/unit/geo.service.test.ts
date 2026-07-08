@@ -1,4 +1,6 @@
-import { haversineDistanceMiles, isWithinRadius, boundingBox } from "../../src/services/geo.service.js";
+import { haversineDistanceMiles, isWithinRadius, boundingBox, fuzzLocation } from "../../src/services/geo.service.js";
+
+const FEET_PER_MILE = 5280;
 
 describe("haversineDistanceMiles", () => {
   it("returns 0 for identical coordinates", () => {
@@ -32,6 +34,37 @@ describe("isWithinRadius", () => {
 
   it("accepts a point well inside the radius", () => {
     expect(isWithinRadius(30.2672, -97.7431, 200, 29.7604, -95.3698)).toBe(true);
+  });
+});
+
+describe("fuzzLocation", () => {
+  const lat = 30.2672;
+  const lng = -97.7431;
+
+  it("always lands within radiusFeet of the true point", () => {
+    for (const seed of ["search-1", "search-2", "search-3", "another-seed", "x"]) {
+      const fuzzed = fuzzLocation(lat, lng, seed, 300);
+      const distanceFeet = haversineDistanceMiles(lat, lng, fuzzed.lat, fuzzed.lng) * FEET_PER_MILE;
+      expect(distanceFeet).toBeLessThanOrEqual(300);
+    }
+  });
+
+  it("is deterministic for the same seed (stable across repeated requests)", () => {
+    const first = fuzzLocation(lat, lng, "search-123", 300);
+    const second = fuzzLocation(lat, lng, "search-123", 300);
+    expect(first).toEqual(second);
+  });
+
+  it("produces a different point for a different seed", () => {
+    const a = fuzzLocation(lat, lng, "search-a", 300);
+    const b = fuzzLocation(lat, lng, "search-b", 300);
+    expect(a).not.toEqual(b);
+  });
+
+  it("never returns the exact original point", () => {
+    const fuzzed = fuzzLocation(lat, lng, "search-1", 300);
+    expect(fuzzed.lat).not.toBe(lat);
+    expect(fuzzed.lng).not.toBe(lng);
   });
 });
 

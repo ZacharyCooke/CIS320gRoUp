@@ -50,7 +50,7 @@
 4. Confirm the search is initiated
 5. Verify search results stream in from PetFinder API and internal reports within 10 seconds
 6. Adjust radius from 5 miles to 25 miles → confirm results refresh
-7. Open SendGrid activity log → confirm BOLO emails were dispatched to vet clinics within 2 miles of the reported GPS
+7. Open SendGrid activity log → confirm BOLO emails were dispatched to animal-care providers within 5 miles of the reported GPS
 8. Confirm each vet email includes: Bella's photos, description, microchip, shared medical conditions (Hypothyroidism), temperament, and owner contact
 9. Repeat steps 2–6 on the iOS simulator
 
@@ -100,13 +100,13 @@
 
 1. Open the app on a second device and grant push notification permission
 2. Create a second user account on the second device; do not mark any pet as lost
-3. On the first device, report a second pet as lost with GPS set to within 2 miles of the second device's location
+3. On the first device, report a second pet as lost with GPS set to within 5 miles of the second device's location
 4. Confirm the second device receives a **green** community alert within 30 seconds: "Lost pet reported near you"
-5. On the second device, physically move (or simulate movement) to within 1 mile of the lost pet's original report location
+5. On the second device, physically move (or simulate movement) to within 5 miles of the lost pet's original report location
 6. Confirm the second device receives a **blue** BOLO alert: "Be On The Lookout For: [pet name, breed, color]"
 7. On the first device, submit a found report matching the lost pet
 8. Confirm the owner's first device receives a **red** notification: "New sighting reported for [pet name]"
-9. Navigate to Notification Settings → toggle off "BOLO alerts" → move into another 1-mile zone → confirm no BOLO is received
+9. Navigate to Notification Settings → toggle off "BOLO alerts" → move into another 5-mile zone → confirm no BOLO is received
 
 **Expected**: Correct notification color and content delivered per trigger condition. Settings toggle respected.
 

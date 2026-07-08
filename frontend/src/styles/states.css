@@ -55,3 +55,62 @@
   color: #64748b;
   margin-bottom: 16px;
 }
+
+.map-marker-icon {
+  background: transparent;
+  border: 0;
+}
+
+.map-marker-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.map-marker-badge::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.map-marker-emoji {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.map-marker-missing,
+.map-marker-missing::after {
+  background: #dc2626;
+}
+
+.map-marker-tracker,
+.map-marker-tracker::after {
+  background: #2563eb;
+}
+
+.map-marker-sighting,
+.map-marker-sighting::after {
+  background: #059669;
+}
+
+.map-marker-you,
+.map-marker-you::after {
+  background: #0f766e;
+}

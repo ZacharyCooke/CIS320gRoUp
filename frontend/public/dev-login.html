@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetRecovery Dev Login</title>
+  </head>
+  <body>
+    <p>Signing in to PetRecovery...</p>
+    <script>
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const redirectTo = params.get("redirect") || "/dashboard";
+
+      if (!accessToken || !refreshToken) {
+        document.body.textContent = "Missing dev login tokens.";
+      } else {
+        localStorage.setItem("access_token", accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
+        window.location.replace(redirectTo);
+      }
+    </script>
+  </body>
+</html>

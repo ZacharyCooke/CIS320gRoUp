@@ -111,26 +111,63 @@ describe("findNearbyVetClinics (Google Places discovery)", () => {
     expect(mockPlacesNearby).not.toHaveBeenCalled();
   });
 
-  it("maps and filters Places results to the 2-mile BOLO radius", async () => {
+  it("maps and filters Places results to the configured BOLO radius across vets, shelters, and rescues", async () => {
     mockEnv.GOOGLE_MAPS_API_KEY = "test-places-key";
     mockRedisGet.mockResolvedValue(null);
     mockRedisSet.mockResolvedValue("OK");
-    mockPlacesNearby.mockResolvedValue({
-      data: {
-        results: [
-          { place_id: "p1", name: "Close Vet", vicinity: "Nearby St", geometry: { location: { lat: 30.2680, lng: -97.7431 } } },
-          { place_id: "p2", name: "Far Vet", vicinity: "Far Away Rd", geometry: { location: { lat: 30.5000, lng: -97.7431 } } }
-        ]
+    mockPlacesNearby.mockImplementation(({ params }: any) => {
+      if (params.type === "veterinary_care") {
+        return Promise.resolve({
+          data: {
+            results: [
+              { place_id: "p1", name: "Close Vet", vicinity: "Nearby St", geometry: { location: { lat: 30.2680, lng: -97.7431 } } },
+              { place_id: "p2", name: "Far Vet", vicinity: "Far Away Rd", geometry: { location: { lat: 30.8000, lng: -97.7431 } } }
+            ]
+          }
+        });
       }
+      if (params.type === "animal_shelter") {
+        return Promise.resolve({
+          data: {
+            results: [
+              { place_id: "p3", name: "Close Shelter", vicinity: "Shelter Rd", geometry: { location: { lat: 30.3000, lng: -97.7431 } } }
+            ]
+          }
+        });
+      }
+      return Promise.resolve({
+        data: {
+          results: [
+            { place_id: "p4", name: "Close Rescue", vicinity: "Rescue Ave", geometry: { location: { lat: 30.3100, lng: -97.7431 } } }
+          ]
+        }
+      });
     });
     mockPlaceDetails.mockResolvedValue({ data: { result: { formatted_address: "123 Nearby St, Austin, TX" } } });
 
-    const clinics = await findNearbyVetClinics(30.2672, -97.7431);
+    const clinics = await findNearbyVetClinics(30.2672, -97.7431, 5);
 
-    expect(clinics).toHaveLength(1);
+    expect(mockPlacesNearby).toHaveBeenCalledTimes(3);
+    expect(mockPlacesNearby).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ radius: expect.any(Number), type: "veterinary_care" })
+      })
+    );
+    expect(mockPlacesNearby).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ radius: expect.any(Number), type: "animal_shelter" })
+      })
+    );
+    expect(mockPlacesNearby).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ radius: expect.any(Number), keyword: "animal rescue" })
+      })
+    );
+    expect(clinics).toHaveLength(3);
     expect(clinics[0].clinic_name).toBe("Close Vet");
     expect(clinics[0].clinic_address).toBe("123 Nearby St, Austin, TX");
     expect(clinics[0].clinic_email).toBeNull();
+    expect(clinics.map((c) => c.provider_category)).toEqual(["vet", "shelter", "rescue"]);
     expect(mockRedisSet).toHaveBeenCalled();
   });
 

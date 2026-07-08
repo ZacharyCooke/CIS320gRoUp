@@ -15,7 +15,7 @@
 | **Petco Love Lost** | Lost & found pet database | Public search interface; no official API — scraping viable | Free; good photo matching |
 | **OpenStreetMap / Nominatim** | Address geocoding & map tiles | Free API, no key required | Used for map display and address-to-coordinate conversion |
 | **Google Maps Platform** | Maps, geocoding, directions, Places (vet search) | REST API (requires API key; free tier: $200/month credit) | Used for Google Maps toggle and finding nearby vets via Places API |
-| **Google Places API** | Nearby veterinary clinic search | REST API (same key as Maps) | Used to find vet clinics within 2 miles of lost pet GPS location for BOLO emails |
+| **Google Places API** | Nearby veterinary clinic search | REST API (same key as Maps) | Used to find vet clinics, shelters, and rescues within 5 miles of lost pet GPS location for BOLO emails |
 | **Twilio** | SMS notifications | REST API (paid per message) | Used for SMS OTP and BOLO alerts |
 | **SendGrid** | Email notifications | REST API (free tier: 100 emails/day) | Used for email OTP, owner updates, and auto-BOLO emails to nearby vets |
 | **Amazon Ring Neighbors (limited)** | Community safety & found animal posts | Ring API is restricted; Neighbors posts are semi-public | Can deep-link to Neighbors app; full API requires Ring partnership |

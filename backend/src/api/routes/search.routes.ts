@@ -14,7 +14,7 @@ import {
   updateSearchRadius,
   updateSearchStatus
 } from "../../models/lost-pet-search.model.js";
-import { boundingBox, haversineDistanceMiles } from "../../services/geo.service.js";
+import { boundingBox, fuzzLocation, haversineDistanceMiles } from "../../services/geo.service.js";
 import { findResultsBySearchId } from "../../models/search-result.model.js";
 import { findPetById, updatePetStatus } from "../../models/pet.model.js";
 import { findUserById } from "../../models/user.model.js";
@@ -28,6 +28,17 @@ import { clearLastKnownLocationByPetId } from "../../models/tracking-device.mode
 import crypto from "node:crypto";
 
 export const searchRouter = Router();
+
+const BOLO_ALERT_RADIUS_MILES = 5;
+
+// Community Map privacy: a lost pet's originally-reported location is shown
+// to the wider community only as a point somewhere within this radius of the
+// true location - not the exact spot, which is often someone's home. Actual
+// sightings (found reports) and tracking-device pings are NOT fuzzed, since
+// those are the signals that actually help recover the pet. The BOLO/vet
+// discovery radius search (mark-lost, above) always uses the true
+// coordinates directly and is unaffected by this.
+const MISSING_PET_LOCATION_FUZZ_FEET = 300;
 
 const markLostSchema = z.object({
   center_lat: z.number(),
@@ -77,7 +88,7 @@ searchRouter.post(
 
     // Clinic discovery is fast and cached, so we await it to report a count; the actual
     // email sends run in the background so a slow/down SendGrid never blocks this response.
-    const clinics = await findNearbyVetClinics(body.center_lat, body.center_lng);
+    const clinics = await findNearbyVetClinics(body.center_lat, body.center_lng, BOLO_ALERT_RADIUS_MILES);
     dispatchVetBolos(search, pet, clinics).catch((err) =>
       console.error("[vet-bolo] dispatch error:", err)
     );
@@ -166,8 +177,9 @@ searchRouter.get(
     const search = await findSearchById(searchId);
     if (!assertOwned(search, ownerId, res, "search_not_found")) return;
 
+    const pet = await findPetById(search.pet_id);
     const results = await findResultsBySearchId(searchId);
-    res.json({ search, results });
+    res.json({ search: { ...search, pet_species: pet?.species ?? null, pet_name: pet?.name ?? null }, results });
   })
 );
 
@@ -213,9 +225,17 @@ searchRouter.get(
       }))
       .filter((c) => c.distance_miles <= radius)
       .sort((a, b) => a.distance_miles - b.distance_miles)
-      // Approximate location only — the exact center isn't needed once distance is computed,
-      // and owner_id is internal (used only for the "is this your own pet" check on the client).
-      .map(({ center_lat, center_lng, ...rest }) => rest);
+      // distance_miles is computed above from the true center — fuzzing 300ft
+      // doesn't meaningfully change a mile-scale distance. owner_id is
+      // internal (used only for the "is this your own pet" check on the client).
+      .map(({ center_lat, center_lng, ...pet }) => {
+        const fuzzed = fuzzLocation(center_lat, center_lng, pet.search_id, MISSING_PET_LOCATION_FUZZ_FEET);
+        return {
+          ...pet,
+          last_seen_lat: fuzzed.lat,
+          last_seen_lng: fuzzed.lng
+        };
+      });
 
     res.json({ missing_pets: nearby, total: nearby.length });
   })

@@ -126,7 +126,7 @@
 
 ## 10. Vet Clinic Discovery & BOLO Email Automation
 
-**Decision**: Google Places API "Nearby Search" to find veterinary clinics within 2 miles of a pet's last known GPS location; SendGrid to deliver templated BOLO emails.
+**Decision**: Google Places API "Nearby Search" to find veterinary clinics, shelters, and rescues within 5 miles of a pet's last known GPS location; SendGrid to deliver templated BOLO emails.
 
 **Rationale**: Google Places has the most complete and up-to-date dataset of local businesses including veterinary clinics, with reliable email/phone data. This is the same API key used for the Maps layer toggle, minimizing credential management.
 

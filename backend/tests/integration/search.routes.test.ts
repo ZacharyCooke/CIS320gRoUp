@@ -2,6 +2,9 @@ import { jest } from "@jest/globals";
 import express from "express";
 import request from "supertest";
 import jwt from "jsonwebtoken";
+import { haversineDistanceMiles } from "../../src/services/geo.service.js";
+
+const FEET_PER_MILE = 5280;
 
 // Exercises the real searchRouter (real Express routing, real auth
 // middleware, real ownership/validation helpers, real geo math) with only
@@ -129,6 +132,7 @@ describe("POST /pets/:id/mark-lost", () => {
     expect(res.body.vet_bolos_dispatched).toBe(2);
     expect(res.body.is_premium).toBe(true);
     expect(mockUpdatePetStatus).toHaveBeenCalledWith("pet-1", OWNER_ID, "lost");
+    expect(mockFindNearbyVetClinics).toHaveBeenCalledWith(30.2672, -97.7431, 5);
   });
 
   it("rejects marking a pet lost when the caller does not own it", async () => {
@@ -188,7 +192,7 @@ describe("POST /pets/:id/mark-recovered", () => {
 });
 
 describe("GET /searches/nearby", () => {
-  it("returns active searches within the radius, sorted nearest-first, without exposing exact coordinates", async () => {
+  it("returns active searches within the radius, sorted nearest-first, with map-safe last-seen coordinates", async () => {
     // Austin, TX
     const centerLat = 30.2672;
     const centerLng = -97.7431;
@@ -206,6 +210,15 @@ describe("GET /searches/nearby", () => {
     expect(res.body.missing_pets[0].search_id).toBe("near");
     expect(res.body.missing_pets[0]).not.toHaveProperty("center_lat");
     expect(res.body.missing_pets[0]).not.toHaveProperty("center_lng");
+    // Privacy: last_seen_lat/lng is fuzzed to somewhere within 300ft of the
+    // true center (30.27, -97.7431), not the exact reported location.
+    const fuzzedDistanceFeet = haversineDistanceMiles(
+      30.27, -97.7431,
+      res.body.missing_pets[0].last_seen_lat, res.body.missing_pets[0].last_seen_lng
+    ) * FEET_PER_MILE;
+    expect(fuzzedDistanceFeet).toBeLessThanOrEqual(300);
+    expect(res.body.missing_pets[0].last_seen_lat).not.toBe(30.27);
+    expect(res.body.missing_pets[0].last_seen_lng).not.toBe(-97.7431);
     expect(typeof res.body.missing_pets[0].distance_miles).toBe("number");
   });
 

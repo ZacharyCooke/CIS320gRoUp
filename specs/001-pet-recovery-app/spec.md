@@ -44,7 +44,7 @@ A pet owner marks their pet as lost and initiates a search. The system simultane
 2. **Given** an active lost-pet search, **When** the owner adjusts the search radius, **Then** results update to reflect the new boundary.
 3. **Given** an active lost-pet search, **When** the owner enters a manual address, **Then** the system uses that location as the search center.
 4. **Given** search results are returned, **When** a match is found, **Then** each match displays its source, location, date, and any available photo.
-5. **Given** a pet is marked lost, **When** the system processes the report, **Then** an automated BOLO email is sent to all veterinary clinics within 2 miles of the last known GPS location, including the pet's photos, description, microchip number, medical conditions, and owner contact info.
+5. **Given** a pet is marked lost, **When** the system processes the report, **Then** an automated BOLO email is sent to all veterinary clinics, shelters, and rescues within 5 miles of the last known GPS location, including the pet's photos, description, microchip number, medical conditions, and owner contact info.
 6. **Given** no results are found, **When** the search completes, **Then** the owner can expand radius or set up alerts.
 
 ---
@@ -66,14 +66,14 @@ A member of the public finds a stray animal and submits a found-pet report. The 
 
 ### User Story 4 - Community Notifications & BOLO Alerts (Priority: P2)
 
-The system pushes location-aware notifications to users based on GPS proximity. Owners whose pet is lost receive all updates on their pet. Any user within 1 mile of a lost pet's last known location receives a BOLO alert. Any user within 2 miles of a newly reported lost pet receives a community alert. When a user enters 1 mile of a location where a pet was originally reported missing, they receive a BOLO alert.
+The system pushes location-aware notifications to users based on GPS proximity. Owners whose pet is lost receive all updates on their pet. Any user within 5 miles of a lost pet's last known location receives a BOLO alert. When a user enters 5 miles of a location where a pet was originally reported missing, they receive a BOLO alert.
 
 **Independent Test**: Notifications are delivered by type (red/blue/green/amber) with correct trigger conditions. Permission can be granted or denied.
 
 **Acceptance Scenarios**:
 
-1. **Given** a user grants push notification permission, **When** a pet is reported lost within 2 miles of their GPS, **Then** they receive a green community alert with the pet's name, species, color, and owner contact.
-2. **Given** a user is traveling, **When** they enter within 1 mile of any location where a pet was originally reported missing, **Then** they receive a blue BOLO alert with the pet's name, breed, and color.
+1. **Given** a user grants push notification permission, **When** a pet is reported lost within 5 miles of their GPS, **Then** they receive a BOLO alert with the pet's name, species, color, and owner contact.
+2. **Given** a user is traveling, **When** they enter within 5 miles of any location where a pet was originally reported missing, **Then** they receive a blue BOLO alert with the pet's name, breed, and color.
 3. **Given** an owner whose pet is marked lost, **When** any update occurs (sighting reported, database match, vet BOLO sent), **Then** they receive a red notification with the detail.
 4. **Given** a user who has not granted notification permission, **When** they open the app or notifications page, **Then** a permission request card is presented before any alerts are shown.
 5. **Given** a user in notification settings, **When** they toggle individual notification types, **Then** only those types are delivered going forward.
@@ -162,7 +162,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **FR-011**: System MUST query all linked tracking devices and external found-animal sources simultaneously when a search is initiated.
 - **FR-012**: System MUST filter search results by a user-specified location (GPS or manual address) and a configurable radius (1–500 miles).
 - **FR-013**: System MUST display consolidated search results from all sources in a unified map and list view, showing the source of each result.
-- **FR-014**: When a pet is marked lost, system MUST automatically query Google Places API to find all veterinary clinics within 2 miles of the last known GPS location and send each a BOLO email via SendGrid including the pet's photos, description, microchip number, shared medical conditions, and owner contact information.
+- **FR-014**: When a pet is marked lost, system MUST automatically query Google Places API to find all veterinary clinics, shelters, and rescues within 5 miles of the last known GPS location and send each a BOLO email via SendGrid including the pet's photos, description, microchip number, shared medical conditions, and owner contact information.
 
 **Found Reports**
 - **FR-015**: System MUST allow any user (registered or not) to submit a found-pet report with photo, description, species, color, location, and reporter contact information (email or phone number, required for unauthenticated submitters).
@@ -172,8 +172,8 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 **Notifications**
 - **FR-018**: System MUST surface notification permission onboarding on first relevant use and use platform-compliant, user-gesture-based permission prompts where required by the browser or operating system.
 - **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, vet BOLO sent). Tracking-device data (AirTag, Amazon tag) is owner-pasted share URLs with no real-time polling (see Assumptions) and does not currently generate live ping-triggered notifications.
-- **FR-020**: System MUST send blue BOLO alerts to any user who enters within 1 mile of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
-- **FR-021**: System MUST send green community alerts to any user within 2 miles of their current GPS location when a new pet is reported lost.
+- **FR-020**: System MUST send blue BOLO alerts to any user who enters within 5 miles of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
+- **FR-021**: System MUST send location-aware alerts to any user within 5 miles of their current GPS location when a new pet is reported lost.
 - **FR-022**: System MUST allow users to individually toggle notification types in settings.
 - **FR-022a**: System MUST send amber notifications to the owner when a finder claims a found-pet report as a match for their pet, and to the finder when the owner initiates proximity verification for reward release.
 
@@ -212,7 +212,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **FoundReport**: A community-submitted record of a found animal.
 - **LostPetSearch**: A query session initiated by an owner for a lost pet.
 - **SearchResult**: An individual match returned by a lost-pet search from one source (tracking device, external source, or PetFinder), linked to a LostPetSearch.
-- **Notification**: In-app/push alert with type (red = owner search update, blue = BOLO alert within 1 mile, green = community alert within 2 miles, amber = finder claim or reward proximity alert) and trigger condition.
+- **Notification**: In-app/push alert with type (red = owner search update, blue = BOLO alert within 5 miles, green = community alert, amber = finder claim or reward proximity alert) and trigger condition.
 - **VetBOLO**: An outbound automated email to a veterinary clinic when a pet is marked lost.
 - **Reward**: An escrowed monetary amount posted by the owner; held until verification passes.
 - **ProximityVerification**: A real-time record confirming owner and finder GPS devices are within 50 feet.

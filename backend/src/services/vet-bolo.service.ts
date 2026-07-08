@@ -16,16 +16,17 @@ export async function dispatchVetBolos(
   // mark-lost event can be correlated back to the same request in logs.
   const traceId = crypto.randomUUID();
   console.log(
-    `[vet-bolo] trace=${traceId} search=${search.id} pet=${pet.id} dispatching to ${clinics.length} clinic(s)`
+    `[vet-bolo] trace=${traceId} search=${search.id} pet=${pet.id} dispatching to ${clinics.length} provider(s)`
   );
 
   const owner = await findUserById(pet.owner_id);
   const dispatched: VetBolo[] = [];
 
   for (const clinic of clinics) {
+    const providerLabel = clinic.provider_category ?? "provider";
     const existing = await findVetBoloForClinic(search.id, clinic.clinic_name, clinic.clinic_address);
     if (existing) {
-      console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" skipped (already dispatched)`);
+      console.log(`[vet-bolo] trace=${traceId} ${providerLabel}="${clinic.clinic_name}" skipped (already dispatched)`);
       dispatched.push(existing);
       continue;
     }
@@ -33,16 +34,16 @@ export async function dispatchVetBolos(
     const emailStatus = clinic.clinic_email
       ? await sendBoloEmail(clinic.clinic_email, pet, owner).then(
           () => {
-            console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" email_status=sent`);
+            console.log(`[vet-bolo] trace=${traceId} ${providerLabel}="${clinic.clinic_name}" email_status=sent`);
             return "sent" as const;
           },
           (err) => {
-            console.error(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" SendGrid dispatch error:`, err);
+            console.error(`[vet-bolo] trace=${traceId} ${providerLabel}="${clinic.clinic_name}" SendGrid dispatch error:`, err);
             return "failed" as const;
           }
         )
       : (() => {
-          console.log(`[vet-bolo] trace=${traceId} clinic="${clinic.clinic_name}" email_status=failed (no email on file)`);
+          console.log(`[vet-bolo] trace=${traceId} ${providerLabel}="${clinic.clinic_name}" email_status=failed (no email on file)`);
           return "failed" as const;
         })();
 

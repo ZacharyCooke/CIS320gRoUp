@@ -125,6 +125,14 @@ export interface NearbyMissingPet {
   temperament: string;
   approach_notes: string | null;
   qr_code_token: string;
+  tracking_devices: Array<{
+    id: string;
+    device_type: string;
+    share_url: string;
+    last_known_latitude: number;
+    last_known_longitude: number;
+    last_updated_at: Date | null;
+  }>;
 }
 
 // Community Map — active lost-pet searches within a lat/lng bounding box, for the
@@ -151,12 +159,45 @@ export async function findActiveSearchesInBounds(
        p.photo_urls,
        p.temperament,
        p.approach_notes,
-       p.qr_code_token
+       p.qr_code_token,
+       COALESCE(
+         jsonb_agg(
+           jsonb_build_object(
+             'id', td.id,
+             'device_type', td.device_type,
+             'share_url', td.share_url,
+             'last_known_latitude', td.last_known_latitude::float,
+             'last_known_longitude', td.last_known_longitude::float,
+             'last_updated_at', td.last_updated_at
+           )
+         ) FILTER (
+           WHERE td.id IS NOT NULL
+             AND td.last_known_latitude IS NOT NULL
+             AND td.last_known_longitude IS NOT NULL
+         ),
+         '[]'::jsonb
+       ) AS tracking_devices
      FROM lost_pet_searches ls
      JOIN pets p ON p.id = ls.pet_id
+     LEFT JOIN tracking_devices td ON td.pet_id = p.id
      WHERE ls.status = 'active'
        AND ls.center_lat BETWEEN $1 AND $2
-       AND ls.center_lng BETWEEN $3 AND $4`,
+       AND ls.center_lng BETWEEN $3 AND $4
+     GROUP BY
+       ls.id,
+       ls.pet_id,
+       ls.owner_id,
+       ls.center_lat,
+       ls.center_lng,
+       ls.started_at,
+       p.name,
+       p.species,
+       p.breed,
+       p.color,
+       p.photo_urls,
+       p.temperament,
+       p.approach_notes,
+       p.qr_code_token`,
     [minLat, maxLat, minLng, maxLng]
   );
   return result.rows;

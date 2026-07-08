@@ -30,8 +30,8 @@
 | 18 | Advertisement space — free app supported by ads + in-app store | ✅ UI done |
 | 19 | Push notification permission request on app load | ✅ UI done |
 | 20 | Owner notifications — updates on their specific lost pet reports | ✅ UI done |
-| 21 | Community notifications — pet reported lost within 2-mile radius of user GPS | ✅ UI done |
-| 22 | BOLO alert — user enters 1-mile radius of where a pet was originally reported missing | ✅ UI done |
+| 21 | Community notifications — pet reported lost within 5-mile radius of user GPS | ✅ UI done |
+| 22 | BOLO alert — user enters 5-mile radius of where a pet was originally reported missing | ✅ UI done |
 | 23 | Database integrations list (accessible vs. inaccessible) | ✅ databases.md |
 | 24 | Facebook Login integration for local found-pet Facebook pages | ✅ Spec noted |
 | 25 | Passwords and personal data stored locally on device only (never on server) | ✅ Spec noted |
@@ -42,7 +42,7 @@
 | 30 | Pet profiles: optional medical conditions field (owner chooses what to share) | ✅ UI done (pet-profile.html) |
 | 31 | Pet profiles: temperament / approach instructions (Friendly / Cautious / Report Only) | ✅ UI done (pet-profile.html) |
 | 32 | Pet profiles: primary veterinarian contact field | ✅ UI done (pet-profile.html) |
-| 33 | Auto-email BOLO to all vet clinics within 2 miles when pet reported missing (via GPS) | ✅ UI + email preview done |
+| 33 | Auto-email BOLO to all vet clinics, shelters, and rescues within 5 miles when pet reported missing (via GPS) | ✅ UI + email preview done |
 | 34 | Reward escrow account — funds held until verified reunion | ✅ UI done (reward.html) |
 | 35 | Accept reward payments via PayPal, Venmo, Zelle, CashApp, Google Pay, Apple Pay | ✅ UI done (reward.html) |
 | 36 | Proximity-based payment release — both devices within 10 feet via GPS | ✅ UI done (reward.html) |

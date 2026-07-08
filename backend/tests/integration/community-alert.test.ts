@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 
 // Exercises the real evaluateLocationUpdate against mocked model/notification
 // boundaries, using the *real* haversineDistanceMiles implementation so the
-// 1-mile/2-mile threshold behavior is genuine, not asserted against a stub —
+// 5-mile threshold behavior is genuine, not asserted against a stub —
 // per constitution Principle V, this is the integration seam that matters
 // (Redis dedupe + real distance math), not the DB or SendGrid/Twilio calls
 // underneath dispatchBOLO/dispatchCommunityAlert (already covered elsewhere).
@@ -40,7 +40,7 @@ const { evaluateLocationUpdate } = await import("../../src/services/community-al
 const CENTER_LAT = 30.2672;
 const CENTER_LNG = -97.7431;
 const BOLO_ZONE = { lat: CENTER_LAT + 0.004, lng: CENTER_LNG }; // ~0.28 mi
-const COMMUNITY_ZONE = { lat: CENTER_LAT + 0.02, lng: CENTER_LNG }; // ~1.38 mi
+const EXTENDED_BOLO_ZONE = { lat: CENTER_LAT + 0.06, lng: CENTER_LNG }; // ~4.14 mi
 const OUTSIDE_ZONE = { lat: CENTER_LAT + 0.1, lng: CENTER_LNG }; // ~6.9 mi
 
 const SEARCH = {
@@ -60,7 +60,7 @@ beforeEach(() => {
 });
 
 describe("evaluateLocationUpdate", () => {
-  it("dispatches a BOLO alert when the finder is within 1 mile", async () => {
+  it("dispatches a BOLO alert when the finder is within 5 miles", async () => {
     await evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng);
 
     expect(mockDispatchBOLO).toHaveBeenCalledTimes(1);
@@ -68,20 +68,20 @@ describe("evaluateLocationUpdate", () => {
     const [userId, pet, distance] = mockDispatchBOLO.mock.calls[0] as [string, typeof PET, number];
     expect(userId).toBe("finder-1");
     expect(pet).toEqual(PET);
-    expect(distance).toBeLessThanOrEqual(1);
+    expect(distance).toBeLessThanOrEqual(5);
   });
 
-  it("dispatches a community alert (not BOLO) between 1 and 2 miles", async () => {
-    await evaluateLocationUpdate("finder-1", COMMUNITY_ZONE.lat, COMMUNITY_ZONE.lng);
+  it("dispatches a BOLO alert, not a community alert, inside the extended 5-mile BOLO radius", async () => {
+    await evaluateLocationUpdate("finder-1", EXTENDED_BOLO_ZONE.lat, EXTENDED_BOLO_ZONE.lng);
 
-    expect(mockDispatchCommunityAlert).toHaveBeenCalledTimes(1);
-    expect(mockDispatchBOLO).not.toHaveBeenCalled();
-    const distance = (mockDispatchCommunityAlert.mock.calls[0] as [string, typeof PET, number])[2];
+    expect(mockDispatchBOLO).toHaveBeenCalledTimes(1);
+    expect(mockDispatchCommunityAlert).not.toHaveBeenCalled();
+    const distance = (mockDispatchBOLO.mock.calls[0] as [string, typeof PET, number])[2];
     expect(distance).toBeGreaterThan(1);
-    expect(distance).toBeLessThanOrEqual(2);
+    expect(distance).toBeLessThanOrEqual(5);
   });
 
-  it("dispatches nothing beyond the 2-mile community radius", async () => {
+  it("dispatches nothing beyond the 5-mile BOLO radius", async () => {
     await evaluateLocationUpdate("finder-1", OUTSIDE_ZONE.lat, OUTSIDE_ZONE.lng);
 
     expect(mockDispatchBOLO).not.toHaveBeenCalled();

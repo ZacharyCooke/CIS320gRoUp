@@ -231,7 +231,7 @@ Rotate the pet's QR token. The old token becomes invalid. Use when a QR tag is l
 
 ## POST /pets/:id/mark-lost
 
-Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email dispatch to all clinics within 2 miles via Google Places + SendGrid, (b) community notification to users within 2 miles.
+Mark a pet as lost and open a search. Automatically triggers: (a) vet BOLO email dispatch to all animal-care providers within 5 miles via Google Places + SendGrid, (b) location-aware BOLO notification to users within 5 miles.
 
 **Request**:
 ```json

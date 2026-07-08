@@ -30,6 +30,8 @@ interface SearchResult {
 interface Search {
   id: string;
   pet_id: string;
+  pet_name: string | null;
+  pet_species: string | null;
   status: string;
   center_lat: number;
   center_lng: number;
@@ -50,6 +52,13 @@ const SOURCE_META: Record<string, { label: string; icon: string; color: string }
   found_report: { label: "Community Report", icon: "🤝", color: "#059669" }
 };
 
+const SPECIES_EMOJI: Record<string, string> = {
+  dog: "🐶",
+  cat: "🐱",
+  bird: "🐦",
+  other: "🐾"
+};
+
 export function SearchResultsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -63,6 +72,14 @@ export function SearchResultsPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markers = useRef<any[]>([]);
+  const markersById = useRef<Map<string, any>>(new Map());
+
+  function recenterOn(pointLat: number, pointLng: number, markerKey?: string) {
+    if (!leafletMap.current) return;
+    leafletMap.current.setView([pointLat, pointLng], 15);
+    if (markerKey) markersById.current.get(markerKey)?.openPopup();
+    mapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   function loadResults() {
     if (!id) return;
@@ -149,6 +166,23 @@ export function SearchResultsPage() {
       const L = mod.default ?? mod;
       markers.current.forEach((m) => m.remove());
       markers.current = [];
+      markersById.current.clear();
+      if (search) {
+        const emoji = SPECIES_EMOJI[search.pet_species ?? "other"] ?? SPECIES_EMOJI.other;
+        const missing = L.marker([search.center_lat, search.center_lng], {
+          icon: L.divIcon({
+            className: "map-marker-icon",
+            html: markerBadge(emoji, `Lost ${search.pet_species ?? "pet"}`, "missing"),
+            iconSize: [120, 42],
+            iconAnchor: [60, 42],
+            popupAnchor: [0, -42]
+          })
+        })
+          .bindPopup(`<b>Lost:</b> ${escapeHtml(search.pet_name ?? "Missing pet")}<br/>Last reported location`)
+          .addTo(leafletMap.current);
+        markers.current.push(missing);
+        markersById.current.set("missing-pet", missing);
+      }
       results.forEach((r) => {
         if (r.lat != null && r.lng != null) {
           const meta = SOURCE_META[r.source];
@@ -156,10 +190,11 @@ export function SearchResultsPage() {
             .bindPopup(`<b>${r.name ?? "Unknown"}</b><br/>${meta?.label ?? r.source}`)
             .addTo(leafletMap.current);
           markers.current.push(m);
+          markersById.current.set(`result-${r.id}`, m);
         }
       });
     });
-  }, [results]);
+  }, [search, results]);
 
   async function adjustRadius() {
     if (!id) return;
@@ -245,8 +280,22 @@ export function SearchResultsPage() {
 
         {results.map((r) => {
           const meta = SOURCE_META[r.source] ?? { label: r.source, icon: "❔", color: "#6b7280" };
+          const hasLocation = r.lat != null && r.lng != null;
           return (
-            <div className="list-row" key={r.id} style={{ alignItems: "flex-start" }}>
+            <div
+              className="list-row"
+              key={r.id}
+              style={{ alignItems: "flex-start", cursor: hasLocation ? "pointer" : undefined }}
+              role={hasLocation ? "button" : undefined}
+              tabIndex={hasLocation ? 0 : undefined}
+              onClick={hasLocation ? () => recenterOn(r.lat!, r.lng!, `result-${r.id}`) : undefined}
+              onKeyDown={hasLocation ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  recenterOn(r.lat!, r.lng!, `result-${r.id}`);
+                }
+              } : undefined}
+            >
               <div className="list-row-left" style={{ alignItems: "flex-start" }}>
                 <div style={{
                   width: 52, height: 52, borderRadius: 10, flexShrink: 0,
@@ -269,7 +318,13 @@ export function SearchResultsPage() {
                     </p>
                   )}
                   {r.source_url && (
-                    <a href={r.source_url} target="_blank" rel="noreferrer" style={{ fontSize: "0.8rem" }}>
+                    <a
+                      href={r.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: "0.8rem" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       View on {meta.label} ↗
                     </a>
                   )}
@@ -321,4 +376,18 @@ function statusColor(status: string): string {
   if (status === "sent") return "#16a34a";
   if (status === "bounced") return "#ea580c";
   return "#6b7280";
+}
+
+function markerBadge(emoji: string, label: string, tone: "missing" | "tracker" | "sighting"): string {
+  return `<span class="map-marker-badge map-marker-${tone}"><span class="map-marker-emoji">${emoji}</span>${escapeHtml(label)}</span>`;
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#039;"
+  }[char] ?? char));
 }
