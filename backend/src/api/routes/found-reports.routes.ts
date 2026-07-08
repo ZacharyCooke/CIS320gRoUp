@@ -12,8 +12,12 @@ import {
 import { findSearchById } from "../../models/lost-pet-search.model.js";
 import { submitFoundReport, queryByRadius, claimReport } from "../../services/found-report.service.js";
 import { foundReportPhotoUpload, storeFoundReportPhoto } from "../../services/photo.service.js";
+import { findNearbyAnimalCareProviders } from "../../integrations/google-places.client.js";
+import { dispatchFoundReportBolos } from "../../services/found-report-bolo.service.js";
 
 export const foundReportsRouter = Router();
+
+const FOUND_REPORT_BOLO_RADIUS_MILES = 5;
 
 // Per contracts/api-search.md: finder email/phone is redacted for unauthenticated
 // viewers. Anonymous finders' email/phone must not be readable by anyone who
@@ -62,7 +66,16 @@ foundReportsRouter.post(
       photo_urls,
       found_at: body.found_at ? new Date(body.found_at) : undefined
     });
-    res.status(201).json({ report });
+
+    // Clinic/shelter/rescue discovery is fast and cached, so we await it to report
+    // a count; the actual email sends run in the background so a slow/down
+    // SendGrid never blocks this response (mirrors POST /pets/:id/mark-lost).
+    const providers = await findNearbyAnimalCareProviders(body.lat, body.lng, FOUND_REPORT_BOLO_RADIUS_MILES);
+    dispatchFoundReportBolos(report, providers).catch((err) =>
+      console.error("[found-report-bolo] dispatch error:", err)
+    );
+
+    res.status(201).json({ report, providers_notified: providers.length });
   })
 );
 

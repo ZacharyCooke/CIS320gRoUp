@@ -7,6 +7,7 @@ export type NotificationType =
   | "pet_update"
   | "bolo_alert"
   | "nearby_lost"
+  | "nearby_found"
   | "store_account"
   | "claim_alert";
 

@@ -89,6 +89,32 @@ export async function findFoundReportsInBounds(
   return result.rows;
 }
 
+/**
+ * Recent, unclaimed reports within a bounding box — used to alert nearby app
+ * users when their live location ping lands close to a fresh found-pet
+ * report (mirrors the active-search BOLO check in community-alert.service.ts).
+ * Bounded by recency so a months-old report doesn't keep re-triggering alerts
+ * every time someone walks past that spot.
+ */
+export async function findRecentFoundReportsInBounds(
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number,
+  sinceHours = 24
+): Promise<FoundReport[]> {
+  const result = await pool.query<FoundReport>(
+    `SELECT * FROM found_reports
+     WHERE claimed_by_search_id IS NULL
+       AND found_at >= now() - ($5 || ' hours')::interval
+       AND lat BETWEEN $1 AND $2
+       AND lng BETWEEN $3 AND $4
+     ORDER BY found_at DESC`,
+    [minLat, maxLat, minLng, maxLng, sinceHours]
+  );
+  return result.rows;
+}
+
 export async function claimFoundReport(
   reportId: string,
   searchId: string

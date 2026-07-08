@@ -69,6 +69,7 @@ export function SearchResultsPage() {
   const [radius, setRadius] = useState(10);
   const [error, setError] = useState<string | null>(null);
   const [vetBolosError, setVetBolosError] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markers = useRef<any[]>([]);
@@ -152,16 +153,18 @@ export function SearchResultsPage() {
       L.circle([search.center_lat, search.center_lng], {
         radius: search.radius_miles * 1609.34, color: "#0f766e", fillOpacity: 0.1
       }).addTo(leafletMap.current);
+      setMapReady(true);
     });
 
     return () => {
       leafletMap.current?.remove();
       leafletMap.current = null;
+      setMapReady(false);
     };
   }, [search]);
 
   useEffect(() => {
-    if (!leafletMap.current) return;
+    if (!mapReady || !leafletMap.current) return;
     import("leaflet").then((mod) => {
       const L = mod.default ?? mod;
       markers.current.forEach((m) => m.remove());
@@ -194,7 +197,7 @@ export function SearchResultsPage() {
         }
       });
     });
-  }, [search, results]);
+  }, [mapReady, search, results]);
 
   async function adjustRadius() {
     if (!id) return;
@@ -316,6 +319,20 @@ export function SearchResultsPage() {
                     <p style={{ fontSize: "0.85rem", color: "#475569", margin: "4px 0 0" }}>
                       {r.description.slice(0, 140)}
                     </p>
+                  )}
+                  {r.contact_info && (
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+                      {r.contact_info.split(" | ").map((contact) => (
+                        <a
+                          key={contact}
+                          href={contact.includes("@") ? `mailto:${contact}` : `tel:${contact}`}
+                          style={{ fontSize: "0.8rem", fontWeight: 600 }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {contact.includes("@") ? "✉️" : "📞"} {contact}
+                        </a>
+                      ))}
+                    </div>
                   )}
                   {r.source_url && (
                     <a

@@ -1,7 +1,7 @@
 ﻿# Data Model: Pet Recovery Application
 
 **Phase**: 1 — Design
-**Date**: 2026-06-30 | **Last Updated**: 2026-07-04
+**Date**: 2026-06-30 | **Last Updated**: 2026-07-07
 
 ---
 
@@ -141,7 +141,29 @@ A community-submitted record of a found animal.
 | status | enum | open, claimed, closed |
 | created_at | timestamp | |
 
-**Relationships**: Belongs to User (optional); linked to SearchResult when matched.
+**Relationships**: Belongs to User (optional); linked to SearchResult when matched; has many FoundReportBolos.
+
+---
+
+### FoundReportBolo
+
+A record of an automated BOLO email sent to a veterinary clinic, shelter, or rescue when a found-pet report is submitted (FR-015a). Mirrors VetBOLO's structure and dispatch pattern, scoped to a FoundReport instead of a LostPetSearch.
+
+| Field | Type | Notes |
+|---|---|---|
+| id | UUID | Primary key |
+| found_report_id | UUID | FK → FoundReport (cascade delete) |
+| provider_category | enum | vet, shelter, rescue |
+| clinic_name | string | From Google Places result |
+| clinic_address | string | Optional |
+| clinic_email | string | Optional; from Google Places (may be absent — Places has no email field for many listings) |
+| latitude | decimal | Optional; provider coordinates |
+| longitude | decimal | Optional |
+| distance_miles | decimal | Distance from the found-pet report's location |
+| email_status | enum | sent, bounced, failed (reuses VetBOLO's `vet_bolo_email_status` enum) |
+| sent_at | timestamp | |
+
+**Relationships**: Belongs to FoundReport.
 
 ---
 
@@ -218,7 +240,7 @@ In-app and push notification records for users. Color-coded by type.
 |---|---|---|
 | id | UUID | Primary key |
 | user_id | UUID | FK → User |
-| type | enum | pet_update (red), bolo_alert (blue), nearby_lost (green), claim_alert (amber — finder claim or reward proximity alert, FR-022a), store_account (reserved for Phase 7G; not yet surfaced in UI) |
+| type | enum | pet_update (red), bolo_alert (blue), nearby_lost (green), nearby_found (green — recent found-pet report reported nearby, FR-021a), claim_alert (amber — finder claim or reward proximity alert, FR-022a), store_account (reserved for Phase 7G; not yet surfaced in UI) |
 | title | string | |
 | body | text | |
 | related_entity_id | UUID | Optional; links to FoundReport, LostPetSearch, or Reward |
@@ -321,7 +343,8 @@ User
  └── Notification (1:many)
 
 FoundReport (submitted by User or anonymous)
- └── linked to SearchResult when matched
+ ├── linked to SearchResult when matched
+ └── FoundReportBolo (1:many)
 ```
 
 ---
@@ -376,4 +399,6 @@ funded → cancelled                        (owner cancels)
 - ProximityVerification privacy (Constitution Principle III): owner_latitude/longitude and finder_latitude/longitude are collected only for the lifetime of one verification attempt and are never returned to either party in an API response — only the derived proximity_passed/distance_feet outcome is exposed. No independent purge job exists yet for this table specifically (tracked as a Phase 8 follow-up); the data volume is small and scoped to an explicit, user-initiated reward-release action rather than passive tracking
 - IPRecord.ip_hash is stored as SHA-256; raw IP is never persisted
 - VetBOLO: distance_miles must be ≤ 5 (only clinics, shelters, and rescues within 5-mile radius receive BOLO)
+- FoundReportBolo: distance_miles must be ≤ 5, same radius rule as VetBOLO (FR-015a); deduplicated per (found_report_id, clinic_name, clinic_address) so a retried/duplicate dispatch never double-emails the same provider
+- Notification.nearby_found dispatch (FR-021a) is ping-based, not polling-based: it is evaluated only when a user's client sends a live `update_location` WebSocket event (same mechanism as nearby_lost/bolo_alert), against FoundReports younger than 24 hours with `status = open`. No new home-location data is stored for this feature, consistent with this document's location-minimization rules below
 - US2 location-data privacy (Constitution Principle III, retroactive per T178): Pet itself stores no coordinates (only a `lost_at` timestamp) — the location data this app collects during a lost-pet search lives on `LostPetSearch.center_lat/center_lng` and `TrackingDevice.last_known_latitude/longitude`, and both are purged on recovery, not retained indefinitely. `LostPetSearch.center_lat/lng` are zeroed out by `deleteActiveSearchLocationsByPetId()` once the search closes (T052b, already shipped). `TrackingDevice.last_known_latitude/longitude` were **not** previously covered by that same purge — found during this T178 pass and fixed alongside it: `clearLastKnownLocationByPetId()` now nulls a pet's tracking-device coordinates (keeping the device link/share_url itself) in the same `POST /pets/:id/mark-recovered` handler. `Notification.trigger_latitude/longitude` is a one-time snapshot of the *recipient's* location at the moment a BOLO/community alert fired (not a continuously tracked coordinate, and not data belonging to the search being recovered), so it isn't purged by the same recovery-triggered flow — it persists as part of that user's own notification history, the same way any other notification metadata does; a dedicated retention/TTL policy for notification records generally is not yet defined and would fall under T183's broader CCPA/CPRA deletion-flow work, not this US2-specific gate

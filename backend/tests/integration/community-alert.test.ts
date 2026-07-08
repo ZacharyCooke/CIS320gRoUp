@@ -22,6 +22,11 @@ jest.unstable_mockModule("../../src/models/pet.model.js", () => ({
   findPetById: mockFindPetById
 }));
 
+const mockFindRecentFoundReportsInBounds = jest.fn();
+jest.unstable_mockModule("../../src/models/found-report.model.js", () => ({
+  findRecentFoundReportsInBounds: mockFindRecentFoundReportsInBounds
+}));
+
 const mockRedisSet = jest.fn();
 jest.unstable_mockModule("../../src/config/redis.js", () => ({
   redis: { set: mockRedisSet }
@@ -29,9 +34,11 @@ jest.unstable_mockModule("../../src/config/redis.js", () => ({
 
 const mockDispatchBOLO = jest.fn();
 const mockDispatchCommunityAlert = jest.fn();
+const mockDispatchFoundNearbyAlert = jest.fn();
 jest.unstable_mockModule("../../src/services/notification.service.js", () => ({
   dispatchBOLO: mockDispatchBOLO,
-  dispatchCommunityAlert: mockDispatchCommunityAlert
+  dispatchCommunityAlert: mockDispatchCommunityAlert,
+  dispatchFoundNearbyAlert: mockDispatchFoundNearbyAlert
 }));
 
 const { evaluateLocationUpdate } = await import("../../src/services/community-alert.service.js");
@@ -52,10 +59,20 @@ const SEARCH = {
 };
 const PET = { id: "pet-1", name: "Bella", species: "dog", breed: "Labrador", color: "Yellow" };
 
+const REPORT = {
+  id: "report-1",
+  species: "cat",
+  breed: "Tabby",
+  color: "gray",
+  lat: CENTER_LAT,
+  lng: CENTER_LNG
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockFindActiveSearches.mockResolvedValue([SEARCH]);
   mockFindPetById.mockResolvedValue(PET);
+  mockFindRecentFoundReportsInBounds.mockResolvedValue([]);
   mockRedisSet.mockResolvedValue("OK"); // NX SET succeeds -> not previously notified
 });
 
@@ -131,5 +148,58 @@ describe("evaluateLocationUpdate", () => {
 
     await expect(evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng)).resolves.toBeUndefined();
     expect(mockDispatchBOLO).not.toHaveBeenCalled();
+  });
+});
+
+describe("evaluateLocationUpdate — nearby found-report alerts", () => {
+  beforeEach(() => {
+    mockFindActiveSearches.mockResolvedValue([]); // isolate found-report behavior from lost-pet BOLO logic above
+  });
+
+  it("dispatches a found-nearby alert when a recent report is within 5 miles", async () => {
+    mockFindRecentFoundReportsInBounds.mockResolvedValue([REPORT]);
+
+    await evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng);
+
+    expect(mockDispatchFoundNearbyAlert).toHaveBeenCalledTimes(1);
+    const [userId, report, distance] = mockDispatchFoundNearbyAlert.mock.calls[0] as [string, typeof REPORT, number];
+    expect(userId).toBe("finder-1");
+    expect(report).toEqual(REPORT);
+    expect(distance).toBeLessThanOrEqual(5);
+  });
+
+  it("dispatches nothing for a report beyond 5 miles", async () => {
+    mockFindRecentFoundReportsInBounds.mockResolvedValue([
+      { ...REPORT, lat: OUTSIDE_ZONE.lat, lng: OUTSIDE_ZONE.lng }
+    ]);
+
+    await evaluateLocationUpdate("finder-1", CENTER_LAT, CENTER_LNG);
+
+    expect(mockDispatchFoundNearbyAlert).not.toHaveBeenCalled();
+  });
+
+  it("respects the Redis dedupe window per report", async () => {
+    mockFindRecentFoundReportsInBounds.mockResolvedValue([REPORT]);
+    mockRedisSet
+      .mockResolvedValueOnce("OK")
+      .mockResolvedValueOnce(null);
+
+    await evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng);
+    await evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng);
+
+    expect(mockDispatchFoundNearbyAlert).toHaveBeenCalledTimes(1);
+    expect(mockRedisSet).toHaveBeenCalledWith(
+      "notif_dedup:finder-1:report-1:nearby_found", "1", "EX", expect.any(Number), "NX"
+    );
+  });
+
+  it("dispatches independently of active-search BOLO alerts in the same location update", async () => {
+    mockFindActiveSearches.mockResolvedValue([SEARCH]);
+    mockFindRecentFoundReportsInBounds.mockResolvedValue([REPORT]);
+
+    await evaluateLocationUpdate("finder-1", BOLO_ZONE.lat, BOLO_ZONE.lng);
+
+    expect(mockDispatchBOLO).toHaveBeenCalledTimes(1);
+    expect(mockDispatchFoundNearbyAlert).toHaveBeenCalledTimes(1);
   });
 });

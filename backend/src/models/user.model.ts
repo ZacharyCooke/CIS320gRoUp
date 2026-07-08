@@ -17,6 +17,7 @@ export interface User {
   notif_pet_update: boolean;
   notif_bolo_alert: boolean;
   notif_nearby_lost: boolean;
+  notif_nearby_found: boolean;
   notif_store_account: boolean;
   apns_device_token: string | null;
   created_at: Date;
@@ -27,6 +28,7 @@ export interface NotificationSettingsPatch {
   notif_pet_update?: boolean;
   notif_bolo_alert?: boolean;
   notif_nearby_lost?: boolean;
+  notif_nearby_found?: boolean;
   notif_store_account?: boolean;
 }
 
@@ -93,6 +95,7 @@ const NOTIFICATION_SETTINGS_COLUMNS = [
   "notif_pet_update",
   "notif_bolo_alert",
   "notif_nearby_lost",
+  "notif_nearby_found",
   "notif_store_account"
 ] as const;
 

@@ -18,6 +18,7 @@ export function FoundReportPage() {
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [providersNotified, setProvidersNotified] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -68,7 +69,8 @@ export function FoundReportPage() {
       formData.append("lng", String(centerLng));
       if (photoFile) formData.append("photo", photoFile);
 
-      await apiClient.post("/found-reports", formData);
+      const { data } = await apiClient.post("/found-reports", formData);
+      setProvidersNotified(data.providers_notified ?? 0);
       setSuccess(true);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -82,7 +84,14 @@ export function FoundReportPage() {
     return (
       <AuthLayout contentStyle={{ textAlign: "center" }}>
         <h1 style={{ color: "#0f766e" }}>Report submitted!</h1>
-        <p>Thank you for helping reunite a pet with its owner. Your report has been sent to nearby active searches.</p>
+        <p>Thank you for helping reunite a pet with its owner. Your report has been matched against nearby active searches{" "}
+          and app users in the area were alerted.
+        </p>
+        <p>
+          {providersNotified > 0
+            ? `${providersNotified} nearby vet clinic${providersNotified === 1 ? "" : "s"}, shelter${providersNotified === 1 ? "" : "s"}, and rescue${providersNotified === 1 ? "" : "s"} were also notified.`
+            : "No nearby vet clinics, shelters, or rescues were found to notify for this location."}
+        </p>
         <button type="button" onClick={() => setSuccess(false)}>Submit another report</button>
       </AuthLayout>
     );
@@ -96,7 +105,7 @@ export function FoundReportPage() {
         </p>
 
         <div className="info-banner-green" style={{ marginBottom: "1.25rem" }}>
-          ✅ <div>Reports are matched against active searches in real time. If yours matches a lost pet nearby, the owner is notified immediately.</div>
+          ✅ <div>Reports are matched against active searches in real time, and nearby vet clinics, shelters, rescues, and app users in the area are notified too.</div>
         </div>
 
         {error && <ErrorState message={error} />}

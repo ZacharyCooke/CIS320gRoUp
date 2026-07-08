@@ -1,7 +1,7 @@
 # API Contract: Search, Found Reports, Notifications, Vet BOLOs & Proximity
 
 **Base path**: `/api`
-**Last Updated**: 2026-07-05
+**Last Updated**: 2026-07-07
 
 ---
 
@@ -67,7 +67,7 @@ Update search parameters (e.g., adjust radius). Triggers a re-query of all sourc
 
 ## POST /found-reports
 
-Submit a found-pet report. Authentication optional. On creation, the system checks for overlapping active searches and emits `found_report_match` WebSocket events to those owners.
+Submit a found-pet report. Authentication optional. On creation, the system checks for overlapping active searches and emits `found_report_match` WebSocket events to those owners; separately (FR-015a), it queries Google Places for veterinary clinics, shelters, and rescues within 5 miles of the report's location and dispatches a BOLO email to each (see `FoundReportBolo` in data-model.md — mirrors the lost-pet `VetBOLO` pattern). Clinic discovery is awaited so the response can report a count; the actual email sends are fire-and-forget so a slow/down SendGrid never blocks this request. Users within 5 miles who have a live location connection also receive a `nearby_found` alert (FR-021a; see `PATCH /notifications/settings` below) — this is ping-based via the existing `update_location` WebSocket mechanism, not a push triggered directly by this endpoint.
 
 **Request**:
 ```json
@@ -90,9 +90,12 @@ Unauthenticated submitters must provide `reporter_email` or `reporter_phone`.
 **Response 201**:
 ```json
 {
-  "report": { "id": "uuid" }
+  "report": { "id": "uuid" },
+  "providers_notified": 3
 }
 ```
+
+`providers_notified` is the count of vet clinics/shelters/rescues a BOLO email was attempted to (sent, bounced, or failed-no-email) — not a list, to avoid exposing provider identities to the reporter.
 
 **Response 400**: Missing required fields or invalid coordinates.
 
@@ -201,8 +204,8 @@ result count cap.
 ```
 
 `type` is one of: `found_report_match`, `search_complete`, `system`,
-`pet_update`, `bolo_alert`, `nearby_lost`, `store_account`, `claim_alert` -
-a broader set than the four toggleable categories in
+`pet_update`, `bolo_alert`, `nearby_lost`, `nearby_found`, `store_account`,
+`claim_alert` - a broader set than the five toggleable categories in
 `PATCH /notifications/settings` below. `data` is a free-form JSON payload
 whose shape depends on `type` (there is no `related_entity_id` field; any
 related ID lives inside `data`). `trigger_latitude`/`trigger_longitude` are a
@@ -245,13 +248,14 @@ Update the user's per-type notification toggle settings.
   "notif_pet_update": true,
   "notif_bolo_alert": true,
   "notif_nearby_lost": true,
+  "notif_nearby_found": true,
   "notif_store_account": false
 }
 ```
 
-All fields optional — only provided fields are updated.
+All fields optional — only provided fields are updated. `notif_nearby_found` (FR-021a) defaults to `true` and gates the green found-pet-nearby alert the same way `notif_nearby_lost` gates the lost-pet community alert.
 
-**Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_store_account": false } }`
+**Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_nearby_found": true, "notif_store_account": false } }`
 
 ---
 
@@ -297,6 +301,7 @@ Real-time push of new results and alert events during an active search.
 { "event": "bolo_alert",          "data": { "pet_name": "Max", "breed": "Beagle", "color": "Brown & White", "distance_miles": 0.8 } }
 { "event": "community_alert",     "data": { "pet_name": "Luna", "species": "cat", "color": "Orange Tabby", "distance_miles": 1.8 } }
 { "event": "vet_bolo_sent",       "data": { "clinic_name": "South Austin Animal Hospital", "email_status": "sent" } }
+{ "event": "nearby_found_alert",  "data": { "report_id": "uuid", "species": "dog", "breed": "Golden Retriever", "color": "golden", "distance_miles": 2.1 } }
 ```
 
 **Client events** (sent to server):

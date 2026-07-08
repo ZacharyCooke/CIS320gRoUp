@@ -20,6 +20,7 @@ interface NotificationSettings {
   notif_pet_update: boolean;
   notif_bolo_alert: boolean;
   notif_nearby_lost: boolean;
+  notif_nearby_found: boolean;
   notif_store_account: boolean;
 }
 
@@ -37,7 +38,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 const LEGEND: { color: ColorKey; label: string }[] = [
   { color: "red", label: "Your lost pet updates" },
   { color: "blue", label: "BOLO — you're near a missing pet" },
-  { color: "green", label: "Lost pet reported near you" },
+  { color: "green", label: "Lost or found pet reported near you" },
   { color: "amber", label: "Claims & store" }
 ];
 
@@ -53,6 +54,8 @@ function notificationMeta(type: string): { bucket: FilterKey; color: ColorKey; i
       return { bucket: "blue", color: "blue", icon: "📡", label: "BOLO Alert" };
     case "nearby_lost":
       return { bucket: "green", color: "green", icon: "🐾", label: "Lost Pet Near You" };
+    case "nearby_found":
+      return { bucket: "green", color: "green", icon: "🤝", label: "Found Pet Near You" };
     case "claim_alert":
       return { bucket: "amber", color: "amber", icon: "🤝", label: "Claim" };
     case "store_account":
@@ -62,7 +65,7 @@ function notificationMeta(type: string): { bucket: FilterKey; color: ColorKey; i
   }
 }
 
-const LIVE_EVENTS = ["new_notification", "bolo_alert", "community_alert", "claim_alert", "found_report_match"];
+const LIVE_EVENTS = ["new_notification", "bolo_alert", "community_alert", "claim_alert", "found_report_match", "nearby_found_alert"];
 
 export function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -102,6 +105,7 @@ export function NotificationsPage() {
         notif_pet_update: meRes.data.user.notif_pet_update,
         notif_bolo_alert: meRes.data.user.notif_bolo_alert,
         notif_nearby_lost: meRes.data.user.notif_nearby_lost,
+        notif_nearby_found: meRes.data.user.notif_nearby_found,
         notif_store_account: meRes.data.user.notif_store_account
       });
     } catch {
@@ -275,6 +279,12 @@ export function NotificationsPage() {
             sub="Alert when a pet is reported lost within 2 miles of your GPS location"
             checked={settings.notif_nearby_lost}
             onChange={() => toggleSetting("notif_nearby_lost")}
+          />
+          <SettingRow
+            label="Found-pet alerts nearby"
+            sub="Alert when someone reports finding a pet within 5 miles of your GPS location"
+            checked={settings.notif_nearby_found}
+            onChange={() => toggleSetting("notif_nearby_found")}
           />
           <SettingRow
             label="Store & account notifications"

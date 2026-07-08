@@ -119,6 +119,27 @@ export async function dispatchCommunityAlert(
   });
 }
 
+export async function dispatchFoundNearbyAlert(
+  userId: string,
+  report: FoundReport,
+  distanceMiles: number,
+  trigger: { lat: number; lng: number }
+): Promise<void> {
+  const user = await findUserById(userId);
+  if (!user || !user.notif_nearby_found) return;
+
+  await notify({
+    userId,
+    type: "nearby_found",
+    socketEvent: "nearby_found_alert",
+    title: `Found ${report.species ?? "pet"} reported near you`,
+    body: `A ${report.species ?? "pet"} (${report.breed ?? "unknown breed"}, ${report.color ?? "unknown color"}) was reported found ${distanceMiles.toFixed(1)} mi from you.`,
+    data: { report_id: report.id, species: report.species, breed: report.breed, color: report.color, distance_miles: distanceMiles },
+    triggerLat: trigger.lat,
+    triggerLng: trigger.lng
+  });
+}
+
 export async function dispatchProximityAlert(
   ownerId: string,
   finderUserId: string,

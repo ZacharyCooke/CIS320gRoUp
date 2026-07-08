@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-pet-recovery-app`
 
-**Created**: 2026-06-30 | **Last Updated**: 2026-07-01
+**Created**: 2026-06-30 | **Last Updated**: 2026-07-07
 
 **Status**: Active
 
@@ -61,6 +61,7 @@ A member of the public finds a stray animal and submits a found-pet report. The 
 2. **Given** a new found-pet report is submitted, **When** a registered owner's active search overlaps the location, **Then** the owner receives an in-app and email/SMS notification.
 3. **Given** a finder with any camera-equipped device, **When** they scan a pet's PetRecovery QR tag, **Then** they see the pet's profile and can immediately contact the owner without needing an account.
 4. **Given** a found-pet report, **When** an owner claims it matches their pet, **Then** the finder is notified and both parties receive each other's contact information via amber notification — no in-app messaging is required for v1.
+5. **Given** a found-pet report is submitted, **When** the system processes it, **Then** an automated BOLO email is sent to all veterinary clinics, shelters, and rescues within 5 miles of the reported location, and the finder is shown how many providers were notified.
 
 ---
 
@@ -77,6 +78,7 @@ The system pushes location-aware notifications to users based on GPS proximity. 
 3. **Given** an owner whose pet is marked lost, **When** any update occurs (sighting reported, database match, vet BOLO sent), **Then** they receive a red notification with the detail.
 4. **Given** a user who has not granted notification permission, **When** they open the app or notifications page, **Then** a permission request card is presented before any alerts are shown.
 5. **Given** a user in notification settings, **When** they toggle individual notification types, **Then** only those types are delivered going forward.
+6. **Given** a user is traveling, **When** they enter within 5 miles of a recent (within 24 hours), unclaimed found-pet report, **Then** they receive a green found-nearby alert, unless they have toggled this alert type off.
 
 ---
 
@@ -166,6 +168,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 
 **Found Reports**
 - **FR-015**: System MUST allow any user (registered or not) to submit a found-pet report with photo, description, species, color, location, and reporter contact information (email or phone number, required for unauthenticated submitters).
+- **FR-015a**: When a found-pet report is submitted, system MUST automatically query Google Places API to find all veterinary clinics, shelters, and rescues within 5 miles of the reported location and send each a BOLO email via SendGrid including the report's photo, description, and finder contact information, mirroring FR-014's lost-pet vet BOLO dispatch. The count of providers notified is returned in the submission response; a missing or unreachable clinic email degrades that provider's dispatch to a `failed` status rather than failing the report submission itself.
 - **FR-016**: System MUST notify registered owners when a found-pet report is submitted within their active search area.
 - **FR-017**: System MUST allow any camera-equipped device to scan a PetRecovery QR tag and immediately display the pet's public profile without requiring an account or app installation. The public profile URL (`/p/:token`) serves as the no-app-required path; the iOS deep link (petrecovery://) is a convenience for users who have the app installed. (Covers unauthenticated scanning access; see FR-009 for QR generation.)
 
@@ -174,6 +177,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, vet BOLO sent). Tracking-device data (AirTag, Amazon tag) is owner-pasted share URLs with no real-time polling (see Assumptions) and does not currently generate live ping-triggered notifications.
 - **FR-020**: System MUST send blue BOLO alerts to any user who enters within 5 miles of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
 - **FR-021**: System MUST send location-aware alerts to any user within 5 miles of their current GPS location when a new pet is reported lost.
+- **FR-021a**: System MUST send a location-aware alert to any user within 5 miles of their current GPS location when a found-pet report is submitted nearby (within the last 24 hours and not yet claimed), using the same ping-based location-update mechanism as FR-020/FR-021 rather than any newly stored home-location data. Users may individually toggle this alert type off (see FR-022).
 - **FR-022**: System MUST allow users to individually toggle notification types in settings.
 - **FR-022a**: System MUST send amber notifications to the owner when a finder claims a found-pet report as a match for their pet, and to the finder when the owner initiates proximity verification for reward release.
 
@@ -214,6 +218,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **SearchResult**: An individual match returned by a lost-pet search from one source (tracking device, external source, or PetFinder), linked to a LostPetSearch.
 - **Notification**: In-app/push alert with type (red = owner search update, blue = BOLO alert within 5 miles, green = community alert, amber = finder claim or reward proximity alert) and trigger condition.
 - **VetBOLO**: An outbound automated email to a veterinary clinic when a pet is marked lost.
+- **FoundReportBolo**: An outbound automated email to a veterinary clinic, shelter, or rescue when a found-pet report is submitted (FR-015a); same provider-discovery and delivery-status pattern as VetBOLO, scoped to a FoundReport instead of a LostPetSearch.
 - **Reward**: An escrowed monetary amount posted by the owner; held until verification passes.
 - **ProximityVerification**: A real-time record confirming owner and finder GPS devices are within 50 feet.
 - **IPRecord**: A hashed record of known IPs for 2FA trigger logic.
