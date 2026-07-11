@@ -98,6 +98,19 @@ export function CommunityMapPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    // Arriving from a notification's "View on map" link — center on the
+    // location it carries rather than requiring the user to re-share GPS.
+    const paramLat = Number(params.get("lat"));
+    const paramLng = Number(params.get("lng"));
+    if (Number.isFinite(paramLat) && Number.isFinite(paramLng) && params.has("lat") && params.has("lng")) {
+      setLat(paramLat);
+      setLng(paramLng);
+      const paramRadius = Number(params.get("radius"));
+      if (RADIUS_OPTIONS.includes(paramRadius)) setRadiusMiles(paramRadius);
+      return;
+    }
+
     if (params.get("demo") === "1") {
       setLat(DEMO_LOCATION.lat);
       setLng(DEMO_LOCATION.lng);

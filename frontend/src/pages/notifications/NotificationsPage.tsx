@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToUser, disconnectUser } from "../../services/websocket.client";
 import { showBrowserNotification } from "../../services/push-notifications";
@@ -12,8 +12,31 @@ interface NotificationItem {
   type: string;
   title: string;
   body: string;
+  data: Record<string, unknown>;
   read: boolean;
+  trigger_latitude: number | null;
+  trigger_longitude: number | null;
   created_at: string;
+}
+
+// Where clicking a notification should take you, if anywhere. found_report_match
+// carries a precise search_id (the real search-results map); bolo_alert/nearby_lost/
+// nearby_found only have the recipient's trigger location (where the proximity ping
+// fired from — not the incident's own coordinates), so those go to the community map
+// centered there instead. Other types (claim_alert, store_account, etc.) have no
+// map-relevant destination and are left non-interactive.
+function notificationLink(n: NotificationItem): string | null {
+  if (n.type === "found_report_match" && typeof n.data.search_id === "string") {
+    return `/searches/${n.data.search_id}`;
+  }
+  if (
+    (n.type === "bolo_alert" || n.type === "nearby_lost" || n.type === "nearby_found") &&
+    n.trigger_latitude != null &&
+    n.trigger_longitude != null
+  ) {
+    return `/community-map?lat=${n.trigger_latitude}&lng=${n.trigger_longitude}&radius=5`;
+  }
+  return null;
 }
 
 interface NotificationSettings {
@@ -68,6 +91,7 @@ function notificationMeta(type: string): { bucket: FilterKey; color: ColorKey; i
 const LIVE_EVENTS = ["new_notification", "bolo_alert", "community_alert", "claim_alert", "found_report_match", "nearby_found_alert"];
 
 export function NotificationsPage() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -119,6 +143,19 @@ export function NotificationsPage() {
     await apiClient.post("/notifications/read-all");
     setUnread(0);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }
+
+  function openNotification(n: NotificationItem) {
+    const link = notificationLink(n);
+    if (!link) return;
+
+    if (!n.read) {
+      setNotifications((prev) => prev.map((item) => (item.id === n.id ? { ...item, read: true } : item)));
+      setUnread((u) => Math.max(0, u - 1));
+      apiClient.patch(`/notifications/${n.id}/read`).catch(() => {});
+    }
+
+    navigate(link);
   }
 
   async function toggleSetting(key: keyof NotificationSettings) {
@@ -231,6 +268,7 @@ export function NotificationsPage() {
         <div style={{ marginBottom: 24 }}>
           {filtered.map((n) => {
             const meta = notificationMeta(n.type);
+            const link = notificationLink(n);
             return (
               <div
                 key={n.id}
@@ -239,8 +277,22 @@ export function NotificationsPage() {
                   borderLeft: `4px solid ${colorHex(meta.color)}`,
                   background: n.read ? "#fff" : "#f8fafc",
                   marginBottom: 10,
-                  padding: "14px 18px"
+                  padding: "14px 18px",
+                  cursor: link ? "pointer" : undefined
                 }}
+                role={link ? "button" : undefined}
+                tabIndex={link ? 0 : undefined}
+                onClick={link ? () => openNotification(n) : undefined}
+                onKeyDown={
+                  link
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          openNotification(n);
+                        }
+                      }
+                    : undefined
+                }
               >
                 <div className={`notif-avatar notif-avatar-${meta.color}`}>{meta.icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -250,6 +302,11 @@ export function NotificationsPage() {
                   <div style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: 6 }}>
                     {new Date(n.created_at).toLocaleString()}
                   </div>
+                  {link && (
+                    <div style={{ color: colorHex(meta.color), fontSize: "0.78rem", marginTop: 6, fontWeight: 600 }}>
+                      View on map →
+                    </div>
+                  )}
                 </div>
               </div>
             );
