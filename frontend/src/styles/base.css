@@ -234,11 +234,27 @@ a {
   margin: 24px 0;
 }
 
+.home-info-card-link {
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
 .home-info-grid article {
   background: #fff;
   border: 1px solid #d9e8e2;
   border-radius: 8px;
   padding: 20px;
+  height: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.home-info-card-link:hover article,
+.home-info-card-link:focus-visible article {
+  border-color: var(--color-teal-600);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.12);
+  transform: translateY(-2px);
 }
 
 .home-info-grid h2 {
@@ -251,6 +267,14 @@ a {
   font-size: 0.9rem;
   line-height: 1.55;
   margin: 0;
+}
+
+.home-info-card-cta {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--color-teal-700);
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .info-kicker {

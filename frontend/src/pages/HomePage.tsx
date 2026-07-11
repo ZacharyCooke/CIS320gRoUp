@@ -66,38 +66,50 @@ export function HomePage() {
           </section>
 
           <section className="home-info-grid">
-            <article>
-              <span className="info-kicker">Before</span>
-              <h2>Register each pet once</h2>
-              <p>
-                Store photos, color, size, temperament, medical conditions, emergency notes,
-                primary vet details, and optional tracking-device links before anything goes wrong.
-              </p>
-            </article>
-            <article>
-              <span className="info-kicker">During</span>
-              <h2>Launch a focused search</h2>
-              <p>
-                Mark a pet lost, choose the search radius, stream matching results, alert nearby
-                vet clinics, and keep your active search map in one owner dashboard.
-              </p>
-            </article>
-            <article>
-              <span className="info-kicker">Community</span>
-              <h2>Let anyone help safely</h2>
-              <p>
-                A finder can submit a found-pet report without an account. Public QR profiles show
-                only owner-approved information and contact details.
-              </p>
-            </article>
-            <article>
-              <span className="info-kicker">Recovery</span>
-              <h2>Verify reunions carefully</h2>
-              <p>
-                Optional reward escrow uses proximity, pet identity, and owner confirmation before
-                releasing funds, with audit logs for each step.
-              </p>
-            </article>
+            <Link to="/features/before" className="home-info-card-link">
+              <article>
+                <span className="info-kicker">Before</span>
+                <h2>Register each pet once</h2>
+                <p>
+                  Store photos, color, size, temperament, medical conditions, emergency notes,
+                  primary vet details, and optional tracking-device links before anything goes wrong.
+                </p>
+                <span className="home-info-card-cta">See an example →</span>
+              </article>
+            </Link>
+            <Link to="/features/during" className="home-info-card-link">
+              <article>
+                <span className="info-kicker">During</span>
+                <h2>Launch a focused search</h2>
+                <p>
+                  Mark a pet lost, choose the search radius, stream matching results, alert nearby
+                  vet clinics, and keep your active search map in one owner dashboard.
+                </p>
+                <span className="home-info-card-cta">See an example →</span>
+              </article>
+            </Link>
+            <Link to="/features/community" className="home-info-card-link">
+              <article>
+                <span className="info-kicker">Community</span>
+                <h2>Let anyone help safely</h2>
+                <p>
+                  A finder can submit a found-pet report without an account. Public QR profiles show
+                  only owner-approved information and contact details.
+                </p>
+                <span className="home-info-card-cta">See an example →</span>
+              </article>
+            </Link>
+            <Link to="/features/recovery" className="home-info-card-link">
+              <article>
+                <span className="info-kicker">Recovery</span>
+                <h2>Verify reunions carefully</h2>
+                <p>
+                  Optional reward escrow uses proximity, pet identity, and owner confirmation before
+                  releasing funds, with audit logs for each step.
+                </p>
+                <span className="home-info-card-cta">See an example →</span>
+              </article>
+            </Link>
           </section>
 
           <section className="home-callout">

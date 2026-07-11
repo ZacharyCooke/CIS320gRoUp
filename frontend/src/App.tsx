@@ -17,6 +17,7 @@ function lazyPage<T extends Record<string, React.ComponentType<object>>>(
 }
 
 const HomePage = lazyPage(() => import("./pages/HomePage"), "HomePage");
+const FeatureShowcasePage = lazyPage(() => import("./pages/features/FeatureShowcasePage"), "FeatureShowcasePage");
 const RegisterPage = lazyPage(() => import("./pages/auth/RegisterPage"), "RegisterPage");
 const VerifyContactPage = lazyPage(() => import("./pages/auth/VerifyContactPage"), "VerifyContactPage");
 const LoginPage = lazyPage(() => import("./pages/auth/LoginPage"), "LoginPage");
@@ -72,6 +73,7 @@ export function App() {
         >
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/features/:phase" element={<FeatureShowcasePage />} />
             <Route path="/p/:token" element={<PublicPetProfile />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify" element={<VerifyContactPage />} />
