@@ -83,6 +83,22 @@ a {
   padding: 16px 28px;
 }
 
+@media (min-width: 901px) {
+  /* Single row: logo pinned left (.top-nav-bar shrinks to its content since
+     the toggle button inside it is hidden at this width), links centered
+     in the remaining space. Mobile keeps its own stacked/collapsed layout
+     via the max-width:900px block below. */
+  .top-nav {
+    display: flex;
+    align-items: center;
+  }
+
+  .top-nav-links {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
 .top-nav-toggle {
   display: none;
   flex-direction: column;
