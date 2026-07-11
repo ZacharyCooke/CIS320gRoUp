@@ -183,6 +183,7 @@ export function SearchResultsPage() {
         })
           .bindPopup(`<b>Lost:</b> ${escapeHtml(search.pet_name ?? "Missing pet")}<br/>Last reported location`)
           .addTo(leafletMap.current);
+        labelMarker(missing, `Lost ${search.pet_species ?? "pet"}: ${search.pet_name ?? "missing pet"}, last reported location`);
         markers.current.push(missing);
         markersById.current.set("missing-pet", missing);
       }
@@ -192,6 +193,7 @@ export function SearchResultsPage() {
           const m = L.marker([r.lat, r.lng])
             .bindPopup(`<b>${r.name ?? "Unknown"}</b><br/>${meta?.label ?? r.source}`)
             .addTo(leafletMap.current);
+          labelMarker(m, `${r.name ?? "Unknown result"} — ${meta?.label ?? r.source}`);
           markers.current.push(m);
           markersById.current.set(`result-${r.id}`, m);
         }
@@ -237,7 +239,7 @@ export function SearchResultsPage() {
             {complete ? "Search complete." : "Searching all linked sources — results stream in live."}
           </p>
         </div>
-        <button type="button" style={{ background: "#dc2626" }} onClick={closeSearch}>
+        <button type="button" className="btn-danger" onClick={closeSearch}>
           ✓ Mark Recovered
         </button>
       </div>
@@ -257,7 +259,7 @@ export function SearchResultsPage() {
       )}
 
       <div className="section-card" style={{ padding: 0, overflow: "hidden", marginBottom: 20 }}>
-        <div ref={mapRef} style={{ height: 400, width: "100%" }} />
+        <div ref={mapRef} className="map-container" />
       </div>
 
       <div className="section-card" style={{ marginBottom: 20 }}>
@@ -397,6 +399,18 @@ function statusColor(status: string): string {
 
 function markerBadge(emoji: string, label: string, tone: "missing" | "tracker" | "sighting"): string {
   return `<span class="map-marker-badge map-marker-${tone}"><span class="map-marker-emoji">${emoji}</span>${escapeHtml(label)}</span>`;
+}
+
+// See CommunityMapPage.tsx's identical helper: neither a custom divIcon nor
+// Leaflet's default icon marker gets an accessible name/role on its own,
+// even though the marker itself is already keyboard-focusable by default.
+function labelMarker(marker: any, label: string): any {
+  const el = marker.getElement();
+  if (el) {
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-label", label);
+  }
+  return marker;
 }
 
 function escapeHtml(value: string): string {

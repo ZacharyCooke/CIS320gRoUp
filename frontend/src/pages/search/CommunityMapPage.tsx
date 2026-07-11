@@ -75,6 +75,20 @@ function markerBadge(emoji: string, label: string, tone: "missing" | "tracker" |
   </span>`;
 }
 
+// Leaflet's default markers are keyboard-focusable (map/marker `keyboard`
+// option defaults to true) and Tab/Enter already opens the bound popup, but
+// a custom L.divIcon marker gets no accessible name or role on its own —
+// a screen reader just announces an unlabeled focusable element. Leaflet
+// exposes the real DOM node via getElement() once the marker is on the map.
+function labelMarker(marker: any, label: string): any {
+  const el = marker.getElement();
+  if (el) {
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-label", label);
+  }
+  return marker;
+}
+
 export function CommunityMapPage() {
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
@@ -180,6 +194,7 @@ export function CommunityMapPage() {
           iconSize: [68, 40]
         })
       }).bindPopup("Your location").addTo(leafletMap.current);
+      labelMarker(you, "Your location");
       markers.current.push(you);
 
       missingPets.forEach((p) => {
@@ -194,6 +209,7 @@ export function CommunityMapPage() {
         })
           .bindPopup(`<b>Missing:</b> ${escapeHtml(p.name)}<br/>Last reported location<br/>${p.distance_miles.toFixed(1)} mi away`)
           .addTo(leafletMap.current);
+        labelMarker(missing, `Missing ${p.species}: ${p.name}, ${p.distance_miles.toFixed(1)} miles away`);
         markers.current.push(missing);
         markersById.current.set(`missing-${p.search_id}`, missing);
 
@@ -209,6 +225,7 @@ export function CommunityMapPage() {
           })
             .bindPopup(`<b>${label} ping:</b> ${escapeHtml(p.name)}<br/><a href="${escapeHtml(device.share_url)}" target="_blank" rel="noreferrer">Open tracking link</a>`)
             .addTo(leafletMap.current);
+          labelMarker(tracker, `${label} ping for ${p.name}`);
           markers.current.push(tracker);
         });
       });
@@ -224,6 +241,7 @@ export function CommunityMapPage() {
         })
           .bindPopup(`<b>Found:</b> ${escapeHtml(r.species ?? "Unknown animal")}<br/>${escapeHtml(r.description.slice(0, 100))}`)
           .addTo(leafletMap.current);
+        labelMarker(m, `Found ${r.species ?? "animal"} sighting`);
         markers.current.push(m);
         markersById.current.set(`report-${r.id}`, m);
       });
@@ -261,7 +279,7 @@ export function CommunityMapPage() {
         </label>
       </div>
 
-      {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+      {error && <p role="alert" style={{ color: "var(--color-danger-600)" }}>{error}</p>}
 
       {lat == null || lng == null ? (
         <p style={{ color: "#6b7280" }}>
@@ -269,7 +287,7 @@ export function CommunityMapPage() {
         </p>
       ) : (
         <>
-          <div ref={mapRef} style={{ height: 360, width: "100%", marginBottom: "1rem", borderRadius: 8 }} />
+          <div ref={mapRef} className="map-container" style={{ marginBottom: "1rem", borderRadius: 8 }} />
 
           {loading && <p>Loading nearby pets...</p>}
 

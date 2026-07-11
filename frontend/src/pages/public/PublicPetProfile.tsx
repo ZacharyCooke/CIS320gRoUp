@@ -104,7 +104,7 @@ export function PublicPetProfile() {
       {profile.status === "lost" && (
         <div
           style={{
-            background: "#dc2626",
+            background: "var(--color-danger-600)",
             color: "white",
             padding: "10px 16px",
             borderRadius: 8,

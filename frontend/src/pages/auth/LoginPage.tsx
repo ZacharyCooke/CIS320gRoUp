@@ -114,7 +114,7 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <h1>Sign in to PetRecovery</h1>
-      {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+      {error && <ErrorState message={error} />}
       <form onSubmit={handleLogin}>
         <label>
           Email

@@ -208,11 +208,7 @@ export function AccountSettingsPage() {
         <p style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "#5f6f89" }}>
           Signing out invalidates your current session on this device.
         </p>
-        <button
-          type="button"
-          onClick={handleLogout}
-          style={{ background: "#dc2626" }}
-        >
+        <button type="button" className="btn-danger" onClick={handleLogout}>
           Sign out
         </button>
       </div>

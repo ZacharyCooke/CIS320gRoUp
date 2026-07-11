@@ -35,7 +35,7 @@ export function PetProfileHeader({ pet, activeSearchId, onMarkLost }: Props) {
 
         <div className="action-row">
           {pet.status !== "lost" ? (
-            <button type="button" style={{ background: "#dc2626" }} onClick={onMarkLost}>
+            <button type="button" className="btn-danger" onClick={onMarkLost}>
               Mark as Lost
             </button>
           ) : (

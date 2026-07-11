@@ -87,7 +87,7 @@ export function NotificationBell({ userId }: { userId: string }) {
         {unread > 0 && (
           <span style={{
             position: "absolute", top: 0, right: 0,
-            background: "#dc2626", color: "#fff",
+            background: "var(--color-danger-600)", color: "#fff",
             borderRadius: "999px", fontSize: "0.65rem",
             minWidth: 18, height: 18, display: "flex",
             alignItems: "center", justifyContent: "center",
