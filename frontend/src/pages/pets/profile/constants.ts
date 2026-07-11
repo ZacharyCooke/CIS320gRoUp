@@ -4,10 +4,10 @@ export const TEMPERAMENT_LABELS: Record<string, { label: string; color: string }
   report_only: { label: "Report Only - Do Not Approach", color: "#dc2626" }
 };
 
-export const SPECIES_LABELS: Record<string, string> = {
-  dog: "Dog",
-  cat: "Cat",
-  bird: "Bird"
+export const SPECIES_EMOJI: Record<string, string> = {
+  dog: "🐕",
+  cat: "🐈",
+  bird: "🐦"
 };
 
 export const DEVICE_LABELS: Record<string, { label: string; icon: string }> = {

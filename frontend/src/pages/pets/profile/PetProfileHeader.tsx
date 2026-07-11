@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { SPECIES_LABELS } from "./constants";
+import { SPECIES_EMOJI } from "./constants";
 import type { Pet } from "./types";
 
 interface Props {
@@ -15,7 +15,7 @@ export function PetProfileHeader({ pet, activeSearchId, onMarkLost }: Props) {
         {pet.photo_urls?.[0] ? (
           <img src={pet.photo_urls[0]} alt={pet.name} />
         ) : (
-          SPECIES_LABELS[pet.species] ?? "Pet"
+          SPECIES_EMOJI[pet.species] ?? "🐾"
         )}
       </div>
 
