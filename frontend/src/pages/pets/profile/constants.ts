@@ -36,13 +36,20 @@ export interface SourceOption {
   default_url: string;
 }
 
+// default_url values are each verified against the service's real, current
+// homepage/landing page (checked 2026-07-11) — several were wrong before
+// (Petco Love Lost pointed at a dead lost.petcolove.org subdomain; several
+// others had an unnecessary www.). The popover always lets the user edit
+// the URL before linking, so these are just a sane starting point.
 export const SOURCE_OPTIONS: SourceOption[] = [
   { key: "petfinder_api", label: "PetFinder", db_source_type: "petfinder_api", default_url: "https://www.petfinder.com" },
-  { key: "petfbi_scrape", label: "PetFBI", db_source_type: "petfbi_scrape", default_url: "https://www.petfbi.org" },
+  { key: "petfbi_scrape", label: "PetFBI", db_source_type: "petfbi_scrape", default_url: "https://petfbi.org" },
   { key: "facebook_groups", label: "Facebook Groups", db_source_type: "facebook_groups", default_url: "https://www.facebook.com" },
-  { key: "24petconnect", label: "24PetConnect.com", db_source_type: "manual_link", default_url: "https://www.24petconnect.com" },
-  { key: "petco_love_lost", label: "Petco Love Lost", db_source_type: "manual_link", default_url: "https://lost.petcolove.org" },
+  { key: "24petconnect", label: "24PetConnect.com", db_source_type: "manual_link", default_url: "https://24petconnect.com" },
+  { key: "petco_love_lost", label: "Petco Love Lost", db_source_type: "manual_link", default_url: "https://petcolove.org/lost/" },
   { key: "pawboost", label: "PawBoost", db_source_type: "manual_link", default_url: "https://www.pawboost.com" },
   { key: "nextdoor", label: "Nextdoor", db_source_type: "manual_link", default_url: "https://nextdoor.com" },
+  { key: "ring_neighbors", label: "Ring Neighbors", db_source_type: "manual_link", default_url: "https://ring.com/neighbors" },
+  { key: "craigslist", label: "Craigslist", db_source_type: "manual_link", default_url: "https://www.craigslist.org" },
   { key: "manual_link", label: "Manual Link", db_source_type: "manual_link", default_url: "" }
 ];

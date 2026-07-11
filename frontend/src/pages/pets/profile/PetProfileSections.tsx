@@ -75,12 +75,11 @@ export function PetProfileSections({ profile }: Props) {
         </div>
       )}
 
-      <div className="section-grid section-grid-equal">
+      <div className="section-stack">
         <TrackingDevicesSection profile={profile} />
         <ExternalSourcesSection profile={profile} activeSources={activeSources} />
+        {profile.qr && <QrCodeSection profile={profile} />}
       </div>
-
-      {profile.qr && <QrCodeSection profile={profile} />}
     </>
   );
 }
@@ -150,17 +149,8 @@ function ExternalSourcesSection({
   return (
     <div className="section-card">
       <div className="section-title">External Sources</div>
-      {activeSources.map((source) => (
-        <div className="list-row" key={source.id}>
-          <div className="list-row-left">
-            <span className="list-row-icon">Source</span>
-            <div className="list-row-name">{source.source_name}</div>
-          </div>
-          <span className="status-pill">Active</span>
-        </div>
-      ))}
 
-      {activeSources.length === 0 && <EmptyState compact message="No external sources linked yet." />}
+      <SearchTipsPanel />
 
       <div className="option-btn-grid">
         {SOURCE_OPTIONS.map((option: SourceOption) => {
@@ -225,5 +215,62 @@ function QrCodeSection({ profile }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+function SearchTipsPanel() {
+  return (
+    <details className="tips-panel">
+      <summary>🔎 How to search for a lost pet</summary>
+
+      <h4>Important local resources</h4>
+      <p>
+        Your city or county animal shelter&apos;s website — check every day, including shelters outside your
+        immediate city. Shelter databases may update several times daily, and animals can be transported across
+        jurisdictional boundaries.
+      </p>
+      <p className="tips-example-label">Example (San Diego County):</p>
+      <ul>
+        <li>
+          <strong>San Diego Humane Society Lost &amp; Found</strong> — for much of San Diego County, this should be
+          checked immediately. Its online stray-animal database updates in real time. You can also text LOST to
+          858-SAN-LOST for instructions.
+        </li>
+        <li>
+          <strong>San Diego County Department of Animal Services</strong> — important for animals taken to the
+          county shelters serving areas such as Bonita and Carlsbad. The county also directs lost-pet reports
+          through PawBoost.
+        </li>
+        <li>
+          <strong>Chula Vista Animal Care Facility</strong> — check separately when the pet was lost in Chula
+          Vista, National City, or Lemon Grove. Its animals are posted through 24Petconnect and the listings are
+          updated regularly.
+        </li>
+      </ul>
+
+      <h4>Additional places worth posting</h4>
+      <ul>
+        <li>
+          <strong>Facebook lost-and-found pet groups</strong> — search for groups using the city, ZIP code,
+          neighborhood and county name, such as &quot;Lost and Found Pets San Diego County.&quot;
+        </li>
+        <li>
+          <strong>Craigslist Lost &amp; Found and Pets sections</strong> — less organized than the dedicated
+          databases, but people still post found dogs, cats and birds there. Search multiple nearby areas and
+          alternate descriptions.
+        </li>
+        <li>
+          <strong>Ring Neighbors</strong> — useful for requesting doorbell-camera footage and reaching people
+          within a small geographic radius, especially when the animal was recently seen.
+        </li>
+      </ul>
+
+      <h4>Best order to use them</h4>
+      <p>
+        Post immediately on Petco Love Lost, PawBoost and Pet FBI, then search 24Petconnect and every local
+        shelter database. Next, post on Nextdoor, Facebook, Ring Neighbors and Craigslist. Repeat shelter searches
+        at least daily because descriptions, breeds, colors and photos are frequently entered incorrectly.
+      </p>
+    </details>
   );
 }
