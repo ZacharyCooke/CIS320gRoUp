@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../services/api-client";
 import { connectToUser, disconnectUser } from "../services/websocket.client";
 import { showBrowserNotification } from "../services/push-notifications";
+import { notificationLink } from "../services/notification-links";
 import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { Spinner } from "./Spinner";
@@ -12,11 +13,15 @@ interface Notification {
   type: string;
   title: string;
   body: string;
+  data: Record<string, unknown>;
   read: boolean;
+  trigger_latitude: number | null;
+  trigger_longitude: number | null;
   created_at: string;
 }
 
 export function NotificationBell({ userId }: { userId: string }) {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -70,6 +75,20 @@ export function NotificationBell({ userId }: { userId: string }) {
     } catch {
       setLoadError("Could not mark notifications read.");
     }
+  }
+
+  function openNotification(n: Notification) {
+    const link = notificationLink(n);
+    if (!link) return;
+
+    if (!n.read) {
+      setNotifications((prev) => prev.map((item) => (item.id === n.id ? { ...item, read: true } : item)));
+      setUnread((u) => Math.max(0, u - 1));
+      apiClient.patch(`/notifications/${n.id}/read`).catch(() => {});
+    }
+
+    setOpen(false);
+    navigate(link);
   }
 
   return (
@@ -135,18 +154,43 @@ export function NotificationBell({ userId }: { userId: string }) {
               <EmptyState compact message="No notifications yet." />
             </div>
           ) : (
-            notifications.map((n) => (
-              <div key={n.id} style={{
-                padding: "12px 16px", borderBottom: "1px solid #f3f4f6",
-                background: n.read ? "#fff" : "#f0fdf9"
-              }}>
-                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{n.title}</div>
-                <div style={{ color: "#6b7280", fontSize: "0.85rem", marginTop: 2 }}>{n.body}</div>
-                <div style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: 4 }}>
-                  {new Date(n.created_at).toLocaleString()}
+            notifications.map((n) => {
+              const link = notificationLink(n);
+              return (
+                <div
+                  key={n.id}
+                  style={{
+                    padding: "12px 16px", borderBottom: "1px solid #f3f4f6",
+                    background: n.read ? "#fff" : "#f0fdf9",
+                    cursor: link ? "pointer" : undefined
+                  }}
+                  role={link ? "button" : undefined}
+                  tabIndex={link ? 0 : undefined}
+                  onClick={link ? () => openNotification(n) : undefined}
+                  onKeyDown={
+                    link
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openNotification(n);
+                          }
+                        }
+                      : undefined
+                  }
+                >
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{n.title}</div>
+                  <div style={{ color: "#6b7280", fontSize: "0.85rem", marginTop: 2 }}>{n.body}</div>
+                  <div style={{ color: "#9ca3af", fontSize: "0.75rem", marginTop: 4 }}>
+                    {new Date(n.created_at).toLocaleString()}
+                  </div>
+                  {link && (
+                    <div style={{ color: "#0f766e", fontSize: "0.78rem", marginTop: 4, fontWeight: 600 }}>
+                      View on map →
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

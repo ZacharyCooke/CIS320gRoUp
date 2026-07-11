@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { connectToUser, disconnectUser } from "../../services/websocket.client";
 import { showBrowserNotification } from "../../services/push-notifications";
+import { notificationLink } from "../../services/notification-links";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
 import { EmptyState } from "../../components/EmptyState";
@@ -17,26 +18,6 @@ interface NotificationItem {
   trigger_latitude: number | null;
   trigger_longitude: number | null;
   created_at: string;
-}
-
-// Where clicking a notification should take you, if anywhere. found_report_match
-// carries a precise search_id (the real search-results map); bolo_alert/nearby_lost/
-// nearby_found only have the recipient's trigger location (where the proximity ping
-// fired from — not the incident's own coordinates), so those go to the community map
-// centered there instead. Other types (claim_alert, store_account, etc.) have no
-// map-relevant destination and are left non-interactive.
-function notificationLink(n: NotificationItem): string | null {
-  if (n.type === "found_report_match" && typeof n.data.search_id === "string") {
-    return `/searches/${n.data.search_id}`;
-  }
-  if (
-    (n.type === "bolo_alert" || n.type === "nearby_lost" || n.type === "nearby_found") &&
-    n.trigger_latitude != null &&
-    n.trigger_longitude != null
-  ) {
-    return `/community-map?lat=${n.trigger_latitude}&lng=${n.trigger_longitude}&radius=5`;
-  }
-  return null;
 }
 
 interface NotificationSettings {
