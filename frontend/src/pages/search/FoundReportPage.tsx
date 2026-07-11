@@ -1,7 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { apiClient } from "../../services/api-client";
-import { AuthLayout } from "../../components/AuthLayout";
 import { ErrorState } from "../../components/ErrorState";
+import { NavBar } from "../../components/NavBar";
+import { PublicTopBar } from "../../components/PublicTopBar";
+import { Footer } from "../../components/Footer";
+import { isAuthenticated } from "../../services/auth";
+
+// Unlike AuthLayout (used by Login/Register/Verify — pages with no session
+// yet by definition), this page is reachable by both anonymous visitors and
+// logged-in owners, so it gets the same top bar as every other page instead
+// of a bare centered logo.
+function FoundReportLayout({ children, contentStyle }: { children: ReactNode; contentStyle?: CSSProperties }) {
+  return (
+    <div className="form-page-wrapper">
+      {isAuthenticated() ? <NavBar /> : <PublicTopBar />}
+      <section className="form-page" style={contentStyle}>
+        {children}
+      </section>
+      <Footer />
+    </div>
+  );
+}
 
 export function FoundReportPage() {
   const [name, setName] = useState("");
@@ -82,7 +101,7 @@ export function FoundReportPage() {
 
   if (success) {
     return (
-      <AuthLayout contentStyle={{ textAlign: "center" }}>
+      <FoundReportLayout contentStyle={{ textAlign: "center" }}>
         <h1 style={{ color: "#0f766e" }}>Report submitted!</h1>
         <p>Thank you for helping reunite a pet with its owner. Your report has been matched against nearby active searches{" "}
           and app users in the area were alerted.
@@ -93,12 +112,12 @@ export function FoundReportPage() {
             : "No nearby vet clinics, shelters, or rescues were found to notify for this location."}
         </p>
         <button type="button" onClick={() => setSuccess(false)}>Submit another report</button>
-      </AuthLayout>
+      </FoundReportLayout>
     );
   }
 
   return (
-    <AuthLayout contentStyle={{ maxWidth: 560 }}>
+    <FoundReportLayout contentStyle={{ maxWidth: 560 }}>
         <h1>🐾 Report a Found Pet</h1>
         <p style={{ color: "#6b7280", marginBottom: "1.25rem", marginTop: 0 }}>
           No account needed. Fill in what you know — every detail helps.
@@ -205,6 +224,6 @@ export function FoundReportPage() {
             {submitting ? "Submitting…" : "Submit Found Pet Report →"}
           </button>
         </form>
-    </AuthLayout>
+    </FoundReportLayout>
   );
 }
