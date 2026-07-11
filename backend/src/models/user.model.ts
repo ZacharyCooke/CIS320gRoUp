@@ -171,3 +171,11 @@ export async function updateApnsDeviceToken(id: string, token: string): Promise<
   );
   return result.rows[0] ?? null;
 }
+
+export async function updateUserPassword(id: string, passwordHash: string): Promise<User | null> {
+  const result = await pool.query<User>(
+    "UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1 RETURNING *",
+    [id, passwordHash]
+  );
+  return result.rows[0] ?? null;
+}

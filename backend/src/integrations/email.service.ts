@@ -46,3 +46,12 @@ export async function sendOtpEmail(to: string, code: string): Promise<void> {
     html: `<p>Your PetRecovery verification code is <strong>${code}</strong>.</p><p>It expires in 10 minutes.</p>`
   });
 }
+
+export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+  await sendEmail({
+    to,
+    subject: "Reset your PetRecovery password",
+    text: `We received a request to reset your PetRecovery password. Reset it here: ${resetUrl}\n\nThis link expires in 30 minutes. If you didn't request this, you can ignore this email.`,
+    html: `<p>We received a request to reset your PetRecovery password.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 30 minutes. If you didn't request this, you can ignore this email.</p>`
+  });
+}

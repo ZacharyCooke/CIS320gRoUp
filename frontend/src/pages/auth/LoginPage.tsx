@@ -136,6 +136,9 @@ export function LoginPage() {
             autoComplete="current-password"
           />
         </label>
+        <p style={{ textAlign: "right", marginTop: -8, marginBottom: 16, fontSize: "0.85rem" }}>
+          <Link to="/forgot-password" style={{ fontWeight: 700 }}>Forgot password?</Link>
+        </p>
         <button type="submit" disabled={loading}>
           {loading ? "Signing in…" : "Sign in →"}
         </button>

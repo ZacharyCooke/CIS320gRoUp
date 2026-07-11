@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-pet-recovery-app`
 
-**Created**: 2026-06-30 | **Last Updated**: 2026-07-07
+**Created**: 2026-06-30 | **Last Updated**: 2026-07-11
 
 **Status**: Active
 
@@ -27,6 +27,7 @@ A pet owner creates an account on PetRecovery, verifies their identity via email
 5. **Given** an owner logging in from a new or different IP address, **When** they attempt to log in, **Then** they are prompted to verify via a TOTP authenticator app (e.g., Microsoft Authenticator) before access is granted.
 6. **Given** a verified owner viewing a pet profile, **When** they click "Generate QR", **Then** a scannable QR code is produced linking to that pet's public profile page.
 7. **Given** any person with a camera, **When** they scan a PetRecovery QR tag, **Then** they see the pet's profile, owner contact info, temperament, and any medical conditions the owner has chosen to share — with no app required.
+8. **Given** a registered owner who forgot their password, **When** they request a reset link via their account email, **Then** they receive a single-use link (expiring in 30 minutes) that lets them set a new password and sign in with it; the request behaves identically whether or not the email belongs to a registered account, so it cannot be used to discover which emails have accounts.
 
 ---
 
@@ -151,6 +152,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 **Profile & Registration**
 - **FR-001**: System MUST allow users to register with a valid email or phone number.
 - **FR-002**: System MUST verify each user's email and phone before granting full account access.
+- **FR-002a**: System MUST allow a registered user to recover access to their account via a password-reset flow: request a reset link by email, receive a single-use token (expiring after 30 minutes) via email, and set a new password with that token. The request-reset step MUST respond identically regardless of whether the submitted email belongs to a registered account, to prevent account enumeration.
 - **FR-003**: System MUST allow owners to create pet profiles including name, species, breed, color, size, photo(s), and unique identifiers (microchip, license tag).
 - **FR-004**: System MUST allow owners to optionally add medical conditions and medications to a pet profile, with full control over which information is shared publicly. Each medical condition carries an individual `share_publicly` boolean. Emergency medical notes have a separate `share_emergency_notes` boolean (default: true) that independently controls their visibility on the public profile.
 - **FR-005**: System MUST allow owners to set a temperament level (Friendly / Cautious / Report Only) and add approach notes to each pet profile.

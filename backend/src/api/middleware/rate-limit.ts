@@ -5,11 +5,16 @@ const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 export function rateLimitMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // /auth/register triggers an OTP email and (if a phone is given) an SMS to
+  // /auth/register and /auth/forgot-password trigger an email/SMS to
   // whatever contact info is submitted, unauthenticated — without this it
-  // could be used to spam-bomb an arbitrary email/phone.
+  // could be used to spam-bomb an arbitrary email/phone. /auth/reset-password
+  // doesn't dispatch anything itself but is included so its token can't be
+  // brute-forced via unlimited attempts.
   const triggersExternalDispatch =
-    req.path.includes("otp") || req.path.includes("verify") || req.path.includes("register");
+    req.path.includes("otp") ||
+    req.path.includes("verify") ||
+    req.path.includes("register") ||
+    req.path.includes("password");
   if (!triggersExternalDispatch) {
     next();
     return;

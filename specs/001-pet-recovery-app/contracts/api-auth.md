@@ -1,7 +1,7 @@
 # API Contract: Authentication & Account Security
 
 **Base path**: `/api/auth`  
-**Last Updated**: 2026-07-05
+**Last Updated**: 2026-07-11
 
 All endpoint paths below are relative to `/api/auth`. Passwords are accepted only over HTTPS/TLS in production. Plaintext passwords, password hashes, TOTP secrets, and encrypted Facebook tokens are never returned by the API.
 
@@ -101,6 +101,53 @@ Authenticate with email and password. The server checks the request IP hash to d
 **Response 400**: Validation error.  
 **Response 401**: `invalid_credentials`.  
 **Response 403**: `email_not_verified`.
+
+---
+
+## POST /forgot-password
+
+Request a password-reset link by email. Unauthenticated. The response is identical whether or not the email belongs to a registered account, to prevent using this endpoint to enumerate accounts — the reset email is only actually sent when the account exists.
+
+**Request**:
+```json
+{ "email": "owner@example.com" }
+```
+
+**Response 200**:
+```json
+{ "message": "If an account exists for that email, a reset link has been sent." }
+```
+
+In non-production environments, the response may also include `_dev_reset_token` for local testing (same convention as `/register`'s `_dev_otp`, since there's no real email provider in dev).
+
+**Response 400**: Validation error.
+
+The reset link is `${PUBLIC_WEB_URL}/reset-password?token=...`. The token is single-use and expires after 30 minutes (stored server-side in Redis, never in the URL's surrounding email body beyond the link itself).
+
+---
+
+## POST /reset-password
+
+Complete a password reset using the token from the emailed link.
+
+**Request**:
+```json
+{
+  "token": "opaque-reset-token",
+  "new_password": "user-entered-new-password"
+}
+```
+
+`new_password` must be at least 12 characters, same rule as `/register`.
+
+**Response 200**:
+```json
+{ "message": "Password updated. You can now sign in with your new password." }
+```
+
+**Response 400**: Validation error or `invalid_or_expired_token`.
+
+Note: this does not revoke the user's other active refresh tokens/sessions — resetting a password does not currently force sign-out elsewhere. Tracked as a follow-up, not yet built.
 
 ---
 

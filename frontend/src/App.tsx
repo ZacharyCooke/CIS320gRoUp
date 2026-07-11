@@ -20,6 +20,8 @@ const HomePage = lazyPage(() => import("./pages/HomePage"), "HomePage");
 const RegisterPage = lazyPage(() => import("./pages/auth/RegisterPage"), "RegisterPage");
 const VerifyContactPage = lazyPage(() => import("./pages/auth/VerifyContactPage"), "VerifyContactPage");
 const LoginPage = lazyPage(() => import("./pages/auth/LoginPage"), "LoginPage");
+const ForgotPasswordPage = lazyPage(() => import("./pages/auth/ForgotPasswordPage"), "ForgotPasswordPage");
+const ResetPasswordPage = lazyPage(() => import("./pages/auth/ResetPasswordPage"), "ResetPasswordPage");
 const TwoFactorSetupPage = lazyPage(() => import("./pages/auth/TwoFactorSetupPage"), "TwoFactorSetupPage");
 const DashboardPage = lazyPage(() => import("./pages/pets/DashboardPage"), "DashboardPage");
 const PetFormPage = lazyPage(() => import("./pages/pets/PetFormPage"), "PetFormPage");
@@ -74,6 +76,8 @@ export function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/verify" element={<VerifyContactPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/found-report" element={<FoundReportPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/store/premium" element={<RequireAuth><PremiumCheckoutPage /></RequireAuth>} />
