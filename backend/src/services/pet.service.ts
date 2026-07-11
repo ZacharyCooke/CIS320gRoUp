@@ -11,6 +11,8 @@ import {
   type MedicalCondition,
   type Pet
 } from "../models/pet.model.js";
+import { findActiveSearchByPetId } from "../models/lost-pet-search.model.js";
+import { findActiveRewardByPetId } from "../models/reward.model.js";
 import { findUserById } from "../models/user.model.js";
 
 // Free accounts are capped at this many pet profiles; Premium subscribers
@@ -21,6 +23,20 @@ export class PetLimitReachedError extends Error {
   constructor() {
     super(`Free accounts are limited to ${FREE_TIER_PET_LIMIT} pet profiles`);
     this.name = "PetLimitReachedError";
+  }
+}
+
+export class PetHasActiveSearchError extends Error {
+  constructor() {
+    super("This pet has an active lost-pet search. Mark it safe or close the search before deleting.");
+    this.name = "PetHasActiveSearchError";
+  }
+}
+
+export class PetHasActiveRewardError extends Error {
+  constructor() {
+    super("This pet has an unresolved reward. Cancel or resolve it before deleting the profile.");
+    this.name = "PetHasActiveRewardError";
   }
 }
 
@@ -53,6 +69,23 @@ export async function update(
 }
 
 export async function remove(ownerId: string, petId: string): Promise<boolean> {
+  const pet = await findPetById(petId);
+  if (!pet || pet.owner_id !== ownerId) {
+    return false;
+  }
+
+  const [activeSearch, activeReward] = await Promise.all([
+    findActiveSearchByPetId(petId),
+    findActiveRewardByPetId(petId)
+  ]);
+
+  if (activeSearch) {
+    throw new PetHasActiveSearchError();
+  }
+  if (activeReward) {
+    throw new PetHasActiveRewardError();
+  }
+
   return deletePetById(petId, ownerId);
 }
 

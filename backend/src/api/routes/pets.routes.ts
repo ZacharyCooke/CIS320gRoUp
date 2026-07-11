@@ -91,6 +91,27 @@ petsRouter.put(
   })
 );
 
+// DELETE /pets/:id — 204, 401, 404 pet_not_found, 409 pet_has_active_search | pet_has_active_reward
+petsRouter.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    try {
+      const deleted = await pets.remove(req.user!.id, req.params.id);
+      res.status(deleted ? 204 : 404).send();
+    } catch (err) {
+      if (err instanceof pets.PetHasActiveSearchError) {
+        res.status(409).json({ error: "pet_has_active_search", message: err.message });
+        return;
+      }
+      if (err instanceof pets.PetHasActiveRewardError) {
+        res.status(409).json({ error: "pet_has_active_reward", message: err.message });
+        return;
+      }
+      throw err;
+    }
+  })
+);
+
 petsRouter.post(
   "/:id/photo",
   petPhotoUpload.single("photo"),

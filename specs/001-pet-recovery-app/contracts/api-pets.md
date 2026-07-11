@@ -2,7 +2,7 @@
 
 **Base path**: `/api`
 **Auth**: All endpoints require Bearer token unless noted.
-**Last Updated**: 2026-07-05
+**Last Updated**: 2026-07-11
 
 ---
 
@@ -80,6 +80,23 @@ creation, since no separate temperament endpoint exists).
 **Response 200**: Updated pet object.
 **Response 403**: Pet does not belong to authenticated user.
 **Response 404**: Pet not found.
+
+---
+
+## DELETE /pets/:id
+
+Permanently delete a pet profile. All dependent rows (tracking devices,
+external sources, vet info, lost-pet searches and their results, vet BOLOs,
+rewards and proximity verifications) cascade-delete at the database level —
+but this endpoint blocks the delete rather than silently destroying an
+in-progress search or an unresolved reward.
+
+**Response 204**: Deleted.
+**Response 404**: Pet not found, or does not belong to the authenticated user.
+**Response 409**: `pet_has_active_search` — the pet has a search with status
+`active`; mark the pet safe or close the search first. `pet_has_active_reward`
+— the pet has a reward not yet in a terminal state (`released`, `refunded`,
+`cancelled`); resolve or cancel it first.
 
 ---
 

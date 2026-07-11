@@ -85,6 +85,7 @@ export function App() {
             <Route path="/store/premium" element={<RequireAuth><PremiumCheckoutPage /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
             <Route path="/pets/new" element={<RequireAuth><PetFormPage /></RequireAuth>} />
+            <Route path="/pets/:id/edit" element={<RequireAuth><PetFormPage /></RequireAuth>} />
             <Route path="/pets/:id" element={<RequireAuth><PetProfilePage /></RequireAuth>} />
             <Route path="/search" element={<RequireAuth><FindPetPage /></RequireAuth>} />
             <Route path="/searches/:id" element={<RequireAuth><SearchResultsPage /></RequireAuth>} />

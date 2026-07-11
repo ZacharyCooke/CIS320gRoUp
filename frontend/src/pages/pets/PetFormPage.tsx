@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { ErrorState } from "../../components/ErrorState";
+import { Spinner } from "../../components/Spinner";
 
 interface MedicalCondition {
   condition: string;
@@ -10,6 +11,9 @@ interface MedicalCondition {
 
 export function PetFormPage() {
   const navigate = useNavigate();
+  const { id: petId } = useParams<{ id: string }>();
+  const isEditMode = Boolean(petId);
+  const [loadingExisting, setLoadingExisting] = useState(isEditMode);
 
   // Basic
   const [name, setName] = useState("");
@@ -40,6 +44,47 @@ export function PetFormPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!isEditMode || !petId) return;
+
+    async function loadExisting() {
+      try {
+        const [petRes, vetRes] = await Promise.all([
+          apiClient.get(`/pets/${petId}`),
+          apiClient.get(`/pets/${petId}/vet`)
+        ]);
+        const pet = petRes.data.pet;
+
+        setName(pet.name);
+        setSpecies(pet.species);
+        setBreed(pet.breed ?? "");
+        setColor(pet.color);
+        setSize(pet.size);
+        setMicrochip(pet.microchip_number ?? "");
+        setLicenseTag(pet.license_tag ?? "");
+        setConditions(pet.medical_conditions ?? []);
+        setEmergencyNotes(pet.medical_emergency_notes ?? "");
+        setShareEmergencyNotes(pet.share_emergency_notes ?? true);
+        setTemperament(pet.temperament);
+        setApproachNotes(pet.approach_notes ?? "");
+
+        const vet = vetRes.data.vet;
+        if (vet) {
+          setVetName(vet.clinic_name ?? "");
+          setVetAddress(vet.address ?? "");
+          setVetPhone(vet.phone ?? "");
+          setVetEmail(vet.email ?? "");
+        }
+      } catch {
+        setError("Could not load this pet's profile.");
+      } finally {
+        setLoadingExisting(false);
+      }
+    }
+
+    loadExisting();
+  }, [isEditMode, petId]);
+
   function addCondition() {
     const trimmed = conditionInput.trim();
     if (!trimmed) return;
@@ -62,7 +107,7 @@ export function PetFormPage() {
     setError(null);
     setLoading(true);
     try {
-      const { data } = await apiClient.post("/pets", {
+      const basicFields = {
         name,
         species,
         breed: breed || undefined,
@@ -72,19 +117,32 @@ export function PetFormPage() {
         license_tag: licenseTag || undefined,
         temperament,
         approach_notes: approachNotes || undefined
-      });
-      const petId: string = data.pet.id;
+      };
 
-      if (conditions.length > 0 || emergencyNotes) {
-        await apiClient.patch(`/pets/${petId}/medical`, {
+      let targetPetId: string;
+      if (isEditMode && petId) {
+        await apiClient.put(`/pets/${petId}`, basicFields);
+        targetPetId = petId;
+      } else {
+        const { data } = await apiClient.post("/pets", basicFields);
+        targetPetId = data.pet.id;
+      }
+
+      // In edit mode these always sync (so clearing a field actually clears
+      // it); in create mode only send them when there's something to save.
+      if (isEditMode || conditions.length > 0 || emergencyNotes) {
+        await apiClient.patch(`/pets/${targetPetId}/medical`, {
           medical_conditions: conditions,
           medical_emergency_notes: emergencyNotes || null,
           share_emergency_notes: shareEmergencyNotes
         });
       }
 
+      // clinic_name is required by the vet schema, so this only fires when
+      // there's a name to save — clearing the field leaves existing vet
+      // info as-is rather than attempting an invalid empty-name update.
       if (vetName) {
-        await apiClient.put(`/pets/${petId}/vet`, {
+        await apiClient.put(`/pets/${targetPetId}/vet`, {
           clinic_name: vetName,
           address: vetAddress || null,
           phone: vetPhone || null,
@@ -95,10 +153,10 @@ export function PetFormPage() {
       if (photoFile) {
         const formData = new FormData();
         formData.append("photo", photoFile);
-        await apiClient.post(`/pets/${petId}/photo`, formData);
+        await apiClient.post(`/pets/${targetPetId}/photo`, formData);
       }
 
-      navigate(`/pets/${petId}`);
+      navigate(`/pets/${targetPetId}`);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } }; message?: string };
       if (e.response?.data?.error === "pet_limit_reached") {
@@ -111,10 +169,20 @@ export function PetFormPage() {
     }
   }
 
+  if (loadingExisting) {
+    return (
+      <div className="form-page-wrapper">
+        <section className="form-page">
+          <Spinner label="Loading pet profile…" />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="form-page-wrapper">
     <section className="form-page">
-      <h1>Add pet profile</h1>
+      <h1>{isEditMode ? "Edit pet profile" : "Add pet profile"}</h1>
       {error && (
         <ErrorState
           message={error}
@@ -264,7 +332,9 @@ export function PetFormPage() {
           </label>
         </fieldset>
 
-        <button type="submit" disabled={loading}>{loading ? "Saving…" : "Save pet"}</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Saving…" : isEditMode ? "Save changes" : "Save pet"}
+        </button>
       </form>
     </section>
     </div>

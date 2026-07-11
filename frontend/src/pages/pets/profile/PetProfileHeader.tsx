@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { apiClient } from "../../../services/api-client";
+import { ErrorState } from "../../../components/ErrorState";
 import { SPECIES_EMOJI } from "./constants";
 import type { Pet } from "./types";
 
@@ -9,6 +12,33 @@ interface Props {
 }
 
 export function PetProfileHeader({ pet, activeSearchId, onMarkLost }: Props) {
+  const navigate = useNavigate();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await apiClient.delete(`/pets/${pet.id}`);
+      navigate("/dashboard");
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: string; message?: string } } };
+      const code = e.response?.data?.error;
+      if (code === "pet_has_active_search") {
+        setDeleteError("This pet has an active search — mark it safe or close the search before deleting.");
+      } else if (code === "pet_has_active_reward") {
+        setDeleteError("This pet has an unresolved reward — cancel or resolve it before deleting.");
+      } else {
+        setDeleteError(e.response?.data?.message ?? "Failed to delete pet.");
+      }
+      setConfirmingDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="profile-header">
       <div className="profile-photo">
@@ -50,7 +80,33 @@ export function PetProfileHeader({ pet, activeSearchId, onMarkLost }: Props) {
               </>
             )
           )}
+
+          <Link to={`/pets/${pet.id}/edit`}>
+            <button type="button" className="btn-outline">Edit Profile</button>
+          </Link>
+
+          {confirmingDelete ? (
+            <>
+              <span style={{ fontSize: "0.85rem", color: "#5f6f89" }}>Delete {pet.name}&apos;s profile?</span>
+              <button type="button" className="btn-danger" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Deleting…" : "Yes, delete"}
+              </button>
+              <button type="button" className="btn-outline" onClick={() => setConfirmingDelete(false)} disabled={deleting}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn-outline" onClick={() => setConfirmingDelete(true)}>
+              Delete Profile
+            </button>
+          )}
         </div>
+
+        {deleteError && (
+          <div style={{ marginTop: 12 }}>
+            <ErrorState message={deleteError} />
+          </div>
+        )}
       </div>
     </div>
   );
