@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { MarkLostModal } from "../search/MarkLostModal";
 import { PetProfileHeader } from "./profile/PetProfileHeader";
-import { PetProfileSections } from "./profile/PetProfileSections";
+import { PetProfileSections, PetTemperamentCard } from "./profile/PetProfileSections";
 import { usePetProfile } from "./profile/usePetProfile";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
@@ -39,11 +39,14 @@ export function PetProfilePage() {
         Back to Dashboard
       </Link>
 
-      <PetProfileHeader
-        pet={profile.pet}
-        activeSearchId={profile.activeSearchId}
-        onMarkLost={() => profile.setShowMarkLost(true)}
-      />
+      <div className="profile-top-row">
+        <PetTemperamentCard profile={profile} />
+        <PetProfileHeader
+          pet={profile.pet}
+          activeSearchId={profile.activeSearchId}
+          onMarkLost={() => profile.setShowMarkLost(true)}
+        />
+      </div>
 
       {profile.actionMsg && <p style={{ color: "green" }}>{profile.actionMsg}</p>}
       {profile.actionError && <ErrorState message={profile.actionError} />}

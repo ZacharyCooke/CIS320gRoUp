@@ -1,7 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiClient } from "../../../services/api-client";
-import { SOURCE_NAMES, SOURCE_URLS } from "./constants";
+import type { SourceOption } from "./constants";
 import type { ExternalSource, Pet, PetQr, TrackingDevice, Vet } from "./types";
 
 export function usePetProfile() {
@@ -13,9 +13,6 @@ export function usePetProfile() {
   const [sources, setSources] = useState<ExternalSource[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [sectionsError, setSectionsError] = useState<string | null>(null);
-  const [deviceUrl, setDeviceUrl] = useState("");
-  const [deviceType, setDeviceType] = useState("airtag");
-  const [sourceType, setSourceType] = useState("petfinder_api");
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showMarkLost, setShowMarkLost] = useState(false);
@@ -78,39 +75,40 @@ export function usePetProfile() {
     }
   }
 
-  async function linkDevice(event: FormEvent) {
-    event.preventDefault();
+  async function linkDevice(deviceType: string, shareUrl: string): Promise<boolean> {
     setActionMsg(null);
     setActionError(null);
     try {
       const { data } = await apiClient.post(`/pets/${id}/tracking-devices`, {
         device_type: deviceType,
-        share_url: deviceUrl
+        share_url: shareUrl
       });
       setDevices((prev) => [...prev, data.tracking_device]);
       setActionMsg("Tracking device linked.");
-      setDeviceUrl("");
+      return true;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setActionError(e.response?.data?.error ?? "Failed to link device");
+      return false;
     }
   }
 
-  async function linkSource(event: FormEvent) {
-    event.preventDefault();
+  async function linkSource(option: SourceOption, url: string): Promise<boolean> {
     setActionMsg(null);
     setActionError(null);
     try {
       const { data } = await apiClient.post(`/pets/${id}/external-sources`, {
-        source_type: sourceType,
-        source_name: SOURCE_NAMES[sourceType] ?? sourceType,
-        source_url: SOURCE_URLS[sourceType] ?? "https://petrecovery.app"
+        source_type: option.db_source_type,
+        source_name: option.label,
+        source_url: url
       });
       setSources((prev) => [...prev, data.external_source]);
-      setActionMsg(`${SOURCE_NAMES[sourceType] ?? sourceType} linked.`);
+      setActionMsg(`${option.label} linked.`);
+      return true;
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       setActionError(e.response?.data?.error ?? "Failed to link source");
+      return false;
     }
   }
 
@@ -122,16 +120,10 @@ export function usePetProfile() {
     sources,
     loadError,
     sectionsError,
-    deviceUrl,
-    deviceType,
-    sourceType,
     actionMsg,
     actionError,
     showMarkLost,
     activeSearchId,
-    setDeviceUrl,
-    setDeviceType,
-    setSourceType,
     setShowMarkLost,
     rotateQr,
     linkDevice,

@@ -1,72 +1,93 @@
-import { DEVICE_LABELS, TEMPERAMENT_LABELS } from "./constants";
+import { useState } from "react";
+import { DEVICE_LABELS, DEVICE_TYPE_OPTIONS, SOURCE_OPTIONS, TEMPERAMENT_LABELS, type SourceOption } from "./constants";
 import type { PetProfileState } from "./usePetProfile";
 import { EmptyState } from "../../../components/EmptyState";
+import { LinkPopover } from "./LinkPopover";
 
 interface Props {
   profile: PetProfileState;
+}
+
+export function PetTemperamentCard({ profile }: Props) {
+  const { pet } = profile;
+  if (!pet) return null;
+
+  const temperamentInfo = TEMPERAMENT_LABELS[pet.temperament] ?? { label: pet.temperament, color: "#6b7280" };
+
+  return (
+    <div className="section-card">
+      <div className="section-title">Temperament &amp; Approach</div>
+      <span className="badge" style={{ background: temperamentInfo.color, color: "#fff" }}>
+        {temperamentInfo.label}
+      </span>
+      {pet.approach_notes && (
+        <p style={{ marginTop: 10, fontStyle: "italic", color: "#475569" }}>{pet.approach_notes}</p>
+      )}
+    </div>
+  );
 }
 
 export function PetProfileSections({ profile }: Props) {
   const { pet } = profile;
   if (!pet) return null;
 
-  const temperamentInfo = TEMPERAMENT_LABELS[pet.temperament] ?? { label: pet.temperament, color: "#6b7280" };
   const publicConditions = pet.medical_conditions.filter((c) => c.share_publicly);
   const activeSources = profile.sources.filter((s) => s.is_active);
+  const hasMedical = publicConditions.length > 0;
+  const hasVet = Boolean(profile.vet);
 
   return (
-    <div className="section-grid">
-      <div className="section-card">
-        <div className="section-title">Temperament &amp; Approach</div>
-        <span className="badge" style={{ background: temperamentInfo.color, color: "#fff" }}>
-          {temperamentInfo.label}
-        </span>
-        {pet.approach_notes && (
-          <p style={{ marginTop: 10, fontStyle: "italic", color: "#475569" }}>{pet.approach_notes}</p>
-        )}
-      </div>
+    <>
+      {(hasMedical || hasVet) && (
+        <div className="section-grid">
+          {hasMedical && (
+            <div className="section-card">
+              <div className="section-title">Medical Information</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {publicConditions.map((condition, index) => <li key={index}>{condition.condition}</li>)}
+              </ul>
+              {pet.medical_emergency_notes && pet.share_emergency_notes && (
+                <p style={{
+                  background: "#fef2f2",
+                  border: "1px solid #fca5a5",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  marginTop: 12,
+                  fontSize: "0.85rem"
+                }}>
+                  <strong>Emergency note:</strong> {pet.medical_emergency_notes}
+                </p>
+              )}
+            </div>
+          )}
 
-      {publicConditions.length > 0 && (
-        <div className="section-card">
-          <div className="section-title">Medical Information</div>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {publicConditions.map((condition, index) => <li key={index}>{condition.condition}</li>)}
-          </ul>
-          {pet.medical_emergency_notes && pet.share_emergency_notes && (
-            <p style={{
-              background: "#fef2f2",
-              border: "1px solid #fca5a5",
-              padding: "8px 10px",
-              borderRadius: 8,
-              marginTop: 12,
-              fontSize: "0.85rem"
-            }}>
-              <strong>Emergency note:</strong> {pet.medical_emergency_notes}
-            </p>
+          {profile.vet && (
+            <div className="section-card">
+              <div className="section-title">Primary Veterinarian</div>
+              <div style={{ background: "#f0fdf4", border: "1px solid #86efac", padding: "10px 14px", borderRadius: 8 }}>
+                <strong>{profile.vet.clinic_name}</strong>
+                {profile.vet.address && <div style={{ fontSize: "0.85rem", marginTop: 4 }}>{profile.vet.address}</div>}
+                {profile.vet.phone && <div style={{ fontSize: "0.85rem" }}>Phone: {profile.vet.phone}</div>}
+                {profile.vet.email && <div style={{ fontSize: "0.85rem" }}>Email: {profile.vet.email}</div>}
+              </div>
+            </div>
           )}
         </div>
       )}
 
-      {profile.vet && (
-        <div className="section-card">
-          <div className="section-title">Primary Veterinarian</div>
-          <div style={{ background: "#f0fdf4", border: "1px solid #86efac", padding: "10px 14px", borderRadius: 8 }}>
-            <strong>{profile.vet.clinic_name}</strong>
-            {profile.vet.address && <div style={{ fontSize: "0.85rem", marginTop: 4 }}>{profile.vet.address}</div>}
-            {profile.vet.phone && <div style={{ fontSize: "0.85rem" }}>Phone: {profile.vet.phone}</div>}
-            {profile.vet.email && <div style={{ fontSize: "0.85rem" }}>Email: {profile.vet.email}</div>}
-          </div>
-        </div>
-      )}
+      <div className="section-grid section-grid-equal">
+        <TrackingDevicesSection profile={profile} />
+        <ExternalSourcesSection profile={profile} activeSources={activeSources} />
+      </div>
 
-      <TrackingDevicesSection profile={profile} />
-      <ExternalSourcesSection profile={profile} activeSources={activeSources} />
       {profile.qr && <QrCodeSection profile={profile} />}
-    </div>
+    </>
   );
 }
 
 function TrackingDevicesSection({ profile }: Props) {
+  const [openType, setOpenType] = useState<string | null>(null);
+
   return (
     <div className="section-card">
       <div className="section-title">Tracking Devices</div>
@@ -92,26 +113,30 @@ function TrackingDevicesSection({ profile }: Props) {
 
       {profile.devices.length === 0 && <EmptyState compact message="No tracking devices linked yet." />}
 
-      <form onSubmit={profile.linkDevice}>
-        <label>
-          Device type
-          <select value={profile.deviceType} onChange={(event) => profile.setDeviceType(event.target.value)}>
-            <option value="airtag">AirTag</option>
-            <option value="amazon_tag">Amazon Tag</option>
-          </select>
-        </label>
-        <label>
-          Share URL
-          <input
-            value={profile.deviceUrl}
-            onChange={(event) => profile.setDeviceUrl(event.target.value)}
-            type="url"
-            placeholder="https://findmy.apple.com/..."
-            required
-          />
-        </label>
-        <button type="submit">Link device</button>
-      </form>
+      <div className="option-btn-grid">
+        {DEVICE_TYPE_OPTIONS.map((option) => {
+          const linked = profile.devices.some((d) => d.device_type === option.value);
+          return (
+            <div key={option.value} style={{ position: "relative" }}>
+              <button
+                type="button"
+                className={linked ? "option-btn option-btn-linked" : "option-btn"}
+                onClick={() => setOpenType(openType === option.value ? null : option.value)}
+              >
+                {linked ? "✓ " : ""}{option.label}
+              </button>
+              {openType === option.value && (
+                <LinkPopover
+                  label={option.label}
+                  defaultUrl=""
+                  onClose={() => setOpenType(null)}
+                  onSubmit={(url) => profile.linkDevice(option.value, url)}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -120,6 +145,8 @@ function ExternalSourcesSection({
   profile,
   activeSources
 }: Props & { activeSources: PetProfileState["sources"] }) {
+  const [openKey, setOpenKey] = useState<string | null>(null);
+
   return (
     <div className="section-card">
       <div className="section-title">External Sources</div>
@@ -135,18 +162,30 @@ function ExternalSourcesSection({
 
       {activeSources.length === 0 && <EmptyState compact message="No external sources linked yet." />}
 
-      <form onSubmit={profile.linkSource}>
-        <label>
-          Source
-          <select value={profile.sourceType} onChange={(event) => profile.setSourceType(event.target.value)}>
-            <option value="petfinder_api">PetFinder</option>
-            <option value="petfbi_scrape">PetFBI</option>
-            <option value="facebook_groups">Facebook Groups</option>
-            <option value="manual_link">Manual link</option>
-          </select>
-        </label>
-        <button type="submit">Link source</button>
-      </form>
+      <div className="option-btn-grid">
+        {SOURCE_OPTIONS.map((option: SourceOption) => {
+          const linked = activeSources.some((s) => s.source_name === option.label);
+          return (
+            <div key={option.key} style={{ position: "relative" }}>
+              <button
+                type="button"
+                className={linked ? "option-btn option-btn-linked" : "option-btn"}
+                onClick={() => setOpenKey(openKey === option.key ? null : option.key)}
+              >
+                {linked ? "✓ " : ""}{option.label}
+              </button>
+              {openKey === option.key && (
+                <LinkPopover
+                  label={option.label}
+                  defaultUrl={option.default_url}
+                  onClose={() => setOpenKey(null)}
+                  onSubmit={(url) => profile.linkSource(option, url)}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
