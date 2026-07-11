@@ -27,6 +27,15 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Reserves the vertical scrollbar's width on every page, whether or not
+     that page's content actually overflows. Without this, navigating
+     between a short page (no scrollbar) and a tall one (scrollbar present)
+     changes the available layout width, shifting all centered content —
+     most visibly the nav bar — a few pixels sideways on every click. */
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
 }
