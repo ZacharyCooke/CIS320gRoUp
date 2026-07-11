@@ -84,17 +84,20 @@ a {
 }
 
 @media (min-width: 901px) {
-  /* Single row: logo pinned left (.top-nav-bar shrinks to its content since
-     the toggle button inside it is hidden at this width), links centered
-     in the remaining space. Mobile keeps its own stacked/collapsed layout
-     via the max-width:900px block below. */
+  /* Single row, 3-column grid: logo (column 1, its own natural width),
+     links (column 2, auto width, truly centered on the full row since
+     columns 1 and 3 are equal 1fr spacers regardless of the logo's actual
+     width), and an empty balancing column 3 (no element needed — grid
+     tracks exist independent of whether a child is placed in them).
+     Mobile keeps its own stacked/collapsed layout via the max-width:900px
+     block below. */
   .top-nav {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
   }
 
   .top-nav-links {
-    flex: 1;
     justify-content: center;
   }
 }

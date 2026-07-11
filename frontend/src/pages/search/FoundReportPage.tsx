@@ -9,16 +9,21 @@ import { isAuthenticated } from "../../services/auth";
 // Unlike AuthLayout (used by Login/Register/Verify — pages with no session
 // yet by definition), this page is reachable by both anonymous visitors and
 // logged-in owners, so it gets the same top bar as every other page instead
-// of a bare centered logo.
+// of a bare centered logo. The top bar renders outside .form-page-wrapper
+// (not as its child) since that wrapper is a centered flexbox that shrinks
+// its children to their content width — inside it, the bar wouldn't span
+// the full page width the way it does everywhere else in the app.
 function FoundReportLayout({ children, contentStyle }: { children: ReactNode; contentStyle?: CSSProperties }) {
   return (
-    <div className="form-page-wrapper">
+    <>
       {isAuthenticated() ? <NavBar /> : <PublicTopBar />}
-      <section className="form-page" style={contentStyle}>
-        {children}
-      </section>
-      <Footer />
-    </div>
+      <div className="form-page-wrapper">
+        <section className="form-page" style={contentStyle}>
+          {children}
+        </section>
+        <Footer />
+      </div>
+    </>
   );
 }
 
