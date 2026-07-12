@@ -2,13 +2,6 @@ import SwiftUI
 import UIKit
 import UserNotifications
 
-/// Wraps a scanned/deep-linked profile token so it can drive a
-/// `navigationDestination(item:)` binding without conforming String itself.
-struct ProfileLink: Identifiable, Hashable {
-    let token: String
-    var id: String { token }
-}
-
 /// Bridges UIKit push-notification lifecycle callbacks into the SwiftUI app
 /// via `@UIApplicationDelegateAdaptor` — no standalone AppDelegate-driven scene.
 final class AppDelegate: NSObject, UIApplicationDelegate {
@@ -46,21 +39,38 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct PetRecoveryApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @State private var profileLink: ProfileLink?
+    // `navigationDestination(item:)` needs iOS 17; this app targets 16, so the
+    // token and its presentation flag are tracked separately instead.
+    @State private var profileToken: String?
+    @State private var showProfileLink = false
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                RootView()
-                    .navigationDestination(item: $profileLink) { link in
-                        PublicPetProfileView(token: link.token)
+            // A deep-linked public profile is presented as a sheet, not a
+            // pushed destination, so it never needs an app-wide NavigationStack
+            // wrapping RootView. That wrapping previously nested a NavigationStack
+            // around MainTabView's TabView (which has its own per-tab
+            // NavigationStack), which suppressed every tab's navigation bar
+            // and toolbar entirely.
+            RootView()
+                .sheet(isPresented: $showProfileLink) {
+                    if let profileToken {
+                        NavigationStack {
+                            PublicPetProfileView(token: profileToken)
+                                .toolbar {
+                                    ToolbarItem(placement: .cancellationAction) {
+                                        Button("Close") { showProfileLink = false }
+                                    }
+                                }
+                        }
                     }
-            }
-            .onOpenURL { url in
-                if let token = deepLinkToken(from: url) {
-                    profileLink = ProfileLink(token: token)
                 }
-            }
+                .onOpenURL { url in
+                    if let token = deepLinkToken(from: url) {
+                        profileToken = token
+                        showProfileLink = true
+                    }
+                }
         }
     }
 

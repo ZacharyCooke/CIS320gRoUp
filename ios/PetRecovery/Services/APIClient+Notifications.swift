@@ -5,12 +5,14 @@ extension APIClient {
         petUpdate: Bool? = nil,
         boloAlert: Bool? = nil,
         nearbyLost: Bool? = nil,
+        nearbyFound: Bool? = nil,
         storeAccount: Bool? = nil
     ) async throws {
         struct Body: Encodable {
             let notif_pet_update: Bool?
             let notif_bolo_alert: Bool?
             let notif_nearby_lost: Bool?
+            let notif_nearby_found: Bool?
             let notif_store_account: Bool?
         }
 
@@ -21,6 +23,7 @@ extension APIClient {
                 notif_pet_update: petUpdate,
                 notif_bolo_alert: boloAlert,
                 notif_nearby_lost: nearbyLost,
+                notif_nearby_found: nearbyFound,
                 notif_store_account: storeAccount
             )
         )

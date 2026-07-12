@@ -162,12 +162,6 @@ struct AccountSettingsView: View {
     }
 
     private func logout() async {
-        let refreshToken = UserDefaults.standard.string(forKey: "refresh_token")
-        if let rt = refreshToken {
-            struct Body: Encodable { let refresh_token: String }
-            _ = try? await APIClient.shared.request(path: "auth/logout", method: "POST", body: Body(refresh_token: rt))
-        }
-        APIClient.shared.setAccessToken("")
-        UserDefaults.standard.removeObject(forKey: "refresh_token")
+        await APIClient.shared.logout()
     }
 }

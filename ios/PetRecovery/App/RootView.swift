@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// App entry point, gated on auth state. `@AppStorage` observes the same
-/// UserDefaults key APIClient writes to, so logging in/out anywhere in the
-/// app automatically swaps this view without any extra plumbing.
+/// App entry point, gated on auth state. Observes APIClient's `@Published
+/// accessToken` (Keychain-backed) so logging in/out anywhere in the app
+/// automatically swaps this view without any extra plumbing.
 struct RootView: View {
-    @AppStorage("access_token") private var accessToken: String = ""
+    @ObservedObject private var apiClient = APIClient.shared
 
     var body: some View {
-        if accessToken.isEmpty {
+        if apiClient.accessToken == nil {
             LoginView()
         } else {
             MainTabView()

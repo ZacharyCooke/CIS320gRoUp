@@ -1,8 +1,11 @@
 name: PetRecovery
 options:
   bundleIdPrefix: com.petrecovery
+  # navigationDestination(isPresented:)/(for:) are iOS 16+ APIs the app
+  # relies on for QR-scan/deep-link navigation — don't lower this without
+  # refactoring that navigation first.
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "16.0"
   createIntermediateGroups: true
 
 configs:
@@ -18,16 +21,24 @@ targets:
   PetRecovery:
     type: application
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources:
       - path: App
       - path: Models
       - path: Services
       - path: Views
     info:
+      # xcodegen regenerates Info.plist wholesale from this block on every
+      # `xcodegen generate` — hand-edits to the generated file are silently
+      # wiped. Add new keys here, not in Info.plist directly.
       path: Info.plist
       properties:
         UILaunchScreen: {}
+        NSCameraUsageDescription: "PetRecovery uses your camera to scan QR codes on pet tags."
+        NSLocationWhenInUseUsageDescription: "PetRecovery uses your location to search for lost pets nearby and verify reward proximity during reunions."
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - petrecovery
     entitlements:
       path: PetRecovery.entitlements
       properties:
@@ -39,7 +50,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.petrecovery.app
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
-        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     dependencies:
       # Adjust the product name to whichever Stripe module you actually
       # use — StripePaymentSheet covers the escrow/reward payment flow;
@@ -54,7 +65,7 @@ targets:
   PetRecoveryTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "15.0"
+    deploymentTarget: "16.0"
     sources:
       - path: PetRecoveryTests
     dependencies:

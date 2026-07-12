@@ -91,27 +91,11 @@ struct LoginView: View {
     private func login() async {
         isLoading = true
         error = nil
-        struct Body: Encodable { let email, password: String }
-        struct LoginResponse: Decodable {
-            let access_token: String?
-            let refresh_token: String?
-            let requires_2fa: Bool?
-            let user_id: String?
-        }
         do {
-            let (data, _) = try await APIClient.shared.request(
-                path: "auth/login", method: "POST",
-                body: Body(email: email, password: password)
-            )
-            let resp = try JSONDecoder().decode(LoginResponse.self, from: data)
-            if resp.requires_2fa == true, let uid = resp.user_id {
+            let result = try await APIClient.shared.login(email: email, password: password)
+            if result.requires_2fa == true, let uid = result.user_id {
                 pendingUserId = uid
                 screen = .totp
-            } else if let token = resp.access_token {
-                APIClient.shared.setAccessToken(token)
-                if let rt = resp.refresh_token {
-                    UserDefaults.standard.set(rt, forKey: "refresh_token")
-                }
             }
         } catch {
             self.error = "Sign in failed — check your email and password."
@@ -123,23 +107,11 @@ struct LoginView: View {
         guard let uid = pendingUserId else { return }
         isLoading = true
         error = nil
-        struct Body: Encodable { let user_id, code: String }
-        struct TokenResponse: Decodable { let access_token: String; let refresh_token: String? }
         do {
-            let (data, resp) = try await APIClient.shared.request(
-                path: "auth/2fa/verify", method: "POST",
-                body: Body(user_id: uid, code: totpCode)
-            )
-            guard let http = resp as? HTTPURLResponse, http.statusCode == 200 else {
+            let success = try await APIClient.shared.verifyTwoFactor(userId: uid, code: totpCode)
+            if !success {
                 error = "Invalid code — check Authenticator and try again."
                 totpCode = ""
-                isLoading = false
-                return
-            }
-            let decoded = try JSONDecoder().decode(TokenResponse.self, from: data)
-            APIClient.shared.setAccessToken(decoded.access_token)
-            if let rt = decoded.refresh_token {
-                UserDefaults.standard.set(rt, forKey: "refresh_token")
             }
         } catch {
             self.error = "Invalid code — check Authenticator and try again."

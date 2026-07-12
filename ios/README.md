@@ -48,6 +48,15 @@ machine, etc.). This doc covers the one-time setup and the ongoing workflow.
 
 ---
 
+## ⚠️ Info.plist is generated — never hand-edit it
+
+`xcodegen generate` regenerates `Info.plist` wholesale from `project.yml`'s
+`targets.PetRecovery.info.properties` block every time it runs, silently
+discarding anything you edited directly in the file. Add new keys (usage
+descriptions, URL schemes, etc.) to `project.yml`, not to `Info.plist`.
+
+---
+
 ## Ongoing workflow
 
 - **Day-to-day Swift editing happens on Windows** (VS Code, Claude Code, etc.).

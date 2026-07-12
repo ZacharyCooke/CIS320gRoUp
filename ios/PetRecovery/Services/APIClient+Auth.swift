@@ -31,8 +31,53 @@ extension APIClient {
             body: Body(user_id: userId, channel: channel, code: code)
         )
         let response = try JSONDecoder().decode(VerifyResponse.self, from: data)
-        if let token = response.access_token { setAccessToken(token) }
+        if let token = response.access_token {
+            setTokens(accessToken: token, refreshToken: response.refresh_token)
+        }
         return response
+    }
+
+    struct LoginResult: Decodable {
+        let access_token: String?
+        let refresh_token: String?
+        let requires_2fa: Bool?
+        let user_id: String?
+    }
+
+    func login(email: String, password: String) async throws -> LoginResult {
+        struct Body: Encodable { let email: String; let password: String }
+        let (data, _) = try await request(path: "auth/login", method: "POST", body: Body(email: email, password: password))
+        let result = try JSONDecoder().decode(LoginResult.self, from: data)
+        if let token = result.access_token {
+            setTokens(accessToken: token, refreshToken: result.refresh_token)
+        }
+        return result
+    }
+
+    /// Returns `true` on success (tokens stored), `false` on an invalid code.
+    func verifyTwoFactor(userId: String, code: String) async throws -> Bool {
+        struct Body: Encodable { let user_id: String; let code: String }
+        struct TokenResponse: Decodable { let access_token: String; let refresh_token: String? }
+
+        let (data, response) = try await request(
+            path: "auth/2fa/verify", method: "POST", body: Body(user_id: userId, code: code)
+        )
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            return false
+        }
+        let decoded = try JSONDecoder().decode(TokenResponse.self, from: data)
+        setTokens(accessToken: decoded.access_token, refreshToken: decoded.refresh_token)
+        return true
+    }
+
+    /// Revokes the refresh token server-side, then clears local storage
+    /// regardless of whether the network call succeeds.
+    func logout() async {
+        if let refreshToken {
+            struct Body: Encodable { let refresh_token: String }
+            _ = try? await request(path: "auth/logout", method: "POST", body: Body(refresh_token: refreshToken))
+        }
+        clearTokens()
     }
 
     func getMe() async throws -> MeResponse {

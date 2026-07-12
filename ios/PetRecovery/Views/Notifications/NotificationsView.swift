@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 struct AppNotification: Decodable, Identifiable {
     let id: String
@@ -7,6 +8,8 @@ struct AppNotification: Decodable, Identifiable {
     let body: String
     let read: Bool
     let created_at: String
+    let trigger_latitude: Double?
+    let trigger_longitude: Double?
 }
 
 struct NotificationsResponse: Decodable {
@@ -22,19 +25,40 @@ enum NotificationFilter: String, CaseIterable {
     case amber = "Claims"
 }
 
-func notificationColor(for type: String) -> (filter: NotificationFilter, color: Color) {
+// Mirrors the web client's notificationMeta() (NotificationsPage.tsx) so the
+// two platforms show the same icon/label/color per notification type.
+func notificationMeta(for type: String) -> (filter: NotificationFilter, color: Color, icon: String, label: String) {
     switch type {
-    case "pet_update", "found_report_match", "search_complete":
-        return (.red, .red)
+    case "pet_update":
+        return (.red, .red, "🐕", "Your Lost Pet")
+    case "found_report_match":
+        return (.red, .red, "📍", "Found Report Match")
+    case "search_complete":
+        return (.red, .red, "✅", "Search Update")
     case "bolo_alert":
-        return (.blue, .blue)
+        return (.blue, .blue, "📡", "BOLO Alert")
     case "nearby_lost":
-        return (.green, .green)
-    case "claim_alert", "store_account":
-        return (.amber, .orange)
+        return (.green, .green, "🐾", "Lost Pet Near You")
+    case "nearby_found":
+        return (.green, .green, "🤝", "Found Pet Near You")
+    case "claim_alert":
+        return (.amber, .orange, "🤝", "Claim")
+    case "store_account":
+        return (.amber, .orange, "🛍", "Store & Account")
     default:
-        return (.all, .secondary)
+        return (.all, .secondary, "🔔", "Notification")
     }
+}
+
+// Only BOLO/community types carry a trigger location worth centering a map
+// on (the recipient's proximity ping location, not the pet's own coordinates
+// — see notification-links.ts for the same rule on web).
+private let mapLinkableTypes: Set<String> = ["bolo_alert", "nearby_lost", "nearby_found"]
+
+private func mapCoordinate(for n: AppNotification) -> CLLocationCoordinate2D? {
+    guard mapLinkableTypes.contains(n.type),
+          let lat = n.trigger_latitude, let lng = n.trigger_longitude else { return nil }
+    return CLLocationCoordinate2D(latitude: lat, longitude: lng)
 }
 
 struct NotificationsView: View {
@@ -47,11 +71,12 @@ struct NotificationsView: View {
     @State private var notifPetUpdate = true
     @State private var notifBoloAlert = true
     @State private var notifNearbyLost = true
+    @State private var notifNearbyFound = true
     @State private var notifStoreAccount = false
     @State private var settingsLoaded = false
 
     private var filtered: [AppNotification] {
-        filter == .all ? notifications : notifications.filter { notificationColor(for: $0.type).filter == filter }
+        filter == .all ? notifications : notifications.filter { notificationMeta(for: $0.type).filter == filter }
     }
 
     var body: some View {
@@ -86,7 +111,18 @@ struct NotificationsView: View {
                         } else {
                             Section {
                                 ForEach(filtered) { n in
-                                    NotificationRow(notification: n)
+                                    if let coordinate = mapCoordinate(for: n) {
+                                        NavigationLink {
+                                            CommunityMapView(initialCoordinate: coordinate)
+                                        } label: {
+                                            NotificationRow(notification: n, isLinkable: true)
+                                        }
+                                        .simultaneousGesture(TapGesture().onEnded {
+                                            Task { await markRead(n) }
+                                        })
+                                    } else {
+                                        NotificationRow(notification: n)
+                                    }
                                 }
                             }
                         }
@@ -104,6 +140,10 @@ struct NotificationsView: View {
                                 Toggle("Community alerts within 2 miles", isOn: $notifNearbyLost)
                                     .onChange(of: notifNearbyLost) { value in
                                         Task { try? await APIClient.shared.updateNotificationSettings(nearbyLost: value) }
+                                    }
+                                Toggle("Found-pet alerts nearby", isOn: $notifNearbyFound)
+                                    .onChange(of: notifNearbyFound) { value in
+                                        Task { try? await APIClient.shared.updateNotificationSettings(nearbyFound: value) }
                                     }
                                 Toggle("Store & account notifications", isOn: $notifStoreAccount)
                                     .onChange(of: notifStoreAccount) { value in
@@ -148,14 +188,30 @@ struct NotificationsView: View {
         notifPetUpdate = me.user.notif_pet_update
         notifBoloAlert = me.user.notif_bolo_alert
         notifNearbyLost = me.user.notif_nearby_lost
+        notifNearbyFound = me.user.notif_nearby_found
         notifStoreAccount = me.user.notif_store_account
         settingsLoaded = true
+    }
+
+    private func markRead(_ n: AppNotification) async {
+        guard !n.read else { return }
+        if let idx = notifications.firstIndex(where: { $0.id == n.id }) {
+            notifications[idx] = AppNotification(
+                id: n.id, type: n.type, title: n.title, body: n.body, read: true,
+                created_at: n.created_at, trigger_latitude: n.trigger_latitude, trigger_longitude: n.trigger_longitude
+            )
+        }
+        unread = max(0, unread - 1)
+        _ = try? await APIClient.shared.request(path: "notifications/\(n.id)/read", method: "PATCH")
     }
 
     private func markAllRead() async {
         _ = try? await APIClient.shared.request(path: "notifications/read-all", method: "POST")
         notifications = notifications.map {
-            AppNotification(id: $0.id, type: $0.type, title: $0.title, body: $0.body, read: true, created_at: $0.created_at)
+            AppNotification(
+                id: $0.id, type: $0.type, title: $0.title, body: $0.body, read: true,
+                created_at: $0.created_at, trigger_latitude: $0.trigger_latitude, trigger_longitude: $0.trigger_longitude
+            )
         }
         unread = 0
     }
@@ -163,28 +219,47 @@ struct NotificationsView: View {
 
 private struct NotificationRow: View {
     let notification: AppNotification
+    var isLinkable: Bool = false
 
     var body: some View {
-        let color = notificationColor(for: notification.type).color
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Circle().fill(color).frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
-                Text(notification.title).bold()
-                Spacer()
-                if !notification.read {
-                    Circle().fill(.teal).frame(width: 8, height: 8)
-                        .accessibilityHidden(true)
+        let meta = notificationMeta(for: notification.type)
+        HStack(alignment: .top, spacing: 10) {
+            Text(meta.icon)
+                .font(.title3)
+                .frame(width: 32, height: 32)
+                .background(meta.color.opacity(0.15))
+                .clipShape(Circle())
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(meta.label)
+                    .font(.caption2).bold()
+                    .foregroundStyle(meta.color)
+                HStack {
+                    Text(notification.title).bold()
+                    Spacer()
+                    if !notification.read {
+                        Circle().fill(.teal).frame(width: 8, height: 8)
+                            .accessibilityHidden(true)
+                    }
+                }
+                Text(notification.body).font(.subheadline).foregroundStyle(.secondary)
+                HStack {
+                    Text(formatDate(notification.created_at))
+                        .font(.caption).foregroundStyle(.tertiary)
+                    if isLinkable {
+                        Spacer()
+                        Text("View on map →")
+                            .font(.caption2).bold()
+                            .foregroundStyle(meta.color)
+                    }
                 }
             }
-            Text(notification.body).font(.subheadline).foregroundStyle(.secondary)
-            Text(formatDate(notification.created_at))
-                .font(.caption).foregroundStyle(.tertiary)
         }
         .padding(.vertical, 4)
         .listRowBackground(notification.read ? Color.clear : Color.teal.opacity(0.06))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(notification.read ? "" : "Unread. ")\(notificationColor(for: notification.type).filter.rawValue): \(notification.title)")
+        .accessibilityLabel("\(notification.read ? "" : "Unread. ")\(meta.label): \(notification.title)")
         .accessibilityValue("\(notification.body), \(formatDate(notification.created_at))")
     }
 

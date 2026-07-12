@@ -8,6 +8,7 @@ struct RegisterResponse: Decodable {
 struct VerifyResponse: Decodable {
     let verified: Bool
     let access_token: String?
+    let refresh_token: String?
 }
 
 struct PetResponse: Decodable {
@@ -18,9 +19,12 @@ struct PetDTO: Decodable {
     let id: String
     let name: String
     let species: String
+    let breed: String?
     let color: String
     let size: String
     let status: String
+    let photo_urls: [String]
+    let microchip_number: String?
     let temperament: String
     let approach_notes: String?
     let medical_conditions: [MedicalConditionDTO]
@@ -132,8 +136,46 @@ struct MeUserDTO: Decodable {
     let notif_pet_update: Bool
     let notif_bolo_alert: Bool
     let notif_nearby_lost: Bool
+    let notif_nearby_found: Bool
     let notif_store_account: Bool
     let is_premium: Bool
+}
+
+struct NearbyMissingPetsResponse: Decodable {
+    let missing_pets: [NearbyMissingPetDTO]
+    let total: Int
+}
+
+// last_seen_lat/lng are fuzzed server-side (within ~300ft of the true
+// reported location) before ever reaching the client — see search.routes.ts.
+struct NearbyMissingPetDTO: Decodable, Identifiable {
+    let search_id: String
+    let pet_id: String
+    let owner_id: String
+    let started_at: String
+    let name: String
+    let species: String
+    let breed: String?
+    let color: String
+    let photo_urls: [String]
+    let temperament: String
+    let approach_notes: String?
+    let qr_code_token: String
+    let distance_miles: Double
+    let last_seen_lat: Double
+    let last_seen_lng: Double
+    let tracking_devices: [TrackingDevicePointDTO]
+
+    var id: String { search_id }
+}
+
+struct TrackingDevicePointDTO: Decodable, Identifiable {
+    let id: String
+    let device_type: String
+    let share_url: String
+    let last_known_latitude: Double
+    let last_known_longitude: Double
+    let last_updated_at: String?
 }
 
 struct RewardDTO: Decodable, Identifiable {

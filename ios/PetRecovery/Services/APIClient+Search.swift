@@ -35,4 +35,18 @@ extension APIClient {
 
         _ = try? await request(path: "searches/\(searchId)", method: "PATCH", body: Body(status: "closed"))
     }
+
+    /// Active lost-pet searches near a location, for the Community Map. Any
+    /// logged-in user may browse this, not just the search's owner.
+    func getNearbyMissingPets(lat: Double, lng: Double, radiusMiles: Double) async throws -> NearbyMissingPetsResponse {
+        let (data, _) = try await request(
+            path: "searches/nearby",
+            queryItems: [
+                URLQueryItem(name: "lat", value: String(lat)),
+                URLQueryItem(name: "lng", value: String(lng)),
+                URLQueryItem(name: "radius_miles", value: String(radiusMiles))
+            ]
+        )
+        return try JSONDecoder().decode(NearbyMissingPetsResponse.self, from: data)
+    }
 }
