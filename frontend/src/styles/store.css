@@ -1,27 +1,4 @@
 /* Ad components (shared by StorePage and DashboardPage) */
-.ad-strip {
-  background: #fefce8;
-  border: 1px solid #fde047;
-  border-radius: 10px;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.ad-strip p {
-  flex: 1;
-  font-size: 0.85rem;
-  color: #1e293b;
-  margin: 0;
-}
-
-.ad-strip a {
-  color: var(--color-teal-700);
-  font-weight: 600;
-}
-
 .ad-label {
   font-size: 0.65rem;
   font-weight: 700;
@@ -76,6 +53,33 @@
   color: var(--color-teal-700);
   font-weight: 600;
   font-size: 0.82rem;
+}
+
+/* Side-rail ad placement — fixed to the outer page margins, never inline
+   with content. Only shown once the viewport is wide enough to fit both a
+   200px rail plus a comfortable gap outside the centered ~1120px content
+   column on each side; below that threshold no ad renders at all rather
+   than falling back into the content flow. */
+.ad-rail {
+  position: fixed;
+  top: 110px;
+  width: 200px;
+  z-index: 5;
+  display: none;
+}
+
+.ad-rail-left {
+  left: 24px;
+}
+
+.ad-rail-right {
+  right: 24px;
+}
+
+@media (min-width: 1650px) {
+  .ad-rail {
+    display: block;
+  }
 }
 
 /* Store page */

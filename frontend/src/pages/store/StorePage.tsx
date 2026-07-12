@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
-import { AdBanner } from "../../components/AdBanner";
+import { AdRail } from "../../components/AdRail";
 import { EmptyState } from "../../components/EmptyState";
 import { NavBar } from "../../components/NavBar";
 import { PublicTopBar } from "../../components/PublicTopBar";
@@ -169,12 +169,12 @@ export function StorePage() {
   return (
     <>
       {authed ? <NavBar /> : <PublicTopBar />}
+      {!userLoading && <AdRail isPremium={isPremium} />}
       <section className="store-page">
         <div className="store-cart-row">
           <span className="cart-pill">🛒 Cart ({cartCount})</span>
         </div>
 
-        {!userLoading && <AdBanner isPremium={isPremium} adIndex={0} />}
       {userError && (
         <p className="form-hint" role="alert">
           Could not confirm your Premium status right now — ads may show even if you're subscribed.{" "}

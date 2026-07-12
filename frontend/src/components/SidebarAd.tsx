@@ -30,26 +30,6 @@ interface AdProps {
   adIndex?: number;
 }
 
-export function AdBanner({ isPremium, adIndex = 0 }: AdProps) {
-  const [dismissed, setDismissed] = useState(false);
-  if (isPremium || dismissed) return null;
-
-  const ad = AD_CREATIVES[adIndex % AD_CREATIVES.length];
-
-  return (
-    <div className="ad-strip">
-      <span className="ad-label">Ad</span>
-      <p>
-        🎉 <strong>{ad.headline}</strong> — {ad.body}{" "}
-        <a href={ad.href} onClick={(e) => e.preventDefault()}>Learn more →</a>
-      </p>
-      <button type="button" className="ad-close" onClick={() => setDismissed(true)} aria-label="Dismiss ad">
-        ✕
-      </button>
-    </div>
-  );
-}
-
 export function SidebarAd({ isPremium, adIndex = 1 }: AdProps) {
   const [dismissed, setDismissed] = useState(false);
   if (isPremium || dismissed) return null;

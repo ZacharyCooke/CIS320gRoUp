@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { NotificationBell } from "../../components/NotificationBell";
-import { AdBanner, SidebarAd } from "../../components/AdBanner";
+import { AdRail } from "../../components/AdRail";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
 import { EmptyState } from "../../components/EmptyState";
@@ -57,6 +57,8 @@ export function DashboardPage() {
 
   return (
     <section className="app-shell">
+      <AdRail isPremium={user?.is_premium ?? false} />
+
       {showScanner && (
         <Suspense fallback={null}>
           <QRScannerModal onClose={() => setShowScanner(false)} />
@@ -77,8 +79,6 @@ export function DashboardPage() {
           <button type="button" onClick={() => navigate("/pets/new")}>+ Add Pet</button>
         </div>
       </div>
-
-      <AdBanner isPremium={user?.is_premium ?? false} adIndex={0} />
 
       {loading && <Spinner label="Loading your pets…" />}
       {error && <ErrorState message={error} onRetry={loadPets} />}
@@ -147,8 +147,6 @@ export function DashboardPage() {
             <div className="plus">＋</div>
             <p>Register Another Pet</p>
           </div>
-
-          <SidebarAd isPremium={user?.is_premium ?? false} adIndex={1} />
         </div>
       )}
     </section>
