@@ -18,7 +18,7 @@ function FoundReportLayout({ children, contentStyle }: { children: ReactNode; co
     <>
       {isAuthenticated() ? <NavBar /> : <PublicTopBar />}
       <div className="form-page-wrapper">
-        <section className="form-page" style={contentStyle}>
+        <section className="form-page found-report-page" style={contentStyle}>
           {children}
         </section>
         <Footer />
@@ -194,7 +194,9 @@ export function FoundReportPage() {
           <div className="form-section-title">Where It Was Found</div>
 
           <label>
-            Location <span style={{ fontWeight: 400, color: "#dc2626" }}>*</span>
+            <span style={{ display: "block", textAlign: "center" }}>
+              Location <span style={{ fontWeight: 400, color: "#dc2626" }}>*</span>
+            </span>
             <button type="button" onClick={autoFillGPS} disabled={locating} className="btn-outline" style={{ marginBottom: "0.5rem" }}>
               {locating ? "Getting location…" : "📍 Use my GPS location"}
             </button>

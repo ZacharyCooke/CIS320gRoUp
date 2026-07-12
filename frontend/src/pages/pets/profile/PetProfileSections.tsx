@@ -15,13 +15,13 @@ export function PetTemperamentCard({ profile }: Props) {
   const temperamentInfo = TEMPERAMENT_LABELS[pet.temperament] ?? { label: pet.temperament, color: "#6b7280" };
 
   return (
-    <div className="section-card">
+    <div className="section-card temperament-card">
       <div className="section-title">Temperament &amp; Approach</div>
-      <span className="badge" style={{ background: temperamentInfo.color, color: "#fff" }}>
+      <span className="badge temperament-badge" style={{ background: temperamentInfo.color, color: "#fff" }}>
         {temperamentInfo.label}
       </span>
       {pet.approach_notes && (
-        <p style={{ marginTop: 10, fontStyle: "italic", color: "#475569" }}>{pet.approach_notes}</p>
+        <p className="temperament-notes">{pet.approach_notes}</p>
       )}
     </div>
   );
@@ -88,7 +88,7 @@ function TrackingDevicesSection({ profile }: Props) {
   const [openType, setOpenType] = useState<string | null>(null);
 
   return (
-    <div className="section-card">
+    <div className="section-card section-card-center">
       <div className="section-title">Tracking Devices</div>
       {profile.devices.map((device) => {
         const info = DEVICE_LABELS[device.device_type] ?? { label: device.device_type, icon: "Tracker" };
@@ -122,7 +122,7 @@ function TrackingDevicesSection({ profile }: Props) {
                 className={linked ? "option-btn option-btn-linked" : "option-btn"}
                 onClick={() => setOpenType(openType === option.value ? null : option.value)}
               >
-                {linked ? "✓ " : ""}{option.label}
+                {option.label}
               </button>
               {openType === option.value && (
                 <LinkPopover
@@ -148,9 +148,7 @@ function ExternalSourcesSection({
 
   return (
     <div className="section-card">
-      <div className="section-title">External Sources</div>
-
-      <SearchTipsPanel />
+      <div className="section-title section-title-center">External Sources</div>
 
       <div className="option-btn-grid">
         {SOURCE_OPTIONS.map((option: SourceOption) => {
@@ -162,7 +160,7 @@ function ExternalSourcesSection({
                 className={linked ? "option-btn option-btn-linked" : "option-btn"}
                 onClick={() => setOpenKey(openKey === option.key ? null : option.key)}
               >
-                {linked ? "✓ " : ""}{option.label}
+                {option.label}
               </button>
               {openKey === option.key && (
                 <LinkPopover
@@ -176,6 +174,8 @@ function ExternalSourcesSection({
           );
         })}
       </div>
+
+      <SearchTipsPanel />
     </div>
   );
 }
@@ -185,34 +185,30 @@ function QrCodeSection({ profile }: Props) {
   if (!pet || !qr) return null;
 
   return (
-    <div className="section-card full">
-      <div className="section-title">QR Code &amp; Smart Tag</div>
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
-        <img
-          src={qr.png_data_url}
-          alt={`QR code for ${pet.name}`}
-          style={{ width: 140, height: 140, border: "1px solid #e5e7eb", borderRadius: 12, flexShrink: 0 }}
-        />
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: 10 }}>
-            Print this on a collar tag. Anyone who scans it sees {pet.name}&apos;s public profile, no app or login required.
-          </p>
-          <p style={{ fontSize: "0.8rem", wordBreak: "break-all", marginBottom: 12 }}>
-            <a href={qr.profile_url} target="_blank" rel="noopener noreferrer">{qr.profile_url}</a>
-          </p>
-          <div className="action-row">
-            <a href={qr.png_data_url} download={`${pet.name}-qr.png`}>
-              <button type="button">Download PNG</button>
-            </a>
-            <button
-              type="button"
-              style={{ background: "#fff", color: "#0f766e", border: "1.5px solid #99f6e4" }}
-              onClick={profile.rotateQr}
-            >
-              Regenerate code
-            </button>
-          </div>
-        </div>
+    <div className="section-card full qr-section">
+      <div className="section-title section-title-center">QR Code &amp; Smart Tag</div>
+      <img
+        src={qr.png_data_url}
+        alt={`QR code for ${pet.name}`}
+        className="qr-image"
+      />
+      <p className="qr-caption">
+        Print this on a collar tag. Anyone who scans it sees {pet.name}&apos;s public profile, no app or login required.
+      </p>
+      <p className="qr-url">
+        <a href={qr.profile_url} target="_blank" rel="noopener noreferrer">{qr.profile_url}</a>
+      </p>
+      <div className="qr-actions">
+        <a href={qr.png_data_url} download={`${pet.name}-qr.png`}>
+          <button type="button">Download PNG</button>
+        </a>
+        <button
+          type="button"
+          style={{ background: "#fff", color: "#0f766e", border: "1.5px solid #99f6e4" }}
+          onClick={profile.rotateQr}
+        >
+          Regenerate code
+        </button>
       </div>
     </div>
   );

@@ -177,15 +177,11 @@ export function NotificationsPage() {
 
   return (
     <section className="app-shell" style={{ maxWidth: 720 }}>
-      <Link to="/dashboard" style={{ display: "inline-block", marginBottom: 20 }}>← Dashboard</Link>
-
-      <div className="page-header-row">
-        <div>
-          <h1>🔔 Notifications{unread > 0 ? ` (${unread})` : ""}</h1>
-          <p className="page-sub">Stay updated on your pets' searches and lost pets near you.</p>
-        </div>
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <h1>🔔 Notifications{unread > 0 ? ` (${unread})` : ""}</h1>
+        <p className="page-sub">Stay updated on your pets' searches and lost pets near you.</p>
         {unread > 0 && (
-          <button type="button" onClick={markAllRead} className="btn-outline">
+          <button type="button" onClick={markAllRead} className="btn-outline" style={{ marginTop: 12 }}>
             Mark all read
           </button>
         )}
@@ -218,7 +214,7 @@ export function NotificationsPage() {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", justifyContent: "center" }}>
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -333,6 +329,10 @@ export function NotificationsPage() {
           />
         </div>
       )}
+
+      <p style={{ textAlign: "center" }}>
+        <Link to="/dashboard">← Dashboard</Link>
+      </p>
     </section>
   );
 }

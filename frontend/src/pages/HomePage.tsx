@@ -43,7 +43,7 @@ export function HomePage() {
                 <span>Run nearby found reports, linked sources, trackers, and vet BOLOs together.</span>
               </div>
               <div>
-                <strong>3 checks</strong>
+                <strong>Three-Factor Reward Integrity</strong>
                 <span>Rewards release only after proximity, pet identity, and owner identity pass.</span>
               </div>
             </div>

@@ -51,6 +51,16 @@ interface TrackingDevicePoint {
 }
 
 const RADIUS_OPTIONS = [5, 10, 25, 50, 100];
+// Rough Leaflet zoom level per radius option — wider radius, more zoomed out —
+// so the initial view frames roughly the whole selected search area instead
+// of always opening at a fixed zoom regardless of what radius is selected.
+const RADIUS_TO_ZOOM: Record<number, number> = {
+  5: 12,
+  10: 11,
+  25: 10,
+  50: 9,
+  100: 7
+};
 const DEMO_LOCATION = { lat: 32.7157, lng: -117.1611 };
 const SPECIES_EMOJI: Record<string, string> = {
   dog: "🐕",
@@ -92,7 +102,7 @@ function labelMarker(marker: any, label: string): any {
 export function CommunityMapPage() {
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
-  const [radiusMiles, setRadiusMiles] = useState(25);
+  const [radiusMiles, setRadiusMiles] = useState(5);
   const [missingPets, setMissingPets] = useState<MissingPet[]>([]);
   const [reports, setReports] = useState<FoundReport[]>([]);
   const [locating, setLocating] = useState(false);
@@ -173,13 +183,15 @@ export function CommunityMapPage() {
         shadowUrl: markerShadowUrl
       });
 
+      const zoom = RADIUS_TO_ZOOM[radiusMiles] ?? 11;
+
       if (!leafletMap.current) {
-        leafletMap.current = L.map(mapRef.current!).setView([lat, lng], 11);
+        leafletMap.current = L.map(mapRef.current!).setView([lat, lng], zoom);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: "© OpenStreetMap contributors"
         }).addTo(leafletMap.current);
       } else {
-        leafletMap.current.setView([lat, lng], 11);
+        leafletMap.current.setView([lat, lng], zoom);
       }
 
       markers.current.forEach((m) => m.remove());
@@ -255,7 +267,7 @@ export function CommunityMapPage() {
       leafletMap.current?.remove();
       leafletMap.current = null;
     };
-  }, [lat, lng, missingPets, reports]);
+  }, [lat, lng, radiusMiles, missingPets, reports]);
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: 900, margin: "0 auto" }}>
@@ -269,8 +281,8 @@ export function CommunityMapPage() {
         <button type="button" onClick={useMyLocation} disabled={locating}>
           {locating ? "Getting location..." : "Use my location"}
         </button>
-        <label>
-          Radius:{" "}
+        <label style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+          Radius:
           <select value={radiusMiles} onChange={(e) => setRadiusMiles(Number(e.target.value))}>
             {RADIUS_OPTIONS.map((r) => (
               <option key={r} value={r}>{r} mi</option>
