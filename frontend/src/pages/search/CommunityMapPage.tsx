@@ -173,7 +173,21 @@ export function CommunityMapPage() {
 
   useEffect(() => {
     if (!mapRef.current || lat == null || lng == null) return;
+    // import("leaflet") resolves near-instantly once the chunk is cached, but
+    // the very first call on this page is a genuine network/parse-bound load.
+    // If missingPets/reports update again (e.g. the data fetch resolving)
+    // while that first import is still in flight, the second effect run's
+    // import can resolve and execute before the first one finishes — and
+    // since the callback unconditionally rebuilds every marker from its own
+    // closure, whichever callback finishes LAST wins even if its data is
+    // stale. That let an out-of-range or since-removed pet's marker linger
+    // on the map after the results list (a plain synchronous render of the
+    // latest state) had already moved on. Guard every mutation behind
+    // `cancelled`, flipped in the cleanup below, so a superseded run's
+    // callback can never touch the map once a newer run has started.
+    let cancelled = false;
     import("leaflet").then((mod) => {
+      if (cancelled) return;
       const L = mod.default ?? mod;
 
       delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -262,6 +276,7 @@ export function CommunityMapPage() {
     });
 
     return () => {
+      cancelled = true;
       markers.current.forEach((m) => m.remove());
       markers.current = [];
       leafletMap.current?.remove();
@@ -271,13 +286,20 @@ export function CommunityMapPage() {
 
   return (
     <div style={{ padding: "1.5rem", maxWidth: 900, margin: "0 auto" }}>
-      <Link to="/dashboard">← Dashboard</Link>
-      <h1>Community Map</h1>
-      <p style={{ color: "#6b7280" }}>
-        See pets reported missing and found-pet reports near a location of your choosing.
-      </p>
+      {(lat == null || lng == null) && (
+        <p style={{ marginBottom: "0.5rem" }}>
+          <Link to="/dashboard">← Dashboard</Link>
+        </p>
+      )}
 
-      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap", marginBottom: "1rem" }}>
+      <div style={{ textAlign: "center" }}>
+        <h1>Community Map</h1>
+        <p style={{ color: "#6b7280" }}>
+          See pets reported missing and found-pet reports near a location of your choosing.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", justifyContent: "center", flexWrap: "wrap", marginBottom: "1rem" }}>
         <button type="button" onClick={useMyLocation} disabled={locating}>
           {locating ? "Getting location..." : "Use my location"}
         </button>
@@ -291,15 +313,19 @@ export function CommunityMapPage() {
         </label>
       </div>
 
-      {error && <p role="alert" style={{ color: "var(--color-danger-600)" }}>{error}</p>}
+      {error && <p role="alert" style={{ color: "var(--color-danger-600)", textAlign: "center" }}>{error}</p>}
 
       {lat == null || lng == null ? (
-        <p style={{ color: "#6b7280" }}>
+        <p style={{ color: "#6b7280", textAlign: "center" }}>
           Click "Use my location" above to see missing and found pets near you.
         </p>
       ) : (
         <>
           <div ref={mapRef} className="map-container" style={{ marginBottom: "1rem", borderRadius: 8 }} />
+
+          <p style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+            <Link to="/dashboard">← Dashboard</Link>
+          </p>
 
           {loading && <p>Loading nearby pets...</p>}
 
