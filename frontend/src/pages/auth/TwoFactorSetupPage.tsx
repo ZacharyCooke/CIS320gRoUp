@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
-import { AuthLayout } from "../../components/AuthLayout";
 import { Spinner } from "../../components/Spinner";
 import { ErrorState } from "../../components/ErrorState";
 
@@ -50,35 +49,42 @@ export function TwoFactorSetupPage() {
 
   if (enabled) {
     return (
-      <AuthLayout contentStyle={{ textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
-        <h1 style={{ color: "#0f766e" }}>2FA Enabled</h1>
-        <p>Your account is now protected. Future logins from new devices will require a code from your authenticator app.</p>
-        <button type="button" onClick={() => navigate("/account/settings")}>
-          Go to Account Settings
-        </button>
-      </AuthLayout>
+      <section className="app-shell" style={{ display: "flex", justifyContent: "center" }}>
+        <div className="form-page" style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
+          <h1 style={{ color: "#0f766e" }}>2FA Enabled</h1>
+          <p>Your account is now protected. Future logins from new devices will require a code from your authenticator app.</p>
+          <button type="button" onClick={() => navigate("/account/settings")}>
+            Go to Account Settings
+          </button>
+        </div>
+      </section>
     );
   }
 
   if (loading) {
     return (
-      <AuthLayout>
-        <Spinner label="Setting up 2FA…" />
-      </AuthLayout>
+      <section className="app-shell" style={{ display: "flex", justifyContent: "center" }}>
+        <div className="form-page">
+          <Spinner label="Setting up 2FA…" />
+        </div>
+      </section>
     );
   }
 
   if (loadError) {
     return (
-      <AuthLayout>
-        <ErrorState message={loadError} onRetry={startSetup} />
-      </AuthLayout>
+      <section className="app-shell" style={{ display: "flex", justifyContent: "center" }}>
+        <div className="form-page">
+          <ErrorState message={loadError} onRetry={startSetup} />
+        </div>
+      </section>
     );
   }
 
   return (
-    <AuthLayout>
+    <section className="app-shell" style={{ display: "flex", justifyContent: "center" }}>
+      <div className="form-page">
         <h1>Set up Two-Factor Authentication</h1>
         <p style={{ color: "#5f6f89" }}>
           Scan this QR code with an authenticator app (e.g., Microsoft Authenticator, Google Authenticator, or Authy) on your phone, then enter the 6-digit code to confirm.
@@ -131,6 +137,7 @@ export function TwoFactorSetupPage() {
             {verifying ? "Verifying…" : "Enable 2FA"}
           </button>
         </form>
-    </AuthLayout>
+      </div>
+    </section>
   );
 }
