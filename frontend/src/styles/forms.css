@@ -77,6 +77,16 @@ button {
   font: inherit;
 }
 
+/* Checkboxes/radios are native-appearance controls, not text fields — the
+   44px min-height meant for inputs/selects/buttons above inflates them into
+   oversized boxes (this is the same fix StorePage's .filter-item had to
+   apply locally; making it universal here means new checkboxes elsewhere
+   don't silently inherit the same bug). */
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: auto;
+}
+
 input,
 select {
   border: 1px solid #cbd5e1;

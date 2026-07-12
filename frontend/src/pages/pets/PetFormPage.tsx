@@ -199,157 +199,152 @@ export function PetFormPage() {
       )}
       <form onSubmit={handleSubmit}>
 
-        <fieldset>
-          <legend>Basic Info</legend>
+        <div className="form-section-title">Basic Info</div>
+        <label>
+          Pet name *
+          <input value={name} onChange={(e) => setName(e.target.value)} required />
+        </label>
+        <label>
+          Species *
+          <select value={species} onChange={(e) => setSpecies(e.target.value)}>
+            <option value="dog">Dog</option>
+            <option value="cat">Cat</option>
+            <option value="bird">Bird</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>
+          Breed
+          <input value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="e.g. Labrador" />
+        </label>
+        <label>
+          Color *
+          <input value={color} onChange={(e) => setColor(e.target.value)} required />
+        </label>
+        <label>
+          Size *
+          <select value={size} onChange={(e) => setSize(e.target.value)}>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </label>
+        <label>
+          Microchip number
+          <input value={microchip} onChange={(e) => setMicrochip(e.target.value)} placeholder="15-digit number" />
+        </label>
+        <label>
+          License tag
+          <input value={licenseTag} onChange={(e) => setLicenseTag(e.target.value)} />
+        </label>
+        <label>
+          Photo
+          <input
+            type="file"
+            accept="image/png,image/jpeg"
+            onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+          />
+        </label>
+
+        <hr className="form-section-divider" />
+        <div className="form-section-title">Temperament</div>
+        <label>
+          Approach behavior
+          <select value={temperament} onChange={(e) => setTemperament(e.target.value)}>
+            <option value="friendly">Friendly — approach freely</option>
+            <option value="cautious">Cautious — approach carefully</option>
+            <option value="report_only">Report Only — do not approach</option>
+            <option value="custom">Other — describe in your own words</option>
+          </select>
+        </label>
+        {temperament === "custom" && (
           <label>
-            Pet name *
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </label>
-          <label>
-            Species *
-            <select value={species} onChange={(e) => setSpecies(e.target.value)}>
-              <option value="dog">Dog</option>
-              <option value="cat">Cat</option>
-              <option value="bird">Bird</option>
-              <option value="other">Other</option>
-            </select>
-          </label>
-          <label>
-            Breed
-            <input value={breed} onChange={(e) => setBreed(e.target.value)} placeholder="e.g. Labrador" />
-          </label>
-          <label>
-            Color *
-            <input value={color} onChange={(e) => setColor(e.target.value)} required />
-          </label>
-          <label>
-            Size *
-            <select value={size} onChange={(e) => setSize(e.target.value)}>
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-            </select>
-          </label>
-          <label>
-            Microchip number
-            <input value={microchip} onChange={(e) => setMicrochip(e.target.value)} placeholder="15-digit number" />
-          </label>
-          <label>
-            License tag
-            <input value={licenseTag} onChange={(e) => setLicenseTag(e.target.value)} />
-          </label>
-          <label>
-            Photo
+            Describe temperament *
             <input
-              type="file"
-              accept="image/png,image/jpeg"
-              onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+              value={temperamentCustom}
+              onChange={(e) => setTemperamentCustom(e.target.value)}
+              placeholder="e.g. Nervous around men, fine with kids and other dogs"
+              required
             />
           </label>
-        </fieldset>
-
-        <fieldset>
-          <legend>Temperament</legend>
+        )}
+        {temperament !== "friendly" && (
           <label>
-            Approach behavior
-            <select value={temperament} onChange={(e) => setTemperament(e.target.value)}>
-              <option value="friendly">Friendly — approach freely</option>
-              <option value="cautious">Cautious — approach carefully</option>
-              <option value="report_only">Report Only — do not approach</option>
-              <option value="custom">Other — describe in your own words</option>
-            </select>
-          </label>
-          {temperament === "custom" && (
-            <label>
-              Describe temperament *
-              <input
-                value={temperamentCustom}
-                onChange={(e) => setTemperamentCustom(e.target.value)}
-                placeholder="e.g. Nervous around men, fine with kids and other dogs"
-                required
-              />
-            </label>
-          )}
-          {temperament !== "friendly" && (
-            <label>
-              Approach notes
-              <textarea
-                value={approachNotes}
-                onChange={(e) => setApproachNotes(e.target.value)}
-                placeholder="e.g. May bite if startled; use treats"
-                rows={3}
-              />
-            </label>
-          )}
-        </fieldset>
-
-        <fieldset>
-          <legend>Medical Conditions</legend>
-          <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-            <input
-              value={conditionInput}
-              onChange={(e) => setConditionInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCondition(); } }}
-              placeholder="e.g. Diabetes"
-            />
-            <button type="button" onClick={addCondition}>Add</button>
-          </div>
-          {conditions.length > 0 && (
-            <ul style={{ listStyle: "none", padding: 0 }}>
-              {conditions.map((c, i) => (
-                <li key={i} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                  <span style={{ flex: 1 }}>{c.condition}</span>
-                  <label style={{ fontSize: "0.85em" }}>
-                    <input
-                      type="checkbox"
-                      checked={c.share_publicly}
-                      onChange={() => toggleShare(i)}
-                    />
-                    {" "}Share publicly
-                  </label>
-                  <button type="button" onClick={() => removeCondition(i)} aria-label="Remove">✕</button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <label>
-            Emergency medical notes
+            Approach notes
             <textarea
-              value={emergencyNotes}
-              onChange={(e) => setEmergencyNotes(e.target.value)}
-              placeholder="e.g. Requires insulin injection twice daily"
+              value={approachNotes}
+              onChange={(e) => setApproachNotes(e.target.value)}
+              placeholder="e.g. May bite if startled; use treats"
               rows={3}
             />
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-            <input
-              type="checkbox"
-              checked={shareEmergencyNotes}
-              onChange={(e) => setShareEmergencyNotes(e.target.checked)}
-            />
-            Share emergency notes on public profile
-          </label>
-        </fieldset>
+        )}
 
-        <fieldset>
-          <legend>Primary Veterinarian</legend>
-          <label>
-            Clinic name
-            <input value={vetName} onChange={(e) => setVetName(e.target.value)} placeholder="e.g. Sunny Paws Vet" />
-          </label>
-          <label>
-            Address
-            <input value={vetAddress} onChange={(e) => setVetAddress(e.target.value)} />
-          </label>
-          <label>
-            Phone
-            <input value={vetPhone} onChange={(e) => setVetPhone(e.target.value)} type="tel" />
-          </label>
-          <label>
-            Email
-            <input value={vetEmail} onChange={(e) => setVetEmail(e.target.value)} type="email" />
-          </label>
-        </fieldset>
+        <hr className="form-section-divider" />
+        <div className="form-section-title">Medical Conditions</div>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <input
+            value={conditionInput}
+            onChange={(e) => setConditionInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCondition(); } }}
+            placeholder="e.g. Diabetes"
+          />
+          <button type="button" onClick={addCondition}>Add</button>
+        </div>
+        {conditions.length > 0 && (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {conditions.map((c, i) => (
+              <li key={i} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                <span style={{ flex: 1 }}>{c.condition}</span>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.85em" }}>
+                  <input
+                    type="checkbox"
+                    checked={c.share_publicly}
+                    onChange={() => toggleShare(i)}
+                  />
+                  Share publicly
+                </label>
+                <button type="button" onClick={() => removeCondition(i)} aria-label="Remove">✕</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <label>
+          Emergency medical notes
+          <textarea
+            value={emergencyNotes}
+            onChange={(e) => setEmergencyNotes(e.target.value)}
+            placeholder="e.g. Requires insulin injection twice daily"
+            rows={3}
+          />
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <input
+            type="checkbox"
+            checked={shareEmergencyNotes}
+            onChange={(e) => setShareEmergencyNotes(e.target.checked)}
+          />
+          Share emergency notes on public profile
+        </label>
+
+        <hr className="form-section-divider" />
+        <div className="form-section-title">Primary Veterinarian</div>
+        <label>
+          Clinic name
+          <input value={vetName} onChange={(e) => setVetName(e.target.value)} placeholder="e.g. Sunny Paws Vet" />
+        </label>
+        <label>
+          Address
+          <input value={vetAddress} onChange={(e) => setVetAddress(e.target.value)} />
+        </label>
+        <label>
+          Phone
+          <input value={vetPhone} onChange={(e) => setVetPhone(e.target.value)} type="tel" />
+        </label>
+        <label>
+          Email
+          <input value={vetEmail} onChange={(e) => setVetEmail(e.target.value)} type="email" />
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Saving…" : isEditMode ? "Save changes" : "Save pet"}
