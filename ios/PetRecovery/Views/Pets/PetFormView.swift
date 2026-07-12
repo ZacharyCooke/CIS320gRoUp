@@ -3,7 +3,12 @@ import SwiftUI
 import UIKit
 
 struct PetFormView: View {
-    var onCreated: ((PetDTO) -> Void)?
+    /// Non-nil when editing an existing pet — prefills the form and PUTs
+    /// instead of POSTing. Nil means "create a new pet."
+    var existingPet: PetDTO? = nil
+    var onSaved: ((PetDTO) -> Void)?
+
+    private var isEditMode: Bool { existingPet != nil }
 
     // Basic
     @State private var name = ""
@@ -12,6 +17,7 @@ struct PetFormView: View {
     @State private var color = ""
     @State private var size = "medium"
     @State private var microchip = ""
+    @State private var licenseTag = ""
 
     // Temperament
     @State private var temperament = "friendly"
@@ -34,6 +40,7 @@ struct PetFormView: View {
     @State private var photoData: Data?
     @State private var photoFileName = "pet-photo.jpg"
 
+    @State private var isLoadingExisting = false
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var photoUploadWarning: String?
@@ -46,6 +53,38 @@ struct PetFormView: View {
     ]
 
     var body: some View {
+        Group {
+            if isLoadingExisting {
+                ProgressView("Loading pet profile…")
+            } else {
+                form
+            }
+        }
+        .navigationTitle(isEditMode ? "Edit Pet" : "Add Pet")
+        .task {
+            if let existingPet {
+                await loadExisting(existingPet)
+            }
+        }
+        .sheet(isPresented: $isPhotoPickerPresented) {
+            PetPhotoPicker(imageData: $photoData, fileName: $photoFileName)
+        }
+        .alert(
+            "Pet Saved",
+            isPresented: Binding(
+                get: { photoUploadWarning != nil },
+                set: { if !$0 { photoUploadWarning = nil } }
+            ),
+            actions: {
+                Button("OK") { dismiss() }
+            },
+            message: {
+                Text(photoUploadWarning ?? "")
+            }
+        )
+    }
+
+    private var form: some View {
         Form {
             Section("Basic Info") {
                 TextField("Name", text: $name)
@@ -64,6 +103,7 @@ struct PetFormView: View {
                 }
                 TextField("Microchip number (optional)", text: $microchip)
                     .keyboardType(.numberPad)
+                TextField("License tag (optional)", text: $licenseTag)
             }
 
             Section("Photo") {
@@ -132,29 +172,36 @@ struct PetFormView: View {
             }
 
             Section {
-                Button("Save Pet") {
+                Button(isEditMode ? "Save Changes" : "Save Pet") {
                     Task { await savePet() }
                 }
                 .disabled(isLoading || name.isEmpty || color.isEmpty)
             }
         }
-        .navigationTitle("Add Pet")
-        .sheet(isPresented: $isPhotoPickerPresented) {
-            PetPhotoPicker(imageData: $photoData, fileName: $photoFileName)
+    }
+
+    private func loadExisting(_ pet: PetDTO) async {
+        isLoadingExisting = true
+        name = pet.name
+        species = pet.species
+        breed = pet.breed ?? ""
+        color = pet.color
+        size = pet.size
+        microchip = pet.microchip_number ?? ""
+        temperament = pet.temperament
+        approachNotes = pet.approach_notes ?? ""
+        licenseTag = pet.license_tag ?? ""
+        conditions = pet.medical_conditions.map { MedicalConditionPayload(condition: $0.condition, share_publicly: $0.share_publicly) }
+        emergencyNotes = pet.medical_emergency_notes ?? ""
+        shareEmergencyNotes = pet.share_emergency_notes
+
+        if let vet = try? await APIClient.shared.getPetVet(petId: pet.id) {
+            vetName = vet.clinic_name
+            vetAddress = vet.address ?? ""
+            vetPhone = vet.phone ?? ""
+            vetEmail = vet.email ?? ""
         }
-        .alert(
-            "Pet Saved",
-            isPresented: Binding(
-                get: { photoUploadWarning != nil },
-                set: { if !$0 { photoUploadWarning = nil } }
-            ),
-            actions: {
-                Button("OK") { dismiss() }
-            },
-            message: {
-                Text(photoUploadWarning ?? "")
-            }
-        )
+        isLoadingExisting = false
     }
 
     private func addCondition() {
@@ -168,14 +215,33 @@ struct PetFormView: View {
         isLoading = true
         errorMessage = nil
         do {
-            let response = try await APIClient.shared.createPet(
-                name: name, species: species, color: color, size: size,
-                temperament: temperament,
-                approachNotes: approachNotes.isEmpty ? nil : approachNotes
-            )
+            let response: PetResponse
+            if let existingPet {
+                response = try await APIClient.shared.updatePet(
+                    petId: existingPet.id,
+                    name: name, species: species,
+                    breed: breed.isEmpty ? nil : breed, color: color, size: size,
+                    microchipNumber: microchip.isEmpty ? nil : microchip,
+                    licenseTag: licenseTag.isEmpty ? nil : licenseTag,
+                    temperament: temperament,
+                    approachNotes: approachNotes.isEmpty ? nil : approachNotes
+                )
+            } else {
+                response = try await APIClient.shared.createPet(
+                    name: name, species: species,
+                    breed: breed.isEmpty ? nil : breed, color: color, size: size,
+                    microchipNumber: microchip.isEmpty ? nil : microchip,
+                    licenseTag: licenseTag.isEmpty ? nil : licenseTag,
+                    temperament: temperament,
+                    approachNotes: approachNotes.isEmpty ? nil : approachNotes
+                )
+            }
             let petId = response.pet.id
 
-            if !conditions.isEmpty || !emergencyNotes.isEmpty {
+            // In edit mode these always sync (so clearing a field actually
+            // clears it); in create mode only send them when there's
+            // something to save. Mirrors PetFormPage.tsx's same rule.
+            if isEditMode || !conditions.isEmpty || !emergencyNotes.isEmpty {
                 try await APIClient.shared.updatePetMedical(
                     petId: petId,
                     conditions: conditions,
@@ -211,14 +277,16 @@ struct PetFormView: View {
                     // shouldn't block the rest of the flow (degrade gracefully, per rules.md).
                     // Route through an alert rather than dismissing immediately, since the
                     // inline error banner below would never be seen before the sheet closes.
-                    onCreated?(response.pet)
+                    onSaved?((try? await APIClient.shared.getPet(petId: petId)) ?? response.pet)
                     photoUploadWarning = "Your pet was saved, but the photo failed to upload. You can add one later from the pet's profile."
                     isLoading = false
                     return
                 }
             }
 
-            onCreated?(response.pet)
+            // Medical/vet/photo updates above aren't reflected in `response.pet`
+            // (captured before they ran) — refetch so the caller gets fresh data.
+            onSaved?((try? await APIClient.shared.getPet(petId: petId)) ?? response.pet)
             dismiss()
         } catch {
             errorMessage = "Failed to save pet — please try again."

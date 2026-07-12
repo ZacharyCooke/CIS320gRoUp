@@ -10,16 +10,22 @@ extension APIClient {
     func createPet(
         name: String,
         species: String,
+        breed: String? = nil,
         color: String,
         size: String,
+        microchipNumber: String? = nil,
+        licenseTag: String? = nil,
         temperament: String = "friendly",
         approachNotes: String? = nil
     ) async throws -> PetResponse {
         struct Body: Encodable {
             let name: String
             let species: String
+            let breed: String?
             let color: String
             let size: String
+            let microchip_number: String?
+            let license_tag: String?
             let temperament: String
             let approach_notes: String?
         }
@@ -27,7 +33,52 @@ extension APIClient {
         let (data, _) = try await request(
             path: "pets",
             method: "POST",
-            body: Body(name: name, species: species, color: color, size: size, temperament: temperament, approach_notes: approachNotes)
+            body: Body(
+                name: name, species: species, breed: breed, color: color, size: size,
+                microchip_number: microchipNumber, license_tag: licenseTag,
+                temperament: temperament, approach_notes: approachNotes
+            )
+        )
+        return try JSONDecoder().decode(PetResponse.self, from: data)
+    }
+
+    func getPet(petId: String) async throws -> PetDTO {
+        let (data, _) = try await request(path: "pets/\(petId)")
+        return try JSONDecoder().decode(PetResponse.self, from: data).pet
+    }
+
+    func updatePet(
+        petId: String,
+        name: String,
+        species: String,
+        breed: String? = nil,
+        color: String,
+        size: String,
+        microchipNumber: String? = nil,
+        licenseTag: String? = nil,
+        temperament: String = "friendly",
+        approachNotes: String? = nil
+    ) async throws -> PetResponse {
+        struct Body: Encodable {
+            let name: String
+            let species: String
+            let breed: String?
+            let color: String
+            let size: String
+            let microchip_number: String?
+            let license_tag: String?
+            let temperament: String
+            let approach_notes: String?
+        }
+
+        let (data, _) = try await request(
+            path: "pets/\(petId)",
+            method: "PUT",
+            body: Body(
+                name: name, species: species, breed: breed, color: color, size: size,
+                microchip_number: microchipNumber, license_tag: licenseTag,
+                temperament: temperament, approach_notes: approachNotes
+            )
         )
         return try JSONDecoder().decode(PetResponse.self, from: data)
     }

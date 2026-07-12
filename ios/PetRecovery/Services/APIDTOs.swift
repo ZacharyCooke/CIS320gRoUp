@@ -1,5 +1,12 @@
 import Foundation
 
+/// URLSession doesn't throw on HTTP error statuses (only network failures),
+/// so endpoints that need to surface a specific server error code (rather
+/// than a generic decode failure) check the status manually and throw this.
+struct APIErrorCode: Error, Decodable {
+    let error: String
+}
+
 struct RegisterResponse: Decodable {
     let user_id: String
     let message: String
@@ -25,6 +32,7 @@ struct PetDTO: Decodable {
     let status: String
     let photo_urls: [String]
     let microchip_number: String?
+    let license_tag: String?
     let temperament: String
     let approach_notes: String?
     let medical_conditions: [MedicalConditionDTO]

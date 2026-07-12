@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct PetProfileView: View {
-    let pet: PetDTO
+    // @State (not `let`) so a successful edit can update what's displayed
+    // immediately, without waiting for the caller to reload and re-push.
+    @State private var pet: PetDTO
 
     @State private var vet: VetDTO?
     @State private var deviceType = "airtag"
@@ -12,6 +14,11 @@ struct PetProfileView: View {
     @State private var isLinkingDevice = false
     @State private var isLinkingSource = false
     @State private var showMarkLost = false
+    @State private var showEditForm = false
+
+    init(pet: PetDTO) {
+        _pet = State(initialValue: pet)
+    }
 
     private let sourceNames = [
         "petfinder_api": "PetFinder", "petfbi_scrape": "PetFBI",
@@ -148,6 +155,23 @@ struct PetProfileView: View {
             }
         }
         .navigationTitle(pet.name)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Edit") { showEditForm = true }
+            }
+        }
+        .sheet(isPresented: $showEditForm) {
+            NavigationStack {
+                PetFormView(existingPet: pet) { updated in
+                    pet = updated
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showEditForm = false }
+                    }
+                }
+            }
+        }
         .task { vet = try? await APIClient.shared.getPetVet(petId: pet.id) }
     }
 

@@ -81,6 +81,19 @@ struct SearchResultsView: View {
         .task {
             await loadResults()
             await loadVetBolos()
+            // Poll for new results while the search is still active — there's
+            // no WebSocket client on iOS (unlike the web client's socket.io
+            // connection), so this is the live-updating substitute. SwiftUI
+            // cancels this task automatically when the view disappears.
+            while !isComplete && !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { break }
+                await loadResults()
+            }
+        }
+        .refreshable {
+            await loadResults()
+            await loadVetBolos()
         }
     }
 

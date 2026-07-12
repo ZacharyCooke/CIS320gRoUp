@@ -98,4 +98,26 @@ extension APIClient {
     func disconnectFacebook() async throws {
         _ = try await request(path: "auth/facebook/disconnect", method: "POST")
     }
+
+    /// Response never reveals whether the email exists — a thrown error here
+    /// means the request itself failed (network/validation), not "not found."
+    func forgotPassword(email: String) async throws {
+        struct Body: Encodable { let email: String }
+        _ = try await request(path: "auth/forgot-password", method: "POST", body: Body(email: email))
+    }
+
+    /// Throws `APIErrorCode(error: "invalid_or_expired_token")` if the token is bad.
+    func resetPassword(token: String, newPassword: String) async throws {
+        struct Body: Encodable { let token: String; let new_password: String }
+        let (data, response) = try await request(
+            path: "auth/reset-password", method: "POST",
+            body: Body(token: token, new_password: newPassword)
+        )
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            if let decoded = try? JSONDecoder().decode(APIErrorCode.self, from: data) {
+                throw decoded
+            }
+            throw URLError(.badServerResponse)
+        }
+    }
 }
