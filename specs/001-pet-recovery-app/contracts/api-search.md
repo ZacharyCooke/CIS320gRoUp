@@ -247,15 +247,16 @@ Update the user's per-type notification toggle settings.
 {
   "notif_pet_update": true,
   "notif_bolo_alert": true,
+  "notif_bolo_radius_miles": 5,
   "notif_nearby_lost": true,
   "notif_nearby_found": true,
   "notif_store_account": false
 }
 ```
 
-All fields optional — only provided fields are updated. `notif_nearby_found` (FR-021a) defaults to `true` and gates the green found-pet-nearby alert the same way `notif_nearby_lost` gates the lost-pet community alert.
+All fields optional — only provided fields are updated. `notif_nearby_found` (FR-021a) defaults to `true` and gates the green found-pet-nearby alert the same way `notif_nearby_lost` gates the lost-pet community alert. `notif_bolo_radius_miles` (number, 1-50, default 5) is the user-configurable BOLO geofence — `community-alert.service.ts` compares live GPS pings against this radius per-user instead of a fixed constant; values outside 1-50 return `400 validation_error`.
 
-**Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_nearby_lost": true, "notif_nearby_found": true, "notif_store_account": false } }`
+**Response 200**: `{ "settings": { "notif_pet_update": true, "notif_bolo_alert": true, "notif_bolo_radius_miles": 5, "notif_nearby_lost": true, "notif_nearby_found": true, "notif_store_account": false } }`
 
 ---
 

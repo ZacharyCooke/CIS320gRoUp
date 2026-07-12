@@ -143,9 +143,16 @@ which never includes `medical_emergency_notes`.
 ## Temperament & approach notes
 
 There is no dedicated `PATCH /pets/:id/temperament` route. `temperament`
-(`friendly` | `cautious` | `report_only`) and `approach_notes` are set via
-`POST /pets` at creation or updated later via `PUT /pets/:id`, same as any
-other pet field.
+(`friendly` | `cautious` | `report_only` | `custom`) and `approach_notes` are
+set via `POST /pets` at creation or updated later via `PUT /pets/:id`, same
+as any other pet field.
+
+When `temperament` is `custom`, `temperament_custom` is required (non-empty
+after trim) — both `POST /pets` and `PUT /pets/:id` validate this and return
+`400 validation_error` otherwise. `temperament_custom` is the owner's own
+free-text description, shown in place of the fixed label everywhere
+temperament displays (pet profile, public QR profile). It's ignored/optional
+for the other three values.
 
 ---
 

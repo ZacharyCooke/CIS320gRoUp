@@ -70,6 +70,7 @@ struct NotificationsView: View {
 
     @State private var notifPetUpdate = true
     @State private var notifBoloAlert = true
+    @State private var notifBoloRadiusMiles: Double = 5
     @State private var notifNearbyLost = true
     @State private var notifNearbyFound = true
     @State private var notifStoreAccount = false
@@ -133,10 +134,23 @@ struct NotificationsView: View {
                                     .onChange(of: notifPetUpdate) { value in
                                         Task { try? await APIClient.shared.updateNotificationSettings(petUpdate: value) }
                                     }
-                                Toggle("BOLO alerts within 1 mile", isOn: $notifBoloAlert)
+                                Toggle("BOLO alerts within \(Int(notifBoloRadiusMiles)) mi", isOn: $notifBoloAlert)
                                     .onChange(of: notifBoloAlert) { value in
                                         Task { try? await APIClient.shared.updateNotificationSettings(boloAlert: value) }
                                     }
+                                if notifBoloAlert {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("BOLO radius: \(Int(notifBoloRadiusMiles)) mi")
+                                            .font(.caption).foregroundStyle(.secondary)
+                                        Slider(value: $notifBoloRadiusMiles, in: 1...50, step: 1) { editing in
+                                            guard !editing else { return }
+                                            Task {
+                                                try? await APIClient.shared.updateNotificationSettings(boloRadiusMiles: notifBoloRadiusMiles)
+                                            }
+                                        }
+                                        .accessibilityValue("\(Int(notifBoloRadiusMiles)) miles")
+                                    }
+                                }
                                 Toggle("Community alerts within 2 miles", isOn: $notifNearbyLost)
                                     .onChange(of: notifNearbyLost) { value in
                                         Task { try? await APIClient.shared.updateNotificationSettings(nearbyLost: value) }
@@ -187,6 +201,7 @@ struct NotificationsView: View {
         guard let me = try? await APIClient.shared.getMe() else { return }
         notifPetUpdate = me.user.notif_pet_update
         notifBoloAlert = me.user.notif_bolo_alert
+        notifBoloRadiusMiles = me.user.notif_bolo_radius_miles
         notifNearbyLost = me.user.notif_nearby_lost
         notifNearbyFound = me.user.notif_nearby_found
         notifStoreAccount = me.user.notif_store_account

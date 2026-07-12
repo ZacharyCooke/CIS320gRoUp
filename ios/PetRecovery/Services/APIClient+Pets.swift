@@ -16,6 +16,7 @@ extension APIClient {
         microchipNumber: String? = nil,
         licenseTag: String? = nil,
         temperament: String = "friendly",
+        temperamentCustom: String? = nil,
         approachNotes: String? = nil
     ) async throws -> PetResponse {
         struct Body: Encodable {
@@ -27,6 +28,7 @@ extension APIClient {
             let microchip_number: String?
             let license_tag: String?
             let temperament: String
+            let temperament_custom: String?
             let approach_notes: String?
         }
 
@@ -36,7 +38,7 @@ extension APIClient {
             body: Body(
                 name: name, species: species, breed: breed, color: color, size: size,
                 microchip_number: microchipNumber, license_tag: licenseTag,
-                temperament: temperament, approach_notes: approachNotes
+                temperament: temperament, temperament_custom: temperamentCustom, approach_notes: approachNotes
             )
         )
         return try JSONDecoder().decode(PetResponse.self, from: data)
@@ -57,6 +59,7 @@ extension APIClient {
         microchipNumber: String? = nil,
         licenseTag: String? = nil,
         temperament: String = "friendly",
+        temperamentCustom: String? = nil,
         approachNotes: String? = nil
     ) async throws -> PetResponse {
         struct Body: Encodable {
@@ -68,6 +71,7 @@ extension APIClient {
             let microchip_number: String?
             let license_tag: String?
             let temperament: String
+            let temperament_custom: String?
             let approach_notes: String?
         }
 
@@ -77,7 +81,7 @@ extension APIClient {
             body: Body(
                 name: name, species: species, breed: breed, color: color, size: size,
                 microchip_number: microchipNumber, license_tag: licenseTag,
-                temperament: temperament, approach_notes: approachNotes
+                temperament: temperament, temperament_custom: temperamentCustom, approach_notes: approachNotes
             )
         )
         return try JSONDecoder().decode(PetResponse.self, from: data)
@@ -172,5 +176,17 @@ extension APIClient {
             method: "POST",
             body: Body(source_type: sourceType, source_name: sourceName, source_url: sourceUrl)
         )
+    }
+
+    /// Sources are account-wide, not per-pet — :id is only used to confirm
+    /// the caller owns a pet before showing their linked sources (matches
+    /// the backend's GET /pets/:id/external-sources semantics).
+    func getExternalSources(petId: String) async throws -> [ExternalSourceDTO] {
+        let (data, _) = try await request(path: "pets/\(petId)/external-sources")
+        return try JSONDecoder().decode(ExternalSourcesResponse.self, from: data).external_sources
+    }
+
+    func unlinkExternalSource(petId: String, sourceId: String) async throws {
+        _ = try await request(path: "pets/\(petId)/external-sources/\(sourceId)", method: "DELETE")
     }
 }

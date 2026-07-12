@@ -21,6 +21,7 @@ struct PetFormView: View {
 
     // Temperament
     @State private var temperament = "friendly"
+    @State private var temperamentCustom = ""
     @State private var approachNotes = ""
 
     // Medical
@@ -49,7 +50,8 @@ struct PetFormView: View {
     private let temperamentOptions = [
         ("friendly", "Friendly — approach freely"),
         ("cautious", "Cautious — approach carefully"),
-        ("report_only", "Report Only — do not approach")
+        ("report_only", "Report Only — do not approach"),
+        ("custom", "Other — describe in your own words")
     ]
 
     var body: some View {
@@ -126,6 +128,11 @@ struct PetFormView: View {
                     }
                 }
                 .pickerStyle(.menu)
+                if temperament == "custom" {
+                    TextField("Describe temperament", text: $temperamentCustom, axis: .vertical)
+                        .lineLimit(2, reservesSpace: true)
+                        .accessibilityHint("Required — your own description shown in place of a fixed temperament label")
+                }
                 if temperament != "friendly" {
                     TextField("Approach notes", text: $approachNotes, axis: .vertical)
                         .lineLimit(3, reservesSpace: true)
@@ -175,7 +182,7 @@ struct PetFormView: View {
                 Button(isEditMode ? "Save Changes" : "Save Pet") {
                     Task { await savePet() }
                 }
-                .disabled(isLoading || name.isEmpty || color.isEmpty)
+                .disabled(isLoading || name.isEmpty || color.isEmpty || (temperament == "custom" && temperamentCustom.trimmingCharacters(in: .whitespaces).isEmpty))
             }
         }
     }
@@ -189,6 +196,7 @@ struct PetFormView: View {
         size = pet.size
         microchip = pet.microchip_number ?? ""
         temperament = pet.temperament
+        temperamentCustom = pet.temperament_custom ?? ""
         approachNotes = pet.approach_notes ?? ""
         licenseTag = pet.license_tag ?? ""
         conditions = pet.medical_conditions.map { MedicalConditionPayload(condition: $0.condition, share_publicly: $0.share_publicly) }
@@ -224,6 +232,7 @@ struct PetFormView: View {
                     microchipNumber: microchip.isEmpty ? nil : microchip,
                     licenseTag: licenseTag.isEmpty ? nil : licenseTag,
                     temperament: temperament,
+                    temperamentCustom: temperament == "custom" ? temperamentCustom.trimmingCharacters(in: .whitespaces) : nil,
                     approachNotes: approachNotes.isEmpty ? nil : approachNotes
                 )
             } else {
@@ -233,6 +242,7 @@ struct PetFormView: View {
                     microchipNumber: microchip.isEmpty ? nil : microchip,
                     licenseTag: licenseTag.isEmpty ? nil : licenseTag,
                     temperament: temperament,
+                    temperamentCustom: temperament == "custom" ? temperamentCustom.trimmingCharacters(in: .whitespaces) : nil,
                     approachNotes: approachNotes.isEmpty ? nil : approachNotes
                 )
             }

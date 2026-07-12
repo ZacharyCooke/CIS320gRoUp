@@ -8,7 +8,9 @@ struct PetProfileView: View {
     @State private var vet: VetDTO?
     @State private var deviceType = "airtag"
     @State private var shareUrl = ""
-    @State private var sourceType = "petfinder_api"
+    @State private var selectedSourceKey = PET_SOURCE_OPTIONS[0].key
+    @State private var sourceUrlInput = PET_SOURCE_OPTIONS[0].defaultURL
+    @State private var linkedSources: [ExternalSourceDTO] = []
     @State private var statusMessage: String?
     @State private var errorMessage: String?
     @State private var isLinkingDevice = false
@@ -18,24 +20,6 @@ struct PetProfileView: View {
 
     init(pet: PetDTO) {
         _pet = State(initialValue: pet)
-    }
-
-    private let sourceNames = [
-        "petfinder_api": "PetFinder", "petfbi_scrape": "PetFBI",
-        "facebook_groups": "Facebook Groups", "manual_link": "Manual link"
-    ]
-    private let sourceUrls = [
-        "petfinder_api": "https://www.petfinder.com", "petfbi_scrape": "https://www.petfbi.org",
-        "facebook_groups": "https://www.facebook.com", "manual_link": "https://petrecovery.app"
-    ]
-
-    private var temperamentLabel: (String, Color) {
-        switch pet.temperament {
-        case "friendly":     return ("Friendly", .green)
-        case "cautious":     return ("Cautious", .orange)
-        case "report_only":  return ("Report Only — Do Not Approach", .red)
-        default:             return (pet.temperament, .gray)
-        }
     }
 
     var body: some View {
@@ -65,7 +49,7 @@ struct PetProfileView: View {
             .sheet(isPresented: $showMarkLost) { MarkLostView(pet: pet) }
 
             Section("Temperament") {
-                let (label, color) = temperamentLabel
+                let (label, color) = temperamentDisplay(temperament: pet.temperament, custom: pet.temperament_custom)
                 HStack {
                     Image(systemName: "pawprint.fill").foregroundStyle(color)
                     Text(label).foregroundStyle(color).fontWeight(.semibold)
@@ -141,17 +125,39 @@ struct PetProfileView: View {
                 .disabled(isLinkingDevice || shareUrl.isEmpty)
             }
 
-            Section("Link External Source") {
-                Picker("Source", selection: $sourceType) {
-                    Text("PetFinder").tag("petfinder_api")
-                    Text("PetFBI").tag("petfbi_scrape")
-                    Text("Facebook Groups").tag("facebook_groups")
-                    Text("Manual link").tag("manual_link")
+            if !linkedSources.isEmpty {
+                Section("Linked Sources") {
+                    ForEach(linkedSources) { source in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(source.source_name).fontWeight(.medium)
+                                Text(source.source_url).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Button("Unlink", role: .destructive) {
+                                Task { await unlinkSource(source) }
+                            }
+                            .font(.caption)
+                        }
+                    }
                 }
+            }
+
+            Section("Link External Source") {
+                Picker("Source", selection: $selectedSourceKey) {
+                    ForEach(PET_SOURCE_OPTIONS) { option in
+                        Text(option.label).tag(option.key)
+                    }
+                }
+                .onChange(of: selectedSourceKey) { newKey in
+                    sourceUrlInput = PET_SOURCE_OPTIONS.first { $0.key == newKey }?.defaultURL ?? ""
+                }
+                TextField("Listing URL", text: $sourceUrlInput)
+                    .keyboardType(.URL).autocorrectionDisabled()
                 Button("Link source") {
                     Task { await linkSource() }
                 }
-                .disabled(isLinkingSource)
+                .disabled(isLinkingSource || sourceUrlInput.isEmpty)
             }
         }
         .navigationTitle(pet.name)
@@ -172,7 +178,10 @@ struct PetProfileView: View {
                 }
             }
         }
-        .task { vet = try? await APIClient.shared.getPetVet(petId: pet.id) }
+        .task {
+            vet = try? await APIClient.shared.getPetVet(petId: pet.id)
+            linkedSources = (try? await APIClient.shared.getExternalSources(petId: pet.id)) ?? []
+        }
     }
 
     private func linkDevice() async {
@@ -187,16 +196,26 @@ struct PetProfileView: View {
     }
 
     private func linkSource() async {
+        guard let option = PET_SOURCE_OPTIONS.first(where: { $0.key == selectedSourceKey }) else { return }
         isLinkingSource = true
         statusMessage = nil; errorMessage = nil
         do {
             try await APIClient.shared.linkExternalSource(
-                petId: pet.id, sourceType: sourceType,
-                sourceName: sourceNames[sourceType] ?? sourceType,
-                sourceUrl: sourceUrls[sourceType] ?? "https://petrecovery.app"
+                petId: pet.id, sourceType: option.dbSourceType,
+                sourceName: option.label, sourceUrl: sourceUrlInput
             )
-            statusMessage = "\(sourceNames[sourceType] ?? sourceType) linked."
+            statusMessage = "\(option.label) linked."
+            linkedSources = (try? await APIClient.shared.getExternalSources(petId: pet.id)) ?? linkedSources
         } catch { errorMessage = error.localizedDescription }
         isLinkingSource = false
+    }
+
+    private func unlinkSource(_ source: ExternalSourceDTO) async {
+        statusMessage = nil; errorMessage = nil
+        do {
+            try await APIClient.shared.unlinkExternalSource(petId: pet.id, sourceId: source.id)
+            linkedSources.removeAll { $0.id == source.id }
+            statusMessage = "\(source.source_name) unlinked."
+        } catch { errorMessage = error.localizedDescription }
     }
 }

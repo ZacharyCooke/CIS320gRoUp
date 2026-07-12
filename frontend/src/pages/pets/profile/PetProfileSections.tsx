@@ -12,7 +12,9 @@ export function PetTemperamentCard({ profile }: Props) {
   const { pet } = profile;
   if (!pet) return null;
 
-  const temperamentInfo = TEMPERAMENT_LABELS[pet.temperament] ?? { label: pet.temperament, color: "#6b7280" };
+  const temperamentInfo = pet.temperament === "custom"
+    ? { label: pet.temperament_custom ?? "Custom", color: "#6b7280" }
+    : TEMPERAMENT_LABELS[pet.temperament] ?? { label: pet.temperament, color: "#6b7280" };
 
   return (
     <div className="section-card">

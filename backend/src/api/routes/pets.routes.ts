@@ -38,6 +38,21 @@ const externalSourceSchema = z.object({
   source_type: z.enum(["petfinder_api", "petfbi_scrape", "manual_link", "facebook_groups"])
 });
 
+// POST /pets and PUT /pets/:id have no schema for the rest of the body
+// (pre-existing gap, unrelated to this) — this validates only the new
+// temperament/temperament_custom invariant. Its parsed output is discarded;
+// req.body is still passed to pets.create()/update() as-is, so this can't
+// accidentally strip any other field from the request.
+const temperamentSchema = z
+  .object({
+    temperament: z.enum(["friendly", "cautious", "report_only", "custom"]).optional(),
+    temperament_custom: z.string().trim().min(1).nullable().optional()
+  })
+  .refine((data) => data.temperament !== "custom" || Boolean(data.temperament_custom?.trim()), {
+    message: "temperament_custom is required when temperament is 'custom'",
+    path: ["temperament_custom"]
+  });
+
 export const petsRouter = Router();
 
 petsRouter.use(authMiddleware);
@@ -65,6 +80,7 @@ petsRouter.get(
 petsRouter.post(
   "/",
   asyncHandler(async (req, res) => {
+    if (!parseOr400(temperamentSchema, req.body, res, "fields")) return;
     try {
       const pet = await pets.create(req.user!.id, req.body);
       res.status(201).json({ pet });
@@ -81,6 +97,7 @@ petsRouter.post(
 petsRouter.put(
   "/:id",
   asyncHandler(async (req, res) => {
+    if (!parseOr400(temperamentSchema, req.body, res, "fields")) return;
     const pet = await pets.update(req.user!.id, req.params.id, req.body);
     if (!pet) {
       res.status(404).json({ error: "pet_not_found" });

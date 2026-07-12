@@ -7,11 +7,12 @@ struct PublicPetProfileView: View {
     @State private var errorMessage: String?
     @State private var isLoading = true
 
-    private func temperamentStyle(_ value: String) -> (String, Color) {
+    private func temperamentStyle(_ value: String, custom: String?) -> (String, Color) {
         switch value {
         case "friendly":    return ("Friendly — safe to approach", .green)
         case "cautious":    return ("Cautious — approach carefully", .orange)
         case "report_only": return ("Report Only — Do Not Approach", .red)
+        case "custom":      return (custom?.isEmpty == false ? custom! : "Custom", .gray)
         default:            return (value, .gray)
         }
     }
@@ -51,7 +52,7 @@ struct PublicPetProfileView: View {
             }
 
             Section("Temperament") {
-                let (label, color) = temperamentStyle(p.temperament)
+                let (label, color) = temperamentStyle(p.temperament, custom: p.temperament_custom)
                 HStack {
                     Image(systemName: "pawprint.fill").foregroundStyle(color)
                     Text(label).foregroundStyle(color).fontWeight(.semibold)

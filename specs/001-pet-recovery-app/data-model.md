@@ -50,7 +50,8 @@ An animal profile registered by an owner. Includes medical, temperament, and vet
 | license_tag | string | Optional |
 | status | enum | safe, lost |
 | lost_at | timestamp | Set when marked lost; null if safe |
-| temperament | enum | friendly, cautious, report_only |
+| temperament | enum | friendly, cautious, report_only, custom |
+| temperament_custom | text | Owner's own temperament description; required when temperament = custom, shown in place of the fixed label wherever temperament displays |
 | approach_notes | text | Free-text guidance for finders (e.g., "responds to name", "scared of loud noise") |
 | medical_conditions | jsonb | Array of {condition, share_publicly: boolean}; owner controls visibility |
 | medical_emergency_notes | text | Critical info for vets/shelters; always shared on vet BOLO emails |
@@ -251,6 +252,17 @@ In-app and push notification records for users. Color-coded by type.
 
 **Relationships**: Belongs to User.
 
+**Notification Settings** (columns on User, not a separate table):
+
+| Field | Type | Notes |
+|---|---|---|
+| notif_pet_update | boolean | Default true; owner updates on their own lost-pet search |
+| notif_bolo_alert | boolean | Default true; BOLO push when within notif_bolo_radius_miles of a missing pet |
+| notif_bolo_radius_miles | decimal | Default 5; range 1-50; user-configurable BOLO geofence (community-alert.service.ts's fixed 5-mile COMMUNITY_RADIUS_MILES fallback still applies beyond this for the wider "lost pet near you" tier) |
+| notif_nearby_lost | boolean | Default true; community alert when a pet is reported lost nearby |
+| notif_nearby_found | boolean | Default true; alert when a found-pet report appears nearby |
+| notif_store_account | boolean | Default false; claim alerts and account-related updates |
+
 ---
 
 ### Reward
@@ -387,8 +399,10 @@ funded → cancelled                        (owner cancels)
 - User.email must be unique and match standard email format
 - User.phone must match E.164 format if provided
 - Pet.microchip_number must be unique across all pets if provided
-- Pet.temperament must be one of: friendly, cautious, report_only
+- Pet.temperament must be one of: friendly, cautious, report_only, custom
+- Pet.temperament_custom is required (non-empty after trim) when temperament = custom
 - Pet.medical_conditions items must include a share_publicly boolean; default false
+- User.notif_bolo_radius_miles must be between 1 and 50 inclusive
 - TrackingDevice.share_url must be a valid HTTPS URL
 - FoundReport.latitude must be between -90 and 90; longitude between -180 and 180
 - LostPetSearch.radius_miles must be between 1 and 500
