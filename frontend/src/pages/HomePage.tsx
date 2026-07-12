@@ -1,33 +1,17 @@
 import { Link } from "react-router-dom";
 import { NavBar } from "../components/NavBar";
+import { PublicTopBar } from "../components/PublicTopBar";
 import { Footer } from "../components/Footer";
-
-function isAuthenticated(): boolean {
-  return !!localStorage.getItem("access_token");
-}
+import { isAuthenticated } from "../services/auth";
 
 export function HomePage() {
   const authed = isAuthenticated();
 
   return (
     <>
-      {authed && <NavBar />}
+      {authed ? <NavBar /> : <PublicTopBar />}
       <main className="home-page">
         <div className="home-shell">
-          {!authed && (
-            <header className="home-topbar">
-              <Link to="/" className="brand-logo brand-logo-large" aria-label="PetRecovery home">
-                <span className="brand-mark">PR</span>
-                <span>PetRecovery</span>
-              </Link>
-              <nav className="home-topbar-links">
-                <Link to="/found-report">Report Found Pet</Link>
-                <Link to="/store">Store</Link>
-                <Link to="/login">Log in</Link>
-              </nav>
-            </header>
-          )}
-
           <section className="home-hero">
             <div className="home-hero-copy">
               <p className="eyebrow">PetRecovery</p>

@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../services/api-client";
 import { AdBanner } from "../../components/AdBanner";
 import { EmptyState } from "../../components/EmptyState";
 import { NavBar } from "../../components/NavBar";
+import { PublicTopBar } from "../../components/PublicTopBar";
 import { Footer } from "../../components/Footer";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
-
-function isAuthenticated(): boolean {
-  return !!localStorage.getItem("access_token");
-}
+import { isAuthenticated } from "../../services/auth";
 
 type Category = "id_tags" | "gps_trackers" | "safety_gear";
 type PetType = "dog" | "cat" | "small_pet";
@@ -170,21 +168,8 @@ export function StorePage() {
 
   return (
     <>
-      {authed && <NavBar />}
+      {authed ? <NavBar /> : <PublicTopBar />}
       <section className="store-page">
-        {!authed && (
-          <header className="home-topbar">
-            <Link to="/" className="brand-logo" aria-label="PetRecovery home">
-              <span className="brand-mark">PR</span>
-              <span>PetRecovery</span>
-            </Link>
-            <nav className="home-topbar-links">
-              <Link to="/found-report">Report Found Pet</Link>
-              <Link to="/login">Log in</Link>
-            </nav>
-          </header>
-        )}
-
         <div className="store-cart-row">
           <span className="cart-pill">🛒 Cart ({cartCount})</span>
         </div>

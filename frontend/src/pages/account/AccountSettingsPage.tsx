@@ -100,8 +100,7 @@ export function AccountSettingsPage() {
 
   return (
     <section className="app-shell" style={{ maxWidth: 520 }}>
-      <Link to="/dashboard" style={{ display: "inline-block", marginBottom: 20 }}>← Dashboard</Link>
-      <h1>Account Settings</h1>
+      <h1 style={{ textAlign: "center" }}>Account Settings</h1>
 
       {actionMsg && <p style={{ color: "#0f766e" }}>{actionMsg}</p>}
       {actionError && <ErrorState message={actionError} />}
@@ -212,6 +211,10 @@ export function AccountSettingsPage() {
           Sign out
         </button>
       </div>
+
+      <p style={{ textAlign: "center" }}>
+        <Link to="/dashboard">← Dashboard</Link>
+      </p>
     </section>
   );
 }

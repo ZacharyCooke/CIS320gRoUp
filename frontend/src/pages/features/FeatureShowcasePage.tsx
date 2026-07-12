@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { Footer } from "../../components/Footer";
+import { NavBar } from "../../components/NavBar";
+import { PublicTopBar } from "../../components/PublicTopBar";
+import { isAuthenticated } from "../../services/auth";
 
 type Phase = "before" | "during" | "community" | "recovery";
 
@@ -9,10 +12,6 @@ interface PhaseContent {
   title: string;
   description: string;
   mock: ReactNode;
-}
-
-function isAuthenticated(): boolean {
-  return !!localStorage.getItem("access_token");
 }
 
 const CONTENT: Record<Phase, PhaseContent> = {
@@ -70,12 +69,9 @@ export function FeatureShowcasePage() {
 
   return (
     <main style={{ minHeight: "100vh", background: "#eef7f4" }}>
+      {authed ? <NavBar /> : <PublicTopBar />}
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 24px 56px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 38 }}>
-          <Link to="/" className="brand-logo brand-logo-large" aria-label="PetRecovery home">
-            <span className="brand-mark">PR</span>
-            <span>PetRecovery</span>
-          </Link>
+        <div style={{ marginBottom: 38, marginTop: 28 }}>
           <Link to="/">← Back to home</Link>
         </div>
 

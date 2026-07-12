@@ -87,7 +87,9 @@ export function PetProfileHeader({ pet, activeSearchId, onMarkLost }: Props) {
 
           {confirmingDelete ? (
             <>
-              <span style={{ fontSize: "0.85rem", color: "#5f6f89" }}>Delete {pet.name}&apos;s profile?</span>
+              <span style={{ gridColumn: "1 / -1", fontSize: "0.85rem", color: "#5f6f89" }}>
+                Delete {pet.name}&apos;s profile?
+              </span>
               <button type="button" className="btn-danger" onClick={handleDelete} disabled={deleting}>
                 {deleting ? "Deleting…" : "Yes, delete"}
               </button>
