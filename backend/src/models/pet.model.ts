@@ -146,7 +146,12 @@ export async function updatePetStatus(
   status: PetStatus
 ): Promise<Pet | null> {
   const result = await pool.query<Pet>(
-    `UPDATE pets SET status = $3::pet_status, updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING *`,
+    `UPDATE pets
+     SET status = $3::pet_status,
+         lost_at = CASE WHEN $3::pet_status = 'lost' THEN now() ELSE NULL END,
+         updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
     [id, ownerId, status]
   );
   return result.rows[0] ?? null;
