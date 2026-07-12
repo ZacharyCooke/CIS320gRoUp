@@ -14,6 +14,7 @@ interface PublicProfile {
   photo_urls: string[];
   status: string;
   temperament: string;
+  temperament_custom: string | null;
   approach_notes: string | null;
   medical_conditions: string[];
   medical_emergency_notes: string | null;
@@ -92,10 +93,9 @@ export function PublicPetProfile() {
     );
   }
 
-  const temperament = TEMPERAMENT_LABELS[profile.temperament] ?? {
-    label: profile.temperament,
-    color: "#6b7280"
-  };
+  const temperament = profile.temperament === "custom"
+    ? { label: profile.temperament_custom ?? "Custom", color: "#6b7280" }
+    : TEMPERAMENT_LABELS[profile.temperament] ?? { label: profile.temperament, color: "#6b7280" };
 
   return (
     <>

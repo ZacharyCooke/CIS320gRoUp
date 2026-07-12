@@ -47,6 +47,7 @@ notificationsRouter.post(
 const settingsSchema = z.object({
   notif_pet_update: z.boolean().optional(),
   notif_bolo_alert: z.boolean().optional(),
+  notif_bolo_radius_miles: z.number().min(1).max(50).optional(),
   notif_nearby_lost: z.boolean().optional(),
   notif_nearby_found: z.boolean().optional(),
   notif_store_account: z.boolean().optional()
@@ -63,6 +64,7 @@ notificationsRouter.patch(
       settings: {
         notif_pet_update: user?.notif_pet_update,
         notif_bolo_alert: user?.notif_bolo_alert,
+        notif_bolo_radius_miles: user?.notif_bolo_radius_miles,
         notif_nearby_lost: user?.notif_nearby_lost,
         notif_nearby_found: user?.notif_nearby_found,
         notif_store_account: user?.notif_store_account

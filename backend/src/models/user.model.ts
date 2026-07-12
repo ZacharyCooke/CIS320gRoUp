@@ -16,6 +16,7 @@ export interface User {
   stripe_customer_id: string | null;
   notif_pet_update: boolean;
   notif_bolo_alert: boolean;
+  notif_bolo_radius_miles: number;
   notif_nearby_lost: boolean;
   notif_nearby_found: boolean;
   notif_store_account: boolean;
@@ -27,6 +28,7 @@ export interface User {
 export interface NotificationSettingsPatch {
   notif_pet_update?: boolean;
   notif_bolo_alert?: boolean;
+  notif_bolo_radius_miles?: number;
   notif_nearby_lost?: boolean;
   notif_nearby_found?: boolean;
   notif_store_account?: boolean;
@@ -94,6 +96,7 @@ export async function markUserContactVerified(
 const NOTIFICATION_SETTINGS_COLUMNS = [
   "notif_pet_update",
   "notif_bolo_alert",
+  "notif_bolo_radius_miles",
   "notif_nearby_lost",
   "notif_nearby_found",
   "notif_store_account"

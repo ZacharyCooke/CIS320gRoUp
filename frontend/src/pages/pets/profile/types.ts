@@ -11,6 +11,7 @@ export interface Pet {
   size: string;
   status: string;
   temperament: string;
+  temperament_custom: string | null;
   approach_notes: string | null;
   medical_conditions: MedicalCondition[];
   medical_emergency_notes: string | null;

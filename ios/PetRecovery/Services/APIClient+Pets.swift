@@ -10,24 +10,79 @@ extension APIClient {
     func createPet(
         name: String,
         species: String,
+        breed: String? = nil,
         color: String,
         size: String,
+        microchipNumber: String? = nil,
+        licenseTag: String? = nil,
         temperament: String = "friendly",
+        temperamentCustom: String? = nil,
         approachNotes: String? = nil
     ) async throws -> PetResponse {
         struct Body: Encodable {
             let name: String
             let species: String
+            let breed: String?
             let color: String
             let size: String
+            let microchip_number: String?
+            let license_tag: String?
             let temperament: String
+            let temperament_custom: String?
             let approach_notes: String?
         }
 
         let (data, _) = try await request(
             path: "pets",
             method: "POST",
-            body: Body(name: name, species: species, color: color, size: size, temperament: temperament, approach_notes: approachNotes)
+            body: Body(
+                name: name, species: species, breed: breed, color: color, size: size,
+                microchip_number: microchipNumber, license_tag: licenseTag,
+                temperament: temperament, temperament_custom: temperamentCustom, approach_notes: approachNotes
+            )
+        )
+        return try JSONDecoder().decode(PetResponse.self, from: data)
+    }
+
+    func getPet(petId: String) async throws -> PetDTO {
+        let (data, _) = try await request(path: "pets/\(petId)")
+        return try JSONDecoder().decode(PetResponse.self, from: data).pet
+    }
+
+    func updatePet(
+        petId: String,
+        name: String,
+        species: String,
+        breed: String? = nil,
+        color: String,
+        size: String,
+        microchipNumber: String? = nil,
+        licenseTag: String? = nil,
+        temperament: String = "friendly",
+        temperamentCustom: String? = nil,
+        approachNotes: String? = nil
+    ) async throws -> PetResponse {
+        struct Body: Encodable {
+            let name: String
+            let species: String
+            let breed: String?
+            let color: String
+            let size: String
+            let microchip_number: String?
+            let license_tag: String?
+            let temperament: String
+            let temperament_custom: String?
+            let approach_notes: String?
+        }
+
+        let (data, _) = try await request(
+            path: "pets/\(petId)",
+            method: "PUT",
+            body: Body(
+                name: name, species: species, breed: breed, color: color, size: size,
+                microchip_number: microchipNumber, license_tag: licenseTag,
+                temperament: temperament, temperament_custom: temperamentCustom, approach_notes: approachNotes
+            )
         )
         return try JSONDecoder().decode(PetResponse.self, from: data)
     }
@@ -121,5 +176,17 @@ extension APIClient {
             method: "POST",
             body: Body(source_type: sourceType, source_name: sourceName, source_url: sourceUrl)
         )
+    }
+
+    /// Sources are account-wide, not per-pet — :id is only used to confirm
+    /// the caller owns a pet before showing their linked sources (matches
+    /// the backend's GET /pets/:id/external-sources semantics).
+    func getExternalSources(petId: String) async throws -> [ExternalSourceDTO] {
+        let (data, _) = try await request(path: "pets/\(petId)/external-sources")
+        return try JSONDecoder().decode(ExternalSourcesResponse.self, from: data).external_sources
+    }
+
+    func unlinkExternalSource(petId: String, sourceId: String) async throws {
+        _ = try await request(path: "pets/\(petId)/external-sources/\(sourceId)", method: "DELETE")
     }
 }

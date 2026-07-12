@@ -4,6 +4,7 @@ extension APIClient {
     func updateNotificationSettings(
         petUpdate: Bool? = nil,
         boloAlert: Bool? = nil,
+        boloRadiusMiles: Double? = nil,
         nearbyLost: Bool? = nil,
         nearbyFound: Bool? = nil,
         storeAccount: Bool? = nil
@@ -11,6 +12,7 @@ extension APIClient {
         struct Body: Encodable {
             let notif_pet_update: Bool?
             let notif_bolo_alert: Bool?
+            let notif_bolo_radius_miles: Double?
             let notif_nearby_lost: Bool?
             let notif_nearby_found: Bool?
             let notif_store_account: Bool?
@@ -22,6 +24,7 @@ extension APIClient {
             body: Body(
                 notif_pet_update: petUpdate,
                 notif_bolo_alert: boloAlert,
+                notif_bolo_radius_miles: boloRadiusMiles,
                 notif_nearby_lost: nearbyLost,
                 notif_nearby_found: nearbyFound,
                 notif_store_account: storeAccount

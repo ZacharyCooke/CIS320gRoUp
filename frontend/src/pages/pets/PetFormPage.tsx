@@ -33,6 +33,7 @@ export function PetFormPage() {
 
   // Temperament
   const [temperament, setTemperament] = useState("friendly");
+  const [temperamentCustom, setTemperamentCustom] = useState("");
   const [approachNotes, setApproachNotes] = useState("");
 
   // Vet
@@ -66,6 +67,7 @@ export function PetFormPage() {
         setEmergencyNotes(pet.medical_emergency_notes ?? "");
         setShareEmergencyNotes(pet.share_emergency_notes ?? true);
         setTemperament(pet.temperament);
+        setTemperamentCustom(pet.temperament_custom ?? "");
         setApproachNotes(pet.approach_notes ?? "");
 
         const vet = vetRes.data.vet;
@@ -104,6 +106,10 @@ export function PetFormPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (temperament === "custom" && !temperamentCustom.trim()) {
+      setError("Please describe this pet's temperament in your own words.");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -116,6 +122,7 @@ export function PetFormPage() {
         microchip_number: microchip || undefined,
         license_tag: licenseTag || undefined,
         temperament,
+        temperament_custom: temperament === "custom" ? temperamentCustom.trim() : undefined,
         approach_notes: approachNotes || undefined
       };
 
@@ -249,8 +256,20 @@ export function PetFormPage() {
               <option value="friendly">Friendly — approach freely</option>
               <option value="cautious">Cautious — approach carefully</option>
               <option value="report_only">Report Only — do not approach</option>
+              <option value="custom">Other — describe in your own words</option>
             </select>
           </label>
+          {temperament === "custom" && (
+            <label>
+              Describe temperament *
+              <input
+                value={temperamentCustom}
+                onChange={(e) => setTemperamentCustom(e.target.value)}
+                placeholder="e.g. Nervous around men, fine with kids and other dogs"
+                required
+              />
+            </label>
+          )}
           {temperament !== "friendly" && (
             <label>
               Approach notes

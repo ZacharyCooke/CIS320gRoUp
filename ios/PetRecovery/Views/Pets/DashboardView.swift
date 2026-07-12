@@ -26,7 +26,7 @@ struct DashboardView: View {
             }
         }
         .navigationTitle("My Pets")
-        .task { await loadPets() }
+        .onAppear { Task { await loadPets() } }
         .refreshable { await loadPets() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -57,7 +57,10 @@ struct DashboardView: View {
     }
 
     private func loadPets() async {
-        isLoading = true
+        // Only show the full-screen spinner on the very first load — returning
+        // to this screen (e.g. after editing a pet) refreshes silently instead
+        // of flashing a spinner over the already-visible list.
+        if pets.isEmpty { isLoading = true }
         loadError = nil
         do {
             pets = try await APIClient.shared.listPets()

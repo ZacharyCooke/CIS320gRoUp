@@ -9,6 +9,7 @@ export interface PublicPetProfile {
   photo_urls: string[];
   status: string;
   temperament: string;
+  temperament_custom: string | null;
   approach_notes: string | null;
   medical_conditions: string[];
   medical_emergency_notes: string | null;
@@ -42,6 +43,7 @@ export async function getPublicProfile(token: string): Promise<PublicPetProfile 
     photo_urls: pet.photo_urls,
     status: pet.status,
     temperament: pet.temperament,
+    temperament_custom: pet.temperament_custom,
     approach_notes: pet.approach_notes,
     medical_conditions: pet.medical_conditions
       .filter((c) => c.share_publicly)

@@ -1,7 +1,11 @@
+// "custom" is a fallback label only — display code should prefer
+// pet.temperament_custom (the owner's own text) whenever temperament is
+// "custom"; this entry just keeps this lookup table exhaustive.
 export const TEMPERAMENT_LABELS: Record<string, { label: string; color: string }> = {
   friendly: { label: "Friendly", color: "#16a34a" },
   cautious: { label: "Cautious", color: "#d97706" },
-  report_only: { label: "Report Only - Do Not Approach", color: "#dc2626" }
+  report_only: { label: "Report Only - Do Not Approach", color: "#dc2626" },
+  custom: { label: "Custom", color: "#6b7280" }
 };
 
 export const SPECIES_EMOJI: Record<string, string> = {

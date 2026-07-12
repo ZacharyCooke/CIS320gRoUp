@@ -1,12 +1,15 @@
 import crypto from "node:crypto";
 import { findActiveSearches } from "../models/lost-pet-search.model.js";
 import { findPetById } from "../models/pet.model.js";
+import { findUserById } from "../models/user.model.js";
 import { boundingBox, haversineDistanceMiles } from "./geo.service.js";
 import { redis } from "../config/redis.js";
 import { dispatchBOLO, dispatchCommunityAlert, dispatchFoundNearbyAlert } from "./notification.service.js";
 import { findRecentFoundReportsInBounds } from "../models/found-report.model.js";
 
-const BOLO_RADIUS_MILES = 5;
+// BOLO radius is per-user now (users.notif_bolo_radius_miles, 1-50, default
+// 5 — see migration 019); COMMUNITY_RADIUS_MILES stays a fixed fallback for
+// the wider "lost pet reported near you" tier beyond a user's BOLO radius.
 const COMMUNITY_RADIUS_MILES = 5;
 const FOUND_REPORT_RADIUS_MILES = 5;
 const FOUND_REPORT_RECENCY_HOURS = 24;
@@ -27,21 +30,30 @@ export async function evaluateLocationUpdate(
   // One trace ID per location update so every search evaluated (skip, dedupe
   // hit, or dispatch) against this single GPS ping can be correlated in logs.
   const traceId = crypto.randomUUID();
+  const user = await findUserById(userId);
+  if (!user) return;
+  const boloRadiusMiles = user.notif_bolo_radius_miles;
+  // The outer distance filter must cover whichever radius is larger for this
+  // user — otherwise a user with a custom BOLO radius above the fixed 5-mile
+  // community radius would get silently cut off before their own (larger)
+  // BOLO radius is ever checked.
+  const maxRadiusMiles = Math.max(boloRadiusMiles, COMMUNITY_RADIUS_MILES);
+
   const activeSearches = await findActiveSearches();
   console.log(
-    `[community-alert] trace=${traceId} user=${userId} evaluating ${activeSearches.length} active search(es)`
+    `[community-alert] trace=${traceId} user=${userId} bolo_radius_miles=${boloRadiusMiles} evaluating ${activeSearches.length} active search(es)`
   );
 
   for (const search of activeSearches) {
     if (search.owner_id === userId) continue;
 
     const distance = haversineDistanceMiles(search.center_lat, search.center_lng, lat, lng);
-    if (distance > COMMUNITY_RADIUS_MILES) continue;
+    if (distance > maxRadiusMiles) continue;
 
     const pet = await findPetById(search.pet_id);
     if (!pet) continue;
 
-    const type = distance <= BOLO_RADIUS_MILES ? "bolo_alert" : "community_alert";
+    const type = distance <= boloRadiusMiles ? "bolo_alert" : "community_alert";
     if (await alreadyNotified(userId, search.id, type)) {
       console.log(`[community-alert] trace=${traceId} search=${search.id} type=${type} skipped (dedupe window active)`);
       continue;
@@ -51,7 +63,7 @@ export async function evaluateLocationUpdate(
       `[community-alert] trace=${traceId} search=${search.id} type=${type} distance_miles=${distance.toFixed(2)} dispatching`
     );
 
-    if (distance <= BOLO_RADIUS_MILES) {
+    if (distance <= boloRadiusMiles) {
       await dispatchBOLO(userId, pet, distance, { lat, lng });
     } else {
       await dispatchCommunityAlert(userId, pet, distance, { lat, lng });

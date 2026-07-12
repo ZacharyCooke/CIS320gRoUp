@@ -155,7 +155,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 - **FR-002a**: System MUST allow a registered user to recover access to their account via a password-reset flow: request a reset link by email, receive a single-use token (expiring after 30 minutes) via email, and set a new password with that token. The request-reset step MUST respond identically regardless of whether the submitted email belongs to a registered account, to prevent account enumeration.
 - **FR-003**: System MUST allow owners to create pet profiles including name, species, breed, color, size, photo(s), and unique identifiers (microchip, license tag).
 - **FR-004**: System MUST allow owners to optionally add medical conditions and medications to a pet profile, with full control over which information is shared publicly. Each medical condition carries an individual `share_publicly` boolean. Emergency medical notes have a separate `share_emergency_notes` boolean (default: true) that independently controls their visibility on the public profile.
-- **FR-005**: System MUST allow owners to set a temperament level (Friendly / Cautious / Report Only) and add approach notes to each pet profile.
+- **FR-005**: System MUST allow owners to set a temperament level (Friendly / Cautious / Report Only / Custom — free text of the owner's own choosing) and add approach notes to each pet profile.
 - **FR-006**: System MUST allow owners to add a primary veterinarian (name, address, phone, email) to each pet profile.
 - **FR-007**: System MUST allow owners to link one or more tracking devices (AirTag, Amazon tag) to a pet profile.
 - **FR-008**: System MUST allow owners to link external found-animal sources (websites or databases) to be included in searches.
@@ -177,7 +177,7 @@ The app is free and supported by contextual banner advertisements. An in-app sto
 **Notifications**
 - **FR-018**: System MUST surface notification permission onboarding on first relevant use and use platform-compliant, user-gesture-based permission prompts where required by the browser or operating system.
 - **FR-019**: System MUST send red notifications to the owner whenever any update occurs on their active lost-pet search (sighting, database match, vet BOLO sent). Tracking-device data (AirTag, Amazon tag) is owner-pasted share URLs with no real-time polling (see Assumptions) and does not currently generate live ping-triggered notifications.
-- **FR-020**: System MUST send blue BOLO alerts to any user who enters within 5 miles of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
+- **FR-020**: System MUST send blue BOLO alerts to any user who enters within their own configured BOLO radius (1-50 miles, default 5) of any location where a pet is currently reported missing (active searches only; does not trigger on recovered or closed searches).
 - **FR-021**: System MUST send location-aware alerts to any user within 5 miles of their current GPS location when a new pet is reported lost.
 - **FR-021a**: System MUST send a location-aware alert to any user within 5 miles of their current GPS location when a found-pet report is submitted nearby (within the last 24 hours and not yet claimed), using the same ping-based location-update mechanism as FR-020/FR-021 rather than any newly stored home-location data. Users may individually toggle this alert type off (see FR-022).
 - **FR-022**: System MUST allow users to individually toggle notification types in settings.

@@ -3,7 +3,7 @@ import { pool } from "../config/database.js";
 export type PetSpecies = "dog" | "cat" | "bird" | "other";
 export type PetSize = "small" | "medium" | "large";
 export type PetStatus = "safe" | "lost";
-export type PetTemperament = "friendly" | "cautious" | "report_only";
+export type PetTemperament = "friendly" | "cautious" | "report_only" | "custom";
 
 export interface MedicalCondition {
   condition: string;
@@ -25,6 +25,10 @@ export interface Pet {
   status: PetStatus;
   lost_at: Date | null;
   temperament: PetTemperament;
+  // Owner's own free-text temperament description — set only when
+  // temperament = 'custom'; the 3 fixed enum values still drive display
+  // color/styling everywhere, this is just what gets shown as the label.
+  temperament_custom: string | null;
   approach_notes: string | null;
   medical_conditions: MedicalCondition[];
   medical_emergency_notes: string | null;
@@ -45,6 +49,7 @@ export interface CreatePetInput {
   microchip_number?: string | null;
   license_tag?: string | null;
   temperament?: PetTemperament;
+  temperament_custom?: string | null;
   approach_notes?: string | null;
 }
 
@@ -52,9 +57,9 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
   const result = await pool.query<Pet>(
     `INSERT INTO pets (
        owner_id, name, species, breed, color, size, weight_lbs,
-       microchip_number, license_tag, temperament, approach_notes
+       microchip_number, license_tag, temperament, temperament_custom, approach_notes
      )
-     VALUES ($1, $2, $3::pet_species, $4, $5, $6::pet_size, $7, $8, $9, COALESCE($10::pet_temperament, 'friendly'::pet_temperament), $11)
+     VALUES ($1, $2, $3::pet_species, $4, $5, $6::pet_size, $7, $8, $9, COALESCE($10::pet_temperament, 'friendly'::pet_temperament), $11, $12)
      RETURNING *`,
     [
       input.owner_id,
@@ -67,6 +72,7 @@ export async function createPet(input: CreatePetInput): Promise<Pet> {
       input.microchip_number ?? null,
       input.license_tag ?? null,
       input.temperament ?? null,
+      input.temperament_custom ?? null,
       input.approach_notes ?? null
     ]
   );
@@ -103,7 +109,8 @@ export async function updatePetById(
        microchip_number = COALESCE($9, microchip_number),
        license_tag = COALESCE($10, license_tag),
        temperament = COALESCE($11, temperament),
-       approach_notes = COALESCE($12, approach_notes),
+       temperament_custom = COALESCE($12, temperament_custom),
+       approach_notes = COALESCE($13, approach_notes),
        updated_at = now()
      WHERE id = $1 AND owner_id = $2
      RETURNING *`,
@@ -119,6 +126,7 @@ export async function updatePetById(
       updates.microchip_number ?? null,
       updates.license_tag ?? null,
       updates.temperament ?? null,
+      updates.temperament_custom ?? null,
       updates.approach_notes ?? null
     ]
   );
@@ -146,7 +154,12 @@ export async function updatePetStatus(
   status: PetStatus
 ): Promise<Pet | null> {
   const result = await pool.query<Pet>(
-    `UPDATE pets SET status = $3::pet_status, updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING *`,
+    `UPDATE pets
+     SET status = $3::pet_status,
+         lost_at = CASE WHEN $3::pet_status = 'lost' THEN now() ELSE NULL END,
+         updated_at = now()
+     WHERE id = $1 AND owner_id = $2
+     RETURNING *`,
     [id, ownerId, status]
   );
   return result.rows[0] ?? null;

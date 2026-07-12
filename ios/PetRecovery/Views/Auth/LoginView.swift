@@ -8,6 +8,7 @@ struct LoginView: View {
     @State private var screen: Screen = .credentials
     @State private var error: String?
     @State private var isLoading = false
+    @State private var showForgotPassword = false
 
     enum Screen { case credentials, totp }
 
@@ -48,7 +49,13 @@ struct LoginView: View {
                 .disabled(isLoading || email.isEmpty || password.isEmpty)
 
                 NavigationLink("Create account", destination: RegisterView())
+
+                Button("Forgot password?") { showForgotPassword = true }
+                    .foregroundStyle(.secondary)
             }
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView()
         }
     }
 

@@ -1,5 +1,12 @@
 import Foundation
 
+/// URLSession doesn't throw on HTTP error statuses (only network failures),
+/// so endpoints that need to surface a specific server error code (rather
+/// than a generic decode failure) check the status manually and throw this.
+struct APIErrorCode: Error, Decodable {
+    let error: String
+}
+
 struct RegisterResponse: Decodable {
     let user_id: String
     let message: String
@@ -25,7 +32,11 @@ struct PetDTO: Decodable {
     let status: String
     let photo_urls: [String]
     let microchip_number: String?
+    let license_tag: String?
     let temperament: String
+    // Owner's own text, set only when temperament == "custom" — see
+    // temperamentDisplay() for the shared display rule.
+    let temperament_custom: String?
     let approach_notes: String?
     let medical_conditions: [MedicalConditionDTO]
     let medical_emergency_notes: String?
@@ -41,6 +52,18 @@ struct MedicalConditionDTO: Decodable {
 struct MedicalConditionPayload: Encodable {
     let condition: String
     let share_publicly: Bool
+}
+
+struct ExternalSourcesResponse: Decodable {
+    let external_sources: [ExternalSourceDTO]
+}
+
+struct ExternalSourceDTO: Decodable, Identifiable {
+    let id: String
+    let source_name: String
+    let source_url: String
+    let source_type: String
+    let is_active: Bool
 }
 
 struct VetDTO: Decodable {
@@ -66,6 +89,7 @@ struct PublicProfileDTO: Decodable {
     let photo_urls: [String]
     let status: String
     let temperament: String
+    let temperament_custom: String?
     let approach_notes: String?
     let medical_conditions: [String]
     let medical_emergency_notes: String?
@@ -135,6 +159,7 @@ struct MeUserDTO: Decodable {
     let email: String
     let notif_pet_update: Bool
     let notif_bolo_alert: Bool
+    let notif_bolo_radius_miles: Double
     let notif_nearby_lost: Bool
     let notif_nearby_found: Bool
     let notif_store_account: Bool

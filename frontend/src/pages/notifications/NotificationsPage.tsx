@@ -23,6 +23,7 @@ interface NotificationItem {
 interface NotificationSettings {
   notif_pet_update: boolean;
   notif_bolo_alert: boolean;
+  notif_bolo_radius_miles: number;
   notif_nearby_lost: boolean;
   notif_nearby_found: boolean;
   notif_store_account: boolean;
@@ -109,6 +110,7 @@ export function NotificationsPage() {
       setSettings({
         notif_pet_update: meRes.data.user.notif_pet_update,
         notif_bolo_alert: meRes.data.user.notif_bolo_alert,
+        notif_bolo_radius_miles: meRes.data.user.notif_bolo_radius_miles,
         notif_nearby_lost: meRes.data.user.notif_nearby_lost,
         notif_nearby_found: meRes.data.user.notif_nearby_found,
         notif_store_account: meRes.data.user.notif_store_account
@@ -147,6 +149,17 @@ export function NotificationsPage() {
       await apiClient.patch("/notifications/settings", { [key]: next[key] });
     } catch {
       setSettings(settings);
+    }
+  }
+
+  async function updateBoloRadius(miles: number) {
+    if (!settings) return;
+    const previous = settings;
+    setSettings({ ...settings, notif_bolo_radius_miles: miles });
+    try {
+      await apiClient.patch("/notifications/settings", { notif_bolo_radius_miles: miles });
+    } catch {
+      setSettings(previous);
     }
   }
 
@@ -303,11 +316,29 @@ export function NotificationsPage() {
             onChange={() => toggleSetting("notif_pet_update")}
           />
           <SettingRow
-            label="BOLO alerts within 1 mile"
-            sub="Notified when you enter 1 mile of a missing pet's last known location"
+            label={`BOLO alerts within ${settings.notif_bolo_radius_miles} mi`}
+            sub={`Notified when you enter ${settings.notif_bolo_radius_miles} mile${settings.notif_bolo_radius_miles === 1 ? "" : "s"} of a missing pet's last known location`}
             checked={settings.notif_bolo_alert}
             onChange={() => toggleSetting("notif_bolo_alert")}
           />
+          {settings.notif_bolo_alert && (
+            <div className="list-row" style={{ paddingTop: 0 }}>
+              <label style={{ width: "100%", fontSize: "0.8rem", color: "#64748b" }}>
+                BOLO radius: {settings.notif_bolo_radius_miles} mi
+                <input
+                  type="range"
+                  min={1}
+                  max={50}
+                  value={settings.notif_bolo_radius_miles}
+                  onChange={(e) => setSettings({ ...settings, notif_bolo_radius_miles: Number(e.target.value) })}
+                  onMouseUp={(e) => updateBoloRadius(Number((e.target as HTMLInputElement).value))}
+                  onTouchEnd={(e) => updateBoloRadius(Number((e.target as HTMLInputElement).value))}
+                  aria-label="BOLO alert radius in miles"
+                  style={{ width: "100%", display: "block", marginTop: 4 }}
+                />
+              </label>
+            </div>
+          )}
           <SettingRow
             label="Community alerts within 2 miles"
             sub="Alert when a pet is reported lost within 2 miles of your GPS location"
